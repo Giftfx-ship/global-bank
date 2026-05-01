@@ -1,7 +1,7 @@
 {
-  "name": "global-bank",
-  "version": "1.0.0",
-  "description": "International Banking Simulation",
+  "name": "prime-heritage-bank",
+  "version": "2.0.0",
+  "description": "Premium Heritage Banking Simulation",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
