@@ -9,541 +9,163 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg-body);
-            padding-bottom: 80px;
-            transition: background 0.3s ease;
-        }
-        :root {
-            --gold: #C6A43F;
-            --gold-dark: #9E8032;
-            --success: #10B981;
-        }
-        [data-theme="dark"] {
-            --bg-body: #0A0E1A;
-            --bg-card: #111827;
-            --border: #1F2937;
-            --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
-            --input-bg: #0F1622;
-        }
-        [data-theme="light"] {
-            --bg-body: #F3F4F6;
-            --bg-card: #FFFFFF;
-            --border: #E5E7EB;
-            --text-primary: #111827;
-            --text-secondary: #6B7280;
-            --input-bg: #F9FAFB;
-        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-body); padding-bottom: 80px; transition: background 0.3s ease; }
+        :root { --gold: #C6A43F; --gold-dark: #9E8032; --success: #10B981; }
+        [data-theme="dark"] { --bg-body: #0A0E1A; --bg-card: #111827; --border: #1F2937; --text-primary: #FFFFFF; --text-secondary: #9CA3AF; --input-bg: #0F1622; }
+        [data-theme="light"] { --bg-body: #F3F4F6; --bg-card: #FFFFFF; --border: #E5E7EB; --text-primary: #111827; --text-secondary: #6B7280; --input-bg: #F9FAFB; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
         
-        .top-bar {
-            background: var(--bg-card);
-            padding: 16px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border);
-        }
+        .top-bar { background: var(--bg-card); padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
         .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .logo-icon {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
+        .logo-icon { width: 40px; height: 40px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border-radius: 12px; display: flex; align-items: center; justify-content: center; }
         .logo-icon i { font-size: 20px; color: #0A0E1A; }
         .logo span { color: var(--text-primary); font-size: 18px; font-weight: 600; }
         .user-section { display: flex; align-items: center; gap: 20px; }
-        .balance-pill {
-            background: rgba(198,164,63,0.15);
-            padding: 8px 20px;
-            border-radius: 40px;
-            border: 1px solid rgba(198,164,63,0.3);
-        }
+        .balance-pill { background: rgba(198,164,63,0.15); padding: 8px 20px; border-radius: 40px; border: 1px solid rgba(198,164,63,0.3); }
         .balance-pill i { color: var(--gold); margin-right: 8px; }
         .balance-pill span { color: var(--gold); font-weight: 600; }
-        .theme-toggle {
-            background: rgba(198,164,63,0.1);
-            border: 1px solid var(--border);
-            border-radius: 40px;
-            padding: 5px;
-            display: flex;
-            cursor: pointer;
-        }
-        .theme-option {
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-        .theme-option.active {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: #0A0E1A;
-        }
-        .avatar {
-            width: 42px; height: 42px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-        }
+        .theme-toggle { background: rgba(198,164,63,0.1); border: 1px solid var(--border); border-radius: 40px; padding: 5px; display: flex; cursor: pointer; }
+        .theme-option { padding: 8px 16px; border-radius: 30px; font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+        .theme-option.active { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: #0A0E1A; }
+        .avatar { width: 42px; height: 42px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
         .avatar i { color: #0A0E1A; font-size: 18px; }
         
         .container { max-width: 500px; margin: 0 auto; padding: 24px; }
-        .card {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 32px;
-            border: 1px solid var(--border);
-            animation: slideUp 0.5s;
-        }
-        .title {
-            color: var(--gold);
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 24px;
-            text-align: center;
-        }
+        .card { background: var(--bg-card); border-radius: 24px; padding: 32px; border: 1px solid var(--border); animation: slideUp 0.5s; }
+        .title { color: var(--gold); font-size: 24px; font-weight: 600; margin-bottom: 24px; text-align: center; }
         .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 14px 16px;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 15px;
-        }
-        .pin-inputs, .bbc-inputs {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .pin-inputs input, .bbc-inputs input {
-            width: 55px;
-            height: 55px;
-            text-align: center;
-            font-size: 22px;
-            font-weight: 600;
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            color: var(--gold);
-        }
-        .btn {
-            width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border: none;
-            border-radius: 14px;
-            color: #0A0E1A;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .info-box {
-            background: rgba(198,164,63,0.05);
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 20px;
-            border: 1px solid rgba(198,164,63,0.2);
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-        }
-        .step-container {
-            text-align: center;
-            margin: 25px 0;
-        }
-        .step-circle {
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            background: rgba(198,164,63,0.2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 5px;
-            color: var(--gold);
-            font-weight: 600;
-            font-size: 18px;
-        }
-        .step-circle.active { background: var(--gold); color: #0A0E1A; }
-        .step-circle.completed { background: var(--success); color: white; }
+        .form-group label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
+        .form-group input, .form-group select { width: 100%; padding: 14px 16px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 15px; }
+        .pin-inputs, .code-inputs { display: flex; gap: 12px; justify-content: center; margin: 20px 0; }
+        .pin-inputs input, .code-inputs input { width: 55px; height: 55px; text-align: center; font-size: 22px; font-weight: 600; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; color: var(--gold); }
+        .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border: none; border-radius: 14px; color: #0A0E1A; font-weight: 700; cursor: pointer; font-size: 16px; }
+        .info-box { background: rgba(198,164,63,0.05); border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(198,164,63,0.2); }
+        .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
         
-        .bbc-explanation {
-            background: rgba(198,164,63,0.1);
-            border-radius: 12px;
-            padding: 15px;
-            margin: 15px 0;
-            text-align: center;
-        }
-        .bbc-title {
-            color: var(--gold);
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .bbc-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-        }
-        
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--bg-card);
-            display: flex;
-            justify-content: space-around;
-            padding: 12px 20px;
-            border-top: 1px solid var(--border);
-        }
+        .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); display: flex; justify-content: space-around; padding: 12px 20px; border-top: 1px solid var(--border); }
         .nav-item { text-align: center; cursor: pointer; padding: 8px 16px; border-radius: 12px; }
         .nav-item i { font-size: 20px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
         .nav-item span { font-size: 10px; color: var(--text-secondary); }
         .nav-item.active { background: rgba(198,164,63,0.1); }
         .nav-item.active i, .nav-item.active span { color: var(--gold); }
         
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(4px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        .loader {
-            width: 48px; height: 48px;
-            border: 3px solid rgba(198,164,63,0.2);
-            border-top: 3px solid var(--gold);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 16px;
-        }
+        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
+        .loader { width: 48px; height: 48px; border: 3px solid rgba(198,164,63,0.2); border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
     </style>
 </head>
 <body data-theme="dark">
     <div class="top-bar">
-        <div class="logo" onclick="goToDashboard()">
-            <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage</span>
-        </div>
+        <div class="logo" onclick="location.href='/dashboard.html'"><div class="logo-icon"><i class="fas fa-crown"></i></div><span>Prime Heritage</span></div>
         <div class="user-section">
-            <div class="theme-toggle" onclick="toggleTheme()">
-                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i></div>
-                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div>
-            </div>
+            <div class="theme-toggle" onclick="toggleTheme()"><div class="theme-option" id="darkOption"><i class="fas fa-moon"></i></div><div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div></div>
             <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
-            <div class="avatar" onclick="goToProfile()"><i class="fas fa-user"></i></div>
+            <div class="avatar" onclick="location.href='/profile.html'"><i class="fas fa-user"></i></div>
         </div>
     </div>
 
     <div class="container">
         <div class="card">
             <div class="title"><i class="fas fa-paper-plane"></i> Send Money</div>
-            
-            <div class="info-box">
-                <div class="info-row"><span>Available Balance:</span><span id="userBalance" style="color:var(--gold);">$0.00</span></div>
-                <div class="info-row"><span>Currency:</span><span id="userCurrency">USD</span></div>
-            </div>
+            <div class="info-box"><div class="info-row"><span>Available Balance:</span><span id="userBalance" style="color:var(--gold);">$0.00</span></div></div>
             
             <div id="step1Form">
-                <div class="form-group">
-                    <label>Recipient Account / IBAN</label>
-                    <input type="text" id="recipientAccount" placeholder="Account number or IBAN">
-                </div>
-                <div class="form-group">
-                    <label>Amount (USD)</label>
-                    <input type="number" id="amount" placeholder="0.00">
-                </div>
-                <div class="form-group">
-                    <label>Note (Optional)</label>
-                    <input type="text" id="note" placeholder="What's this for?">
-                </div>
-                <div class="form-group">
-                    <label>Transaction PIN</label>
-                    <div class="pin-inputs">
-                        <input type="password" maxlength="1" id="pin1" onkeyup="movePin(this,'pin2')">
-                        <input type="password" maxlength="1" id="pin2" onkeyup="movePin(this,'pin3')">
-                        <input type="password" maxlength="1" id="pin3" onkeyup="movePin(this,'pin4')">
-                        <input type="password" maxlength="1" id="pin4">
-                    </div>
-                </div>
+                <div class="form-group"><label>Recipient Account / IBAN</label><input type="text" id="recipientAccount" placeholder="Account number or IBAN"></div>
+                <div class="form-group"><label>Amount (USD)</label><input type="number" id="amount" placeholder="0.00"></div>
+                <div class="form-group"><label>Note (Optional)</label><input type="text" id="note" placeholder="What's this for?"></div>
+                <div class="form-group"><label>Transaction PIN</label><div class="pin-inputs"><input type="password" maxlength="1" id="pin1" onkeyup="movePin(this,'pin2')"><input type="password" maxlength="1" id="pin2" onkeyup="movePin(this,'pin3')"><input type="password" maxlength="1" id="pin3" onkeyup="movePin(this,'pin4')"><input type="password" maxlength="1" id="pin4"></div></div>
                 <button class="btn" onclick="sendStep1()">Continue →</button>
             </div>
             
-            <div id="bbcForm" style="display: none;">
-                <div class="step-container" id="stepIndicator">
-                    <div class="step-circle" id="step1Circle">1</div>
-                    <div class="step-circle" id="step2Circle">2</div>
-                    <div class="step-circle" id="step3Circle">3</div>
-                    <div class="step-circle" id="step4Circle">✓</div>
+            <div id="codeForm" style="display: none;">
+                <div id="codeStep1">
+                    <div class="form-group"><label>Authorization Code</label><div class="code-inputs"><input type="text" maxlength="1" id="c1_1" onkeyup="moveCode(this,'c1_2')"><input type="text" maxlength="1" id="c1_2" onkeyup="moveCode(this,'c1_3')"><input type="text" maxlength="1" id="c1_3" onkeyup="moveCode(this,'c1_4')"><input type="text" maxlength="1" id="c1_4" onkeyup="moveCode(this,'c1_5')"><input type="text" maxlength="1" id="c1_5" onkeyup="moveCode(this,'c1_6')"><input type="text" maxlength="1" id="c1_6"></div></div>
+                    <button class="btn" onclick="submitCode1()">Verify</button>
                 </div>
-                
-                <div id="bbcStep1" style="display: block;">
-                    <div class="bbc-explanation">
-                        <div class="bbc-title"><i class="fas fa-exchange-alt"></i> Step 1: Transfer Verification</div>
-                        <div class="bbc-desc">Enter your first authorization code (BBC-1) to initiate the transfer verification process.</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Enter BBC Code 1</label>
-                        <div class="bbc-inputs">
-                            <input type="text" maxlength="1" id="bbc1_1" onkeyup="moveBBC(this,'bbc1_2')">
-                            <input type="text" maxlength="1" id="bbc1_2" onkeyup="moveBBC(this,'bbc1_3')">
-                            <input type="text" maxlength="1" id="bbc1_3" onkeyup="moveBBC(this,'bbc1_4')">
-                            <input type="text" maxlength="1" id="bbc1_4" onkeyup="moveBBC(this,'bbc1_5')">
-                            <input type="text" maxlength="1" id="bbc1_5" onkeyup="moveBBC(this,'bbc1_6')">
-                            <input type="text" maxlength="1" id="bbc1_6">
-                        </div>
-                    </div>
-                    <button class="btn" onclick="submitBBC1()">Verify Code 1</button>
+                <div id="codeStep2" style="display: none;">
+                    <div class="form-group"><label>Security Code</label><div class="code-inputs"><input type="text" maxlength="1" id="c2_1" onkeyup="moveCode(this,'c2_2')"><input type="text" maxlength="1" id="c2_2" onkeyup="moveCode(this,'c2_3')"><input type="text" maxlength="1" id="c2_3" onkeyup="moveCode(this,'c2_4')"><input type="text" maxlength="1" id="c2_4" onkeyup="moveCode(this,'c2_5')"><input type="text" maxlength="1" id="c2_5" onkeyup="moveCode(this,'c2_6')"><input type="text" maxlength="1" id="c2_6"></div></div>
+                    <button class="btn" onclick="submitCode2()">Verify</button>
                 </div>
-                
-                <div id="bbcStep2" style="display: none;">
-                    <div class="bbc-explanation">
-                        <div class="bbc-title"><i class="fas fa-shield-alt"></i> Step 2: Beneficiary Authorization</div>
-                        <div class="bbc-desc">Second authorization code (BBC-2) confirms the beneficiary details are correct.</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Enter BBC Code 2</label>
-                        <div class="bbc-inputs">
-                            <input type="text" maxlength="1" id="bbc2_1" onkeyup="moveBBC(this,'bbc2_2')">
-                            <input type="text" maxlength="1" id="bbc2_2" onkeyup="moveBBC(this,'bbc2_3')">
-                            <input type="text" maxlength="1" id="bbc2_3" onkeyup="moveBBC(this,'bbc2_4')">
-                            <input type="text" maxlength="1" id="bbc2_4" onkeyup="moveBBC(this,'bbc2_5')">
-                            <input type="text" maxlength="1" id="bbc2_5" onkeyup="moveBBC(this,'bbc2_6')">
-                            <input type="text" maxlength="1" id="bbc2_6">
-                        </div>
-                    </div>
-                    <button class="btn" onclick="submitBBC2()">Verify Code 2</button>
-                </div>
-                
-                <div id="bbcStep3" style="display: none;">
-                    <div class="bbc-explanation">
-                        <div class="bbc-title"><i class="fas fa-lock"></i> Step 3: Final Security Check</div>
-                        <div class="bbc-desc">Final code (BBC-3) releases the funds to the recipient.</div>
-                    </div>
-                    <div class="form-group">
-                        <label>Enter BBC Code 3</label>
-                        <div class="bbc-inputs">
-                            <input type="text" maxlength="1" id="bbc3_1" onkeyup="moveBBC(this,'bbc3_2')">
-                            <input type="text" maxlength="1" id="bbc3_2" onkeyup="moveBBC(this,'bbc3_3')">
-                            <input type="text" maxlength="1" id="bbc3_3" onkeyup="moveBBC(this,'bbc3_4')">
-                            <input type="text" maxlength="1" id="bbc3_4" onkeyup="moveBBC(this,'bbc3_5')">
-                            <input type="text" maxlength="1" id="bbc3_5" onkeyup="moveBBC(this,'bbc3_6')">
-                            <input type="text" maxlength="1" id="bbc3_6">
-                        </div>
-                    </div>
-                    <button class="btn" onclick="submitBBC3()">Verify & Complete</button>
+                <div id="codeStep3" style="display: none;">
+                    <div class="form-group"><label>Verification Code</label><div class="code-inputs"><input type="text" maxlength="1" id="c3_1" onkeyup="moveCode(this,'c3_2')"><input type="text" maxlength="1" id="c3_2" onkeyup="moveCode(this,'c3_3')"><input type="text" maxlength="1" id="c3_3" onkeyup="moveCode(this,'c3_4')"><input type="text" maxlength="1" id="c3_4" onkeyup="moveCode(this,'c3_5')"><input type="text" maxlength="1" id="c3_5" onkeyup="moveCode(this,'c3_6')"><input type="text" maxlength="1" id="c3_6"></div></div>
+                    <button class="btn" onclick="submitCode3()">Verify</button>
                 </div>
             </div>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
-        <div class="nav-item" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-        <div class="nav-item active" onclick="goToSend()"><i class="fas fa-paper-plane"></i><span>Send</span></div>
-        <div class="nav-item" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
-        <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
+        <div class="nav-item" onclick="location.href='/dashboard.html'"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="nav-item" onclick="location.href='/cards.html'"><i class="fas fa-credit-card"></i><span>Cards</span></div>
+        <div class="nav-item active" onclick="location.href='/send.html'"><i class="fas fa-paper-plane"></i><span>Send</span></div>
+        <div class="nav-item" onclick="location.href='/support.html'"><i class="fas fa-headset"></i><span>Support</span></div>
+        <div class="nav-item" onclick="location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing Transaction</div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing</div></div>
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
-        let currentSendRef = null;
-        let currentStep = 1;
+        let currentRef = null;
         
-        function setTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            document.getElementById('darkOption').classList.remove('active');
-            document.getElementById('lightOption').classList.remove('active');
-            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
-            else document.getElementById('lightOption').classList.add('active');
-        }
-        function toggleTheme() {
-            const current = document.body.getAttribute('data-theme');
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        }
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
+        function setTheme(t){document.body.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('darkOption').classList.remove('active');document.getElementById('lightOption').classList.remove('active');if(t==='dark')document.getElementById('darkOption').classList.add('active');else document.getElementById('lightOption').classList.add('active');}
+        function toggleTheme(){const c=document.body.getAttribute('data-theme');setTheme(c==='dark'?'light':'dark');}
+        setTheme(localStorage.getItem('theme')||'dark');
+        function movePin(c,n){if(c.value.length===1)document.getElementById(n).focus();}
+        function moveCode(c,n){if(c.value.length===1)document.getElementById(n).focus();}
+        function showLoading(s){document.getElementById('loadingOverlay').style.display=s?'flex':'none';}
         
-        function goToDashboard() { window.location.href = '/dashboard.html'; }
-        function goToCards() { window.location.href = '/cards.html'; }
-        function goToSend() { window.location.href = '/send.html'; }
-        function goToSupport() { window.location.href = '/support.html'; }
-        function goToProfile() { window.location.href = '/profile.html'; }
-        
-        function movePin(current, nextId) {
-            if(current.value.length === 1) document.getElementById(nextId).focus();
-        }
-        
-        function moveBBC(current, nextId) {
-            if(current.value.length === 1) document.getElementById(nextId).focus();
-        }
-        
-        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-        
-        function updateStepCircles(step) {
-            const circles = ['step1Circle', 'step2Circle', 'step3Circle', 'step4Circle'];
-            for (let i = 0; i < circles.length; i++) {
-                const el = document.getElementById(circles[i]);
-                if (i + 1 < step) {
-                    el.classList.remove('active');
-                    el.classList.add('completed');
-                    el.innerHTML = '✓';
-                } else if (i + 1 === step) {
-                    el.classList.add('active');
-                    el.classList.remove('completed');
-                    el.innerHTML = (step === 4 ? '✓' : step);
-                } else {
-                    el.classList.remove('active', 'completed');
-                    el.innerHTML = i + 1;
-                }
-            }
-        }
-        
-        async function sendStep1() {
-            const recipient = document.getElementById('recipientAccount').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-            const note = document.getElementById('note').value;
-            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + document.getElementById('pin3').value + document.getElementById('pin4').value;
-            
-            if (!recipient || !amount || pin.length !== 4) {
-                Swal.fire('Error', 'Please fill all fields correctly', 'error');
-                return;
-            }
-            
+        async function sendStep1(){
+            const recipient=document.getElementById('recipientAccount').value,amount=parseFloat(document.getElementById('amount').value),note=document.getElementById('note').value,pin=document.getElementById('pin1').value+document.getElementById('pin2').value+document.getElementById('pin3').value+document.getElementById('pin4').value;
+            if(!recipient||!amount||pin.length!==4){Swal.fire('Error','Fill all fields','error');return;}
             showLoading(true);
-            setTimeout(() => {
-                showLoading(false);
-                currentStep = 1;
-                updateStepCircles(1);
-                document.getElementById('step1Form').style.display = 'none';
-                document.getElementById('bbcForm').style.display = 'block';
-                document.getElementById('bbcStep1').style.display = 'block';
-                document.getElementById('bbcStep2').style.display = 'none';
-                document.getElementById('bbcStep3').style.display = 'none';
-                currentSendRef = 'SND-' + Date.now();
-            }, 1500);
+            try{
+                const res=await fetch(`${apiUrl}/api/send/step1`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({toAccountNumber:recipient,amount,note,transactionPin:pin})});
+                const data=await res.json();
+                if(data.success){currentRef=data.reference;document.getElementById('step1Form').style.display='none';document.getElementById('codeForm').style.display='block';document.getElementById('codeStep1').style.display='block';document.getElementById('codeStep2').style.display='none';document.getElementById('codeStep3').style.display='none';document.getElementById('c1_1').focus();}
+                else{Swal.fire('Error',data.error,'error');}
+            }catch(e){Swal.fire('Error','Request failed','error');}finally{showLoading(false);}
         }
         
-        async function submitBBC1() {
-            const bbc1 = document.getElementById('bbc1_1').value + document.getElementById('bbc1_2').value + document.getElementById('bbc1_3').value + 
-                         document.getElementById('bbc1_4').value + document.getElementById('bbc1_5').value + document.getElementById('bbc1_6').value;
-            if (bbc1.length !== 6) {
-                Swal.fire('Error', 'Please enter the 6-digit BBC Code 1', 'error');
-                return;
-            }
-            
+        async function submitCode1(){
+            const code=document.getElementById('c1_1').value+document.getElementById('c1_2').value+document.getElementById('c1_3').value+document.getElementById('c1_4').value+document.getElementById('c1_5').value+document.getElementById('c1_6').value;
+            if(code.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}
             showLoading(true);
-            setTimeout(() => {
-                showLoading(false);
-                currentStep = 2;
-                updateStepCircles(2);
-                document.getElementById('bbcStep1').style.display = 'none';
-                document.getElementById('bbcStep2').style.display = 'block';
-                Swal.fire({
-                    icon: 'success',
-                    title: 'BBC Code 1 Verified!',
-                    text: 'Transfer verification confirmed.',
-                    confirmButtonColor: '#C6A43F',
-                    timer: 1500,
-                    showConfirmButton: true
-                });
-            }, 1500);
+            try{
+                const res=await fetch(`${apiUrl}/api/send/step2`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({reference:currentRef,bbcCode:code})});
+                const data=await res.json();
+                if(data.success){document.getElementById('codeStep1').style.display='none';document.getElementById('codeStep2').style.display='block';document.getElementById('c2_1').focus();}
+                else{Swal.fire('Error',data.error,'error');}
+            }catch(e){Swal.fire('Error','Verification failed','error');}finally{showLoading(false);}
         }
         
-        async function submitBBC2() {
-            const bbc2 = document.getElementById('bbc2_1').value + document.getElementById('bbc2_2').value + document.getElementById('bbc2_3').value + 
-                         document.getElementById('bbc2_4').value + document.getElementById('bbc2_5').value + document.getElementById('bbc2_6').value;
-            if (bbc2.length !== 6) {
-                Swal.fire('Error', 'Please enter the 6-digit BBC Code 2', 'error');
-                return;
-            }
-            
+        async function submitCode2(){
+            const code=document.getElementById('c2_1').value+document.getElementById('c2_2').value+document.getElementById('c2_3').value+document.getElementById('c2_4').value+document.getElementById('c2_5').value+document.getElementById('c2_6').value;
+            if(code.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}
             showLoading(true);
-            setTimeout(() => {
-                showLoading(false);
-                currentStep = 3;
-                updateStepCircles(3);
-                document.getElementById('bbcStep2').style.display = 'none';
-                document.getElementById('bbcStep3').style.display = 'block';
-                Swal.fire({
-                    icon: 'success',
-                    title: 'BBC Code 2 Verified!',
-                    text: 'Beneficiary confirmed.',
-                    confirmButtonColor: '#C6A43F',
-                    timer: 1500,
-                    showConfirmButton: true
-                });
-            }, 1500);
+            try{
+                const res=await fetch(`${apiUrl}/api/send/step3`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({reference:currentRef,bbcCode:code})});
+                const data=await res.json();
+                if(data.success){document.getElementById('codeStep2').style.display='none';document.getElementById('codeStep3').style.display='block';document.getElementById('c3_1').focus();}
+                else{Swal.fire('Error',data.error,'error');}
+            }catch(e){Swal.fire('Error','Verification failed','error');}finally{showLoading(false);}
         }
         
-        async function submitBBC3() {
-            const bbc3 = document.getElementById('bbc3_1').value + document.getElementById('bbc3_2').value + document.getElementById('bbc3_3').value + 
-                         document.getElementById('bbc3_4').value + document.getElementById('bbc3_5').value + document.getElementById('bbc3_6').value;
-            if (bbc3.length !== 6) {
-                Swal.fire('Error', 'Please enter the 6-digit BBC Code 3', 'error');
-                return;
-            }
-            
+        async function submitCode3(){
+            const code=document.getElementById('c3_1').value+document.getElementById('c3_2').value+document.getElementById('c3_3').value+document.getElementById('c3_4').value+document.getElementById('c3_5').value+document.getElementById('c3_6').value;
+            if(code.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}
             showLoading(true);
-            setTimeout(() => {
-                showLoading(false);
-                currentStep = 4;
-                updateStepCircles(4);
-                const amount = parseFloat(document.getElementById('amount').value);
-                const recipient = document.getElementById('recipientAccount').value;
-                Swal.fire({
-                    icon: 'success',
-                    title: '🎉 Transfer Complete!',
-                    html: `<strong>$${amount.toFixed(2)} USD</strong> sent to ${recipient}<br><br>Reference: ${currentSendRef}<br><span style="color: #10B981;">✓ All 3 BBC codes verified</span>`,
-                    confirmButtonColor: '#C6A43F',
-                    background: '#111827',
-                    color: '#FFFFFF'
-                }).then(() => {
-                    goToDashboard();
-                });
-            }, 2000);
+            try{
+                const res=await fetch(`${apiUrl}/api/send/step4`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({reference:currentRef,bbcCode:code})});
+                const data=await res.json();
+                if(data.success){showLoading(false);Swal.fire({icon:'success',title:'Transfer Complete!',html:`$${document.getElementById('amount').value} sent.<br>Ref: ${currentRef}`,confirmButtonColor:'#C6A43F'}).then(()=>{location.href='/dashboard.html';});}
+                else{Swal.fire('Error',data.error,'error');showLoading(false);}
+            }catch(e){Swal.fire('Error','Verification failed','error');showLoading(false);}
         }
         
-        async function loadBalance() {
-            try {
-                const res = await fetch(`${apiUrl}/api/me`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-                if (res.status === 401) { window.location.href = '/'; return; }
-                const data = await res.json();
-                document.getElementById('userBalance').innerHTML = `${data.user.currency} ${(data.totalBalance || 0).toLocaleString()}`;
-                document.getElementById('userCurrency').innerHTML = data.user.currency;
-                document.getElementById('headerBalance').innerHTML = `${data.user.currency} ${(data.totalBalance || 0).toLocaleString()}`;
-            } catch(e) { console.error(e); }
+        async function loadBalance(){
+            try{const res=await fetch(`${apiUrl}/api/me`,{headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}});if(res.status===401){location.href='/';return;}const data=await res.json();document.getElementById('userBalance').innerHTML=`${data.user.currency} ${(data.totalBalance||0).toLocaleString()}`;document.getElementById('headerBalance').innerHTML=`${data.user.currency} ${(data.totalBalance||0).toLocaleString()}`;}catch(e){console.error(e);}
         }
-        
         loadBalance();
     </script>
 </body>
