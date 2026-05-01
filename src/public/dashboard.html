@@ -9,27 +9,52 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0A0E1A;
-            overflow-x: hidden;
-            padding-bottom: 80px;
-        }
+        
+        /* Light Mode Variables */
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
+            --gold-light: #D4B85A;
+            --success: #10B981;
+            --error: #EF4444;
+        }
+        
+        /* Dark Mode (Default) */
+        [data-theme="dark"] {
+            --bg-body: #0A0E1A;
             --bg-card: #111827;
             --border: #1F2937;
             --text-primary: #FFFFFF;
             --text-secondary: #9CA3AF;
-            --success: #10B981;
-            --error: #EF4444;
+            --input-bg: #0F1622;
+            --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
         }
+        
+        /* Light Mode */
+        [data-theme="light"] {
+            --bg-body: #F3F4F6;
+            --bg-card: #FFFFFF;
+            --border: #E5E7EB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --input-bg: #F9FAFB;
+            --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            overflow-x: hidden;
+            padding-bottom: 80px;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         
+        /* Top Bar */
         .top-bar {
             background: var(--bg-card);
             padding: 16px 24px;
@@ -40,6 +65,7 @@
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
         }
         .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .logo-icon {
@@ -52,13 +78,14 @@
             animation: pulse 2s infinite;
         }
         .logo-icon i { font-size: 20px; color: #0A0E1A; }
-        .logo span { color: var(--text-primary); font-size: 18px; font-weight: 600; }
+        .logo span { color: var(--text-primary); font-size: 18px; font-weight: 600; transition: color 0.3s ease; }
         .user-section { display: flex; align-items: center; gap: 20px; }
         .balance-pill {
-            background: rgba(198,164,63,0.1);
+            background: rgba(198,164,63,0.15);
             padding: 8px 20px;
             border-radius: 40px;
             border: 1px solid rgba(198,164,63,0.3);
+            transition: all 0.3s ease;
         }
         .balance-pill i { color: var(--gold); margin-right: 8px; }
         .balance-pill span { color: var(--gold); font-weight: 600; }
@@ -75,27 +102,53 @@
         .avatar:hover { transform: scale(1.05); }
         .avatar i { color: #0A0E1A; font-size: 18px; }
         
+        /* Theme Toggle Switch */
+        .theme-toggle {
+            background: rgba(198,164,63,0.1);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .theme-toggle:hover { border-color: var(--gold); }
+        .theme-option {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            color: var(--text-secondary);
+        }
+        .theme-option.active {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+        }
+        .theme-option i { margin-right: 6px; }
+        
         .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
         
         .welcome-section { margin-bottom: 28px; animation: slideUp 0.5s; }
-        .welcome-section h2 { color: var(--text-primary); font-size: 24px; font-weight: 600; }
-        .welcome-section p { color: var(--text-secondary); margin-top: 4px; }
+        .welcome-section h2 { color: var(--text-primary); font-size: 24px; font-weight: 600; transition: color 0.3s ease; }
+        .welcome-section p { color: var(--text-secondary); margin-top: 4px; transition: color 0.3s ease; }
         
-        /* Account Info Card */
         .account-info-card {
-            background: linear-gradient(135deg, #1A1F2E, #111827);
+            background: var(--bg-card);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 28px;
-            border: 1px solid rgba(198,164,63,0.2);
+            border: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
             align-items: center;
             flex-wrap: wrap;
             gap: 15px;
+            transition: all 0.3s ease;
         }
         .account-detail { flex: 1; }
-        .account-label { color: var(--text-secondary); font-size: 11px; margin-bottom: 4px; }
+        .account-label { color: var(--text-secondary); font-size: 11px; margin-bottom: 4px; transition: color 0.3s ease; }
         .account-value { color: var(--gold); font-size: 16px; font-weight: 600; letter-spacing: 0.5px; }
         .copy-btn {
             background: rgba(198,164,63,0.1);
@@ -133,8 +186,8 @@
             margin-bottom: 12px;
         }
         .stat-icon i { font-size: 24px; color: var(--gold); }
-        .stat-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; }
-        .stat-value { font-size: 26px; font-weight: 700; color: var(--text-primary); }
+        .stat-label { font-size: 13px; color: var(--text-secondary); margin-bottom: 4px; transition: color 0.3s ease; }
+        .stat-value { font-size: 26px; font-weight: 700; color: var(--text-primary); transition: color 0.3s ease; }
         
         .quick-actions {
             display: grid;
@@ -153,7 +206,7 @@
         }
         .action-card:hover { border-color: var(--gold); transform: translateY(-3px); background: rgba(198,164,63,0.05); }
         .action-card i { font-size: 22px; color: var(--gold); display: block; margin-bottom: 8px; }
-        .action-card span { font-size: 11px; color: var(--text-secondary); }
+        .action-card span { font-size: 11px; color: var(--text-secondary); transition: color 0.3s ease; }
         
         .two-column {
             display: grid;
@@ -166,6 +219,7 @@
             border-radius: 20px;
             padding: 24px;
             border: 1px solid var(--border);
+            transition: all 0.3s ease;
         }
         .panel-header {
             display: flex;
@@ -175,7 +229,7 @@
             padding-bottom: 12px;
             border-bottom: 1px solid var(--border);
         }
-        .panel-header h3 { color: var(--text-primary); font-size: 16px; font-weight: 600; }
+        .panel-header h3 { color: var(--text-primary); font-size: 16px; font-weight: 600; transition: color 0.3s ease; }
         .panel-header a { color: var(--gold); font-size: 12px; text-decoration: none; cursor: pointer; }
         
         .transaction-item {
@@ -198,21 +252,19 @@
             justify-content: center;
         }
         .transaction-icon i { font-size: 18px; color: var(--gold); }
-        .transaction-name { color: var(--text-primary); font-size: 14px; font-weight: 500; }
-        .transaction-date { color: var(--text-secondary); font-size: 11px; margin-top: 2px; }
+        .transaction-name { color: var(--text-primary); font-size: 14px; font-weight: 500; transition: color 0.3s ease; }
+        .transaction-date { color: var(--text-secondary); font-size: 11px; margin-top: 2px; transition: color 0.3s ease; }
         .transaction-amount { font-weight: 600; font-size: 14px; }
         .amount-positive { color: var(--success); }
         .amount-negative { color: var(--error); }
         
         .bank-card {
-            background: linear-gradient(135deg, #1A1F2E, #111827);
+            background: linear-gradient(135deg, var(--bg-card), var(--bg-body));
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 16px;
             border: 1px solid rgba(198,164,63,0.2);
         }
-        .card-chip { margin-bottom: 20px; }
-        .card-chip i { font-size: 32px; color: var(--gold); }
         .card-number { font-size: 18px; letter-spacing: 2px; margin: 16px 0; color: var(--text-primary); font-family: monospace; }
         .card-details { display: flex; justify-content: space-between; }
         .card-expiry, .card-name { color: var(--text-secondary); font-size: 11px; }
@@ -242,141 +294,28 @@
             padding: 12px 20px;
             border-top: 1px solid var(--border);
             z-index: 99;
+            transition: all 0.3s ease;
         }
-        .nav-item {
-            text-align: center;
-            cursor: pointer;
-            padding: 8px 16px;
-            border-radius: 12px;
-            transition: all 0.3s;
-        }
-        .nav-item i { font-size: 20px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
-        .nav-item span { font-size: 10px; color: var(--text-secondary); }
+        .nav-item { text-align: center; cursor: pointer; padding: 8px 16px; border-radius: 12px; transition: all 0.3s; }
+        .nav-item i { font-size: 20px; color: var(--text-secondary); display: block; margin-bottom: 4px; transition: color 0.3s ease; }
+        .nav-item span { font-size: 10px; color: var(--text-secondary); transition: color 0.3s ease; }
         .nav-item.active { background: rgba(198,164,63,0.1); }
         .nav-item.active i, .nav-item.active span { color: var(--gold); }
-        
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(4px);
-            z-index: 1000;
-            align-items: center;
-            justify-content: center;
-        }
-        .modal-content {
-            background: var(--bg-card);
-            border-radius: 24px;
-            padding: 28px;
-            max-width: 450px;
-            width: 90%;
-            border: 1px solid var(--border);
-            max-height: 85vh;
-            overflow-y: auto;
-            animation: slideUp 0.3s;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        .modal-header h3 { color: var(--gold); font-size: 20px; font-weight: 600; }
-        .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: var(--text-secondary);
-            cursor: pointer;
-        }
-        .form-group { margin-bottom: 18px; }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px 14px;
-            background: #0F1622;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-        }
-        .pin-inputs, .bbc-inputs {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            margin: 15px 0;
-        }
-        .pin-inputs input, .bbc-inputs input {
-            width: 50px;
-            height: 50px;
-            text-align: center;
-            font-size: 20px;
-            font-weight: 600;
-            background: #0F1622;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--gold);
-        }
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border: none;
-            border-radius: 12px;
-            color: #0A0E1A;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
-        
-        .step-container {
-            text-align: center;
-            margin: 15px 0;
-            padding: 15px;
-            background: rgba(198,164,63,0.05);
-            border-radius: 12px;
-        }
-        .step-circle {
-            width: 40px;
-            height: 40px;
-            border-radius: 50%;
-            background: rgba(198,164,63,0.2);
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 5px;
-            color: var(--gold);
-            font-weight: 600;
-        }
-        .step-circle.active { background: var(--gold); color: #0A0E1A; }
-        .step-message { color: var(--gold); font-size: 13px; margin-top: 10px; }
         
         .loading-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10,14,26,0.95);
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
         .loader {
-            width: 48px;
-            height: 48px;
+            width: 48px; height: 48px;
             border: 3px solid rgba(198,164,63,0.2);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
@@ -390,16 +329,22 @@
             .two-column { grid-template-columns: 1fr; }
             .balance-pill { display: none; }
             .account-info-card { flex-direction: column; text-align: center; }
+            .theme-option span { display: none; }
+            .theme-option i { margin-right: 0; }
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
     <div class="top-bar">
         <div class="logo" onclick="location.reload()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span>Prime Heritage</span>
         </div>
         <div class="user-section">
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></div>
+                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></div>
+            </div>
             <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
             <div class="avatar" onclick="goToProfile()"><i class="fas fa-user"></i></div>
         </div>
@@ -411,21 +356,11 @@
             <p id="lastLoginMessage">Welcome to your international banking dashboard</p>
         </div>
 
-        <!-- International Account Info -->
         <div class="account-info-card">
-            <div class="account-detail">
-                <div class="account-label">Account Number</div>
-                <div class="account-value" id="accountNumber">Loading...</div>
-            </div>
-            <div class="account-detail">
-                <div class="account-label">IBAN</div>
-                <div class="account-value" id="iban">Loading...</div>
-            </div>
-            <div class="account-detail">
-                <div class="account-label">SWIFT/BIC</div>
-                <div class="account-value" id="swiftCode">Loading...</div>
-            </div>
-            <button class="copy-btn" onclick="copyAccountInfo()"><i class="fas fa-copy"></i> Copy Details</button>
+            <div class="account-detail"><div class="account-label">Account Number</div><div class="account-value" id="accountNumber">Loading...</div></div>
+            <div class="account-detail"><div class="account-label">IBAN</div><div class="account-value" id="iban">Loading...</div></div>
+            <div class="account-detail"><div class="account-label">SWIFT/BIC</div><div class="account-value" id="swiftCode">Loading...</div></div>
+            <button class="copy-btn" onclick="copyAccountInfo()"><i class="fas fa-copy"></i> Copy</button>
         </div>
 
         <div class="stats-grid" id="statsGrid"></div>
@@ -443,84 +378,64 @@
 
         <div class="two-column">
             <div class="card-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-history"></i> Recent Transactions</h3>
-                    <a onclick="goToTransactions()">View All →</a>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-history"></i> Recent Transactions</h3><a onclick="goToTransactions()">View All →</a></div>
                 <div id="recentTransactions"></div>
             </div>
             <div class="card-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-credit-card"></i> My Cards</h3>
-                    <a onclick="goToCards()">Manage →</a>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-credit-card"></i> My Cards</h3><a onclick="goToCards()">Manage →</a></div>
                 <div id="cardsList"></div>
             </div>
         </div>
 
         <div class="two-column">
             <div class="card-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-chart-line"></i> Spending Insights</h3>
-                    <a onclick="refreshStats()">Refresh</a>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-chart-line"></i> Spending Insights</h3><a onclick="refreshStats()">Refresh</a></div>
                 <div id="spendingInsights"></div>
             </div>
             <div class="card-panel">
-                <div class="panel-header">
-                    <h3><i class="fas fa-globe"></i> Exchange Rates</h3>
-                    <a onclick="refreshRates()">Update</a>
-                </div>
+                <div class="panel-header"><h3><i class="fas fa-globe"></i> Exchange Rates</h3><a onclick="refreshRates()">Update</a></div>
                 <div id="exchangeRates"></div>
             </div>
         </div>
     </div>
 
-    <!-- Bottom Navigation -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="nav-item" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
         <div class="nav-item" onclick="goToSend()"><i class="fas fa-paper-plane"></i><span>Send</span></div>
         <div class="nav-item" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
-        <div class="nav-item" onclick="goToTransactions()"><i class="fas fa-chart-line"></i><span>Stats</span></div>
         <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
-    <!-- BBC Code Modal (Reusable for all transactions) -->
-    <div id="bbcModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="bbcModalTitle">Enter BBC Code</h3>
-                <button class="close-modal" onclick="closeBBCModal()">&times;</button>
-            </div>
-            <div id="bbcMessage" class="step-message" style="margin-bottom:15px;"></div>
-            <div class="step-container" id="stepIndicator">
-                <div class="step-circle" id="step1Circle">1</div>
-                <div class="step-circle" id="step2Circle">2</div>
-                <div class="step-circle" id="step3Circle">3</div>
-                <div class="step-circle" id="step4Circle">✓</div>
-            </div>
-            <div class="bbc-inputs">
-                <input type="text" maxlength="1" id="bbc1" onkeyup="movePin(this,'bbc2')">
-                <input type="text" maxlength="1" id="bbc2" onkeyup="movePin(this,'bbc3')">
-                <input type="text" maxlength="1" id="bbc3" onkeyup="movePin(this,'bbc4')">
-                <input type="text" maxlength="1" id="bbc4" onkeyup="movePin(this,'bbc5')">
-                <input type="text" maxlength="1" id="bbc5" onkeyup="movePin(this,'bbc6')">
-                <input type="text" maxlength="1" id="bbc6">
-            </div>
-            <button class="btn" onclick="submitBBC()">Verify Code</button>
-        </div>
-    </div>
-
-    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing Transaction</div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing</div></div>
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
         let userData = null;
         let currentUser = null;
-        let currentTransactionRef = null;
-        let currentStep = 1;
-        let transactionType = null;
+        
+        // Theme Toggle Function
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.getElementById('darkOption').classList.remove('active');
+            document.getElementById('lightOption').classList.remove('active');
+            if (theme === 'dark') {
+                document.getElementById('darkOption').classList.add('active');
+            } else {
+                document.getElementById('lightOption').classList.add('active');
+            }
+        }
+        
+        function toggleTheme() {
+            const currentTheme = document.body.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            setTheme(newTheme);
+        }
+        
+        // Load saved theme
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
         
         // Navigation Functions
         function goToDashboard() { window.location.href = '/dashboard.html'; }
@@ -554,84 +469,6 @@
         }
         
         function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-        function movePin(current, nextId) { if(current.value.length === 1) document.getElementById(nextId).focus(); }
-        
-        function closeBBCModal() {
-            document.getElementById('bbcModal').style.display = 'none';
-            document.querySelectorAll('#bbcModal .bbc-inputs input').forEach(i => i.value = '');
-            resetStepDisplay();
-        }
-        
-        function resetStepDisplay() {
-            currentStep = 1;
-            document.getElementById('step1Circle').classList.remove('active');
-            document.getElementById('step2Circle').classList.remove('active');
-            document.getElementById('step3Circle').classList.remove('active');
-            document.getElementById('step4Circle').classList.remove('active');
-        }
-        
-        function updateStepDisplay(step) {
-            document.getElementById('step1Circle').classList.remove('active');
-            document.getElementById('step2Circle').classList.remove('active');
-            document.getElementById('step3Circle').classList.remove('active');
-            document.getElementById('step4Circle').classList.remove('active');
-            if (step === 1) document.getElementById('step1Circle').classList.add('active');
-            else if (step === 2) document.getElementById('step2Circle').classList.add('active');
-            else if (step === 3) document.getElementById('step3Circle').classList.add('active');
-            else if (step === 4) document.getElementById('step4Circle').classList.add('active');
-        }
-        
-        async function submitBBC() {
-            const bbc = document.getElementById('bbc1').value + document.getElementById('bbc2').value + document.getElementById('bbc3').value + 
-                        document.getElementById('bbc4').value + document.getElementById('bbc5').value + document.getElementById('bbc6').value;
-            if (bbc.length !== 6) { Swal.fire('Error', 'Enter 6-digit BBC code', 'error'); return; }
-            
-            showLoading(true);
-            try {
-                let url = '';
-                if (transactionType === 'send') url = `${apiUrl}/api/send/step${currentStep+1}`;
-                else if (transactionType === 'withdraw') url = `${apiUrl}/api/withdraw/step${currentStep+1}`;
-                else if (transactionType === 'airtime') url = `${apiUrl}/api/airtime/step${currentStep+1}`;
-                else if (transactionType === 'data') url = `${apiUrl}/api/data/step${currentStep+1}`;
-                else if (transactionType === 'bill') url = `${apiUrl}/api/bills/step${currentStep+1}`;
-                
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ reference: currentTransactionRef, bbcCode: bbc })
-                });
-                const data = await res.json();
-                
-                if (data.success) {
-                    if (data.step === 2 || data.step === 3) {
-                        currentStep = data.step;
-                        updateStepDisplay(data.step);
-                        document.getElementById('bbcModalTitle').innerHTML = `Step ${data.step}: Enter BBC Code ${data.step - 1}`;
-                        document.getElementById('bbcMessage').innerHTML = data.message;
-                        document.querySelectorAll('#bbcModal .bbc-inputs input').forEach(i => i.value = '');
-                    } else if (data.success && (data.step === 4 || data.message?.includes('completed'))) {
-                        closeBBCModal();
-                        Swal.fire({
-                            icon: 'success',
-                            title: 'Transaction Complete!',
-                            html: `Amount: ${data.currency || currentUser?.currency || 'USD'} ${data.amount?.toLocaleString()}<br>Reference: ${data.reference}<br>New Balance: ${data.newBalance?.toLocaleString()}`,
-                            confirmButtonColor: '#C6A43F',
-                            background: '#111827',
-                            color: '#FFFFFF'
-                        });
-                        loadUserData();
-                        resetTransactionState();
-                    }
-                } else { Swal.fire('Error', data.error, 'error'); }
-            } catch(e) { Swal.fire('Error', 'Verification failed', 'error'); } finally { showLoading(false); }
-        }
-        
-        function resetTransactionState() {
-            currentTransactionRef = null;
-            currentStep = 1;
-            transactionType = null;
-            resetStepDisplay();
-        }
         
         async function loadUserData() {
             try {
@@ -674,7 +511,7 @@
             cardsDiv.innerHTML = '';
             if (userData.cards?.length > 0) {
                 for (let card of userData.cards.slice(0, 2)) {
-                    cardsDiv.innerHTML += `<div class="bank-card"><div class="card-chip"><i class="fas fa-microchip"></i></div><div class="card-number">•••• •••• •••• ${card.last4}</div><div class="card-details"><div class="card-expiry">Valid ${card.expiryMonth}/${card.expiryYear}</div><div class="card-name">${currentUser.fullName}</div></div><div class="card-status"><span class="status-active">● ${card.status}</span><button class="btn-sm" onclick="goToCards()">Manage</button></div></div>`;
+                    cardsDiv.innerHTML += `<div class="bank-card"><div class="card-number">•••• •••• •••• ${card.last4}</div><div class="card-details"><div class="card-expiry">Valid ${card.expiryMonth}/${card.expiryYear}</div><div class="card-name">${currentUser.fullName}</div></div><div class="card-status"><span class="status-active">● ${card.status}</span><button class="btn-sm" onclick="goToCards()">Manage</button></div></div>`;
                 }
             } else { cardsDiv.innerHTML = '<div style="text-align:center; padding:20px; color:var(--text-secondary);">No cards yet</div>'; }
             
