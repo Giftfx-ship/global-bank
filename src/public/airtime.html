@@ -37,18 +37,11 @@
         .form-group { margin-bottom: 20px; }
         .form-group label { display: block; font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
         .form-group input, .form-group select { width: 100%; padding: 14px 16px; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; color: var(--text-primary); font-family: 'Inter', sans-serif; font-size: 15px; }
-        .pin-inputs, .bbc-inputs { display: flex; gap: 12px; justify-content: center; margin: 20px 0; }
-        .pin-inputs input, .bbc-inputs input { width: 55px; height: 55px; text-align: center; font-size: 22px; font-weight: 600; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; color: var(--gold); }
+        .pin-inputs, .code-inputs { display: flex; gap: 12px; justify-content: center; margin: 20px 0; }
+        .pin-inputs input, .code-inputs input { width: 55px; height: 55px; text-align: center; font-size: 22px; font-weight: 600; background: var(--input-bg); border: 1px solid var(--border); border-radius: 14px; color: var(--gold); }
         .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border: none; border-radius: 14px; color: #0A0E1A; font-weight: 700; cursor: pointer; font-size: 16px; }
         .info-box { background: rgba(198,164,63,0.05); border-radius: 12px; padding: 15px; margin-bottom: 20px; border: 1px solid rgba(198,164,63,0.2); }
         .info-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
-        .step-container { text-align: center; margin: 25px 0; }
-        .step-circle { width: 50px; height: 50px; border-radius: 50%; background: rgba(198,164,63,0.2); display: inline-flex; align-items: center; justify-content: center; margin: 0 5px; color: var(--gold); font-weight: 600; font-size: 18px; }
-        .step-circle.active { background: var(--gold); color: #0A0E1A; }
-        .step-circle.completed { background: var(--success); color: white; }
-        .bbc-explanation { background: rgba(198,164,63,0.1); border-radius: 12px; padding: 15px; margin: 15px 0; text-align: center; }
-        .bbc-title { color: var(--gold); font-weight: 700; margin-bottom: 8px; }
-        .bbc-desc { font-size: 12px; color: var(--text-secondary); }
         
         .bottom-nav { position: fixed; bottom: 0; left: 0; right: 0; background: var(--bg-card); display: flex; justify-content: space-around; padding: 12px 20px; border-top: 1px solid var(--border); }
         .nav-item { text-align: center; cursor: pointer; padding: 8px 16px; border-radius: 12px; }
@@ -74,21 +67,29 @@
     <div class="container">
         <div class="card">
             <div class="title"><i class="fas fa-mobile-alt"></i> Buy Airtime</div>
-            <div class="info-box"><div class="info-row"><span>Balance:</span><span id="userBalance" style="color:var(--gold);">$0.00</span></div></div>
+            <div class="info-box"><div class="info-row"><span>Available Balance:</span><span id="userBalance" style="color:var(--gold);">$0.00</span></div></div>
             
             <div id="step1Form">
                 <div class="form-group"><label>Network</label><select id="network"><option>MTN</option><option>Glo</option><option>Airtel</option><option>9mobile</option></select></div>
                 <div class="form-group"><label>Phone Number</label><input type="tel" id="phone" placeholder="Enter phone number"></div>
                 <div class="form-group"><label>Amount (USD)</label><input type="number" id="amount" placeholder="0.00"></div>
                 <div class="form-group"><label>Transaction PIN</label><div class="pin-inputs"><input type="password" maxlength="1" id="pin1" onkeyup="movePin(this,'pin2')"><input type="password" maxlength="1" id="pin2" onkeyup="movePin(this,'pin3')"><input type="password" maxlength="1" id="pin3" onkeyup="movePin(this,'pin4')"><input type="password" maxlength="1" id="pin4"></div></div>
-                <button class="btn" onclick="step1()">Continue →</button>
+                <button class="btn" onclick="airtimeStep1()">Continue →</button>
             </div>
             
-            <div id="bbcForm" style="display:none">
-                <div class="step-container"><div class="step-circle" id="step1Circle">1</div><div class="step-circle" id="step2Circle">2</div><div class="step-circle" id="step3Circle">3</div><div class="step-circle" id="step4Circle">✓</div></div>
-                <div id="bbcStep1"><div class="bbc-explanation"><div class="bbc-title"><i class="fas fa-exchange-alt"></i> Step 1: Purchase Authorization</div><div class="bbc-desc">Enter BBC Code 1 to authorize this airtime purchase.</div></div><div class="form-group"><label>BBC Code 1</label><div class="bbc-inputs"><input type="text" maxlength="1" id="b1_1" onkeyup="moveBBC(this,'b1_2')"><input type="text" maxlength="1" id="b1_2" onkeyup="moveBBC(this,'b1_3')"><input type="text" maxlength="1" id="b1_3" onkeyup="moveBBC(this,'b1_4')"><input type="text" maxlength="1" id="b1_4" onkeyup="moveBBC(this,'b1_5')"><input type="text" maxlength="1" id="b1_5" onkeyup="moveBBC(this,'b1_6')"><input type="text" maxlength="1" id="b1_6"></div></div><button class="btn" onclick="submitBBC1()">Verify</button></div>
-                <div id="bbcStep2" style="display:none"><div class="bbc-explanation"><div class="bbc-title"><i class="fas fa-shield-alt"></i> Step 2: Service Provider Confirmation</div><div class="bbc-desc">Enter BBC Code 2 to confirm network provider details.</div></div><div class="form-group"><label>BBC Code 2</label><div class="bbc-inputs"><input type="text" maxlength="1" id="b2_1" onkeyup="moveBBC(this,'b2_2')"><input type="text" maxlength="1" id="b2_2" onkeyup="moveBBC(this,'b2_3')"><input type="text" maxlength="1" id="b2_3" onkeyup="moveBBC(this,'b2_4')"><input type="text" maxlength="1" id="b2_4" onkeyup="moveBBC(this,'b2_5')"><input type="text" maxlength="1" id="b2_5" onkeyup="moveBBC(this,'b2_6')"><input type="text" maxlength="1" id="b2_6"></div></div><button class="btn" onclick="submitBBC2()">Verify</button></div>
-                <div id="bbcStep3" style="display:none"><div class="bbc-explanation"><div class="bbc-title"><i class="fas fa-lock"></i> Step 3: Final Security Check</div><div class="bbc-desc">Enter BBC Code 3 to complete the transaction.</div></div><div class="form-group"><label>BBC Code 3</label><div class="bbc-inputs"><input type="text" maxlength="1" id="b3_1" onkeyup="moveBBC(this,'b3_2')"><input type="text" maxlength="1" id="b3_2" onkeyup="moveBBC(this,'b3_3')"><input type="text" maxlength="1" id="b3_3" onkeyup="moveBBC(this,'b3_4')"><input type="text" maxlength="1" id="b3_4" onkeyup="moveBBC(this,'b3_5')"><input type="text" maxlength="1" id="b3_5" onkeyup="moveBBC(this,'b3_6')"><input type="text" maxlength="1" id="b3_6"></div></div><button class="btn" onclick="submitBBC3()">Complete</button></div>
+            <div id="codeForm" style="display: none;">
+                <div id="codeStep1">
+                    <div class="form-group"><label>Authorization Code</label><div class="code-inputs"><input type="text" maxlength="1" id="c1_1" onkeyup="moveCode(this,'c1_2')"><input type="text" maxlength="1" id="c1_2" onkeyup="moveCode(this,'c1_3')"><input type="text" maxlength="1" id="c1_3" onkeyup="moveCode(this,'c1_4')"><input type="text" maxlength="1" id="c1_4" onkeyup="moveCode(this,'c1_5')"><input type="text" maxlength="1" id="c1_5" onkeyup="moveCode(this,'c1_6')"><input type="text" maxlength="1" id="c1_6"></div></div>
+                    <button class="btn" onclick="submitCode1()">Verify</button>
+                </div>
+                <div id="codeStep2" style="display: none;">
+                    <div class="form-group"><label>Security Code</label><div class="code-inputs"><input type="text" maxlength="1" id="c2_1" onkeyup="moveCode(this,'c2_2')"><input type="text" maxlength="1" id="c2_2" onkeyup="moveCode(this,'c2_3')"><input type="text" maxlength="1" id="c2_3" onkeyup="moveCode(this,'c2_4')"><input type="text" maxlength="1" id="c2_4" onkeyup="moveCode(this,'c2_5')"><input type="text" maxlength="1" id="c2_5" onkeyup="moveCode(this,'c2_6')"><input type="text" maxlength="1" id="c2_6"></div></div>
+                    <button class="btn" onclick="submitCode2()">Verify</button>
+                </div>
+                <div id="codeStep3" style="display: none;">
+                    <div class="form-group"><label>Verification Code</label><div class="code-inputs"><input type="text" maxlength="1" id="c3_1" onkeyup="moveCode(this,'c3_2')"><input type="text" maxlength="1" id="c3_2" onkeyup="moveCode(this,'c3_3')"><input type="text" maxlength="1" id="c3_3" onkeyup="moveCode(this,'c3_4')"><input type="text" maxlength="1" id="c3_4" onkeyup="moveCode(this,'c3_5')"><input type="text" maxlength="1" id="c3_5" onkeyup="moveCode(this,'c3_6')"><input type="text" maxlength="1" id="c3_6"></div></div>
+                    <button class="btn" onclick="submitCode3()">Verify</button>
+                </div>
             </div>
         </div>
     </div>
@@ -105,19 +106,67 @@
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
-        let currentStep = 1;
+        let currentRef = null;
+        
         function setTheme(t){document.body.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('darkOption').classList.remove('active');document.getElementById('lightOption').classList.remove('active');if(t==='dark')document.getElementById('darkOption').classList.add('active');else document.getElementById('lightOption').classList.add('active');}
         function toggleTheme(){const c=document.body.getAttribute('data-theme');setTheme(c==='dark'?'light':'dark');}
         setTheme(localStorage.getItem('theme')||'dark');
         function movePin(c,n){if(c.value.length===1)document.getElementById(n).focus();}
-        function moveBBC(c,n){if(c.value.length===1)document.getElementById(n).focus();}
+        function moveCode(c,n){if(c.value.length===1)document.getElementById(n).focus();}
         function showLoading(s){document.getElementById('loadingOverlay').style.display=s?'flex':'none';}
-        function updateSteps(step){['step1Circle','step2Circle','step3Circle','step4Circle'].forEach((id,i)=>{const el=document.getElementById(id);if(i+1<step){el.classList.remove('active');el.classList.add('completed');el.innerHTML='✓';}else if(i+1===step){el.classList.add('active');el.classList.remove('completed');el.innerHTML=step===4?'✓':step;}else{el.classList.remove('active','completed');el.innerHTML=i+1;}});}
-        async function step1(){const p=document.getElementById('phone').value,a=parseFloat(document.getElementById('amount').value),pin=document.getElementById('pin1').value+document.getElementById('pin2').value+document.getElementById('pin3').value+document.getElementById('pin4').value;if(!p||!a||pin.length!==4){Swal.fire('Error','Fill all fields','error');return;}showLoading(true);setTimeout(()=>{showLoading(false);currentStep=1;updateSteps(1);document.getElementById('step1Form').style.display='none';document.getElementById('bbcForm').style.display='block';document.getElementById('bbcStep1').style.display='block';document.getElementById('bbcStep2').style.display='none';document.getElementById('bbcStep3').style.display='none';},1500);}
-        async function submitBBC1(){const b=document.getElementById('b1_1').value+document.getElementById('b1_2').value+document.getElementById('b1_3').value+document.getElementById('b1_4').value+document.getElementById('b1_5').value+document.getElementById('b1_6').value;if(b.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}showLoading(true);setTimeout(()=>{showLoading(false);currentStep=2;updateSteps(2);document.getElementById('bbcStep1').style.display='none';document.getElementById('bbcStep2').style.display='block';Swal.fire({icon:'success',title:'Code 1 Verified',text:'Authorization confirmed',confirmButtonColor:'#C6A43F',timer:1500});},1500);}
-        async function submitBBC2(){const b=document.getElementById('b2_1').value+document.getElementById('b2_2').value+document.getElementById('b2_3').value+document.getElementById('b2_4').value+document.getElementById('b2_5').value+document.getElementById('b2_6').value;if(b.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}showLoading(true);setTimeout(()=>{showLoading(false);currentStep=3;updateSteps(3);document.getElementById('bbcStep2').style.display='none';document.getElementById('bbcStep3').style.display='block';Swal.fire({icon:'success',title:'Code 2 Verified',text:'Provider confirmed',confirmButtonColor:'#C6A43F',timer:1500});},1500);}
-        async function submitBBC3(){const b=document.getElementById('b3_1').value+document.getElementById('b3_2').value+document.getElementById('b3_3').value+document.getElementById('b3_4').value+document.getElementById('b3_5').value+document.getElementById('b3_6').value;if(b.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}showLoading(true);setTimeout(()=>{showLoading(false);currentStep=4;updateSteps(4);Swal.fire({icon:'success',title:'Airtime Purchased!',html:`${document.getElementById('network').value} airtime sent to ${document.getElementById('phone').value}`,confirmButtonColor:'#C6A43F'}).then(()=>{location.href='/dashboard.html';});},2000);}
-        async function loadBalance(){try{const res=await fetch(`${apiUrl}/api/me`,{headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}});if(res.status===401){location.href='/';return;}const data=await res.json();document.getElementById('userBalance').innerHTML=`${data.user.currency} ${(data.totalBalance||0).toLocaleString()}`;document.getElementById('headerBalance').innerHTML=`${data.user.currency} ${(data.totalBalance||0).toLocaleString()}`;}catch(e){}}loadBalance();
+        
+        async function airtimeStep1(){
+            const network=document.getElementById('network').value,phone=document.getElementById('phone').value,amount=parseFloat(document.getElementById('amount').value),pin=document.getElementById('pin1').value+document.getElementById('pin2').value+document.getElementById('pin3').value+document.getElementById('pin4').value;
+            if(!phone||!amount||pin.length!==4){Swal.fire('Error','Fill all fields','error');return;}
+            showLoading(true);
+            try{
+                const res=await fetch(`${apiUrl}/api/airtime/step1`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({phoneNumber:phone,network,amount,transactionPin:pin})});
+                const data=await res.json();
+                if(data.success){currentRef=data.reference;document.getElementById('step1Form').style.display='none';document.getElementById('codeForm').style.display='block';document.getElementById('codeStep1').style.display='block';document.getElementById('codeStep2').style.display='none';document.getElementById('codeStep3').style.display='none';document.getElementById('c1_1').focus();}
+                else{Swal.fire('Error',data.error,'error');}
+            }catch(e){Swal.fire('Error','Request failed','error');}finally{showLoading(false);}
+        }
+        
+        async function submitCode1(){
+            const code=document.getElementById('c1_1').value+document.getElementById('c1_2').value+document.getElementById('c1_3').value+document.getElementById('c1_4').value+document.getElementById('c1_5').value+document.getElementById('c1_6').value;
+            if(code.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}
+            showLoading(true);
+            try{
+                const res=await fetch(`${apiUrl}/api/airtime/step2`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({reference:currentRef,bbcCode:code})});
+                const data=await res.json();
+                if(data.success){document.getElementById('codeStep1').style.display='none';document.getElementById('codeStep2').style.display='block';document.getElementById('c2_1').focus();}
+                else{Swal.fire('Error',data.error,'error');}
+            }catch(e){Swal.fire('Error','Verification failed','error');}finally{showLoading(false);}
+        }
+        
+        async function submitCode2(){
+            const code=document.getElementById('c2_1').value+document.getElementById('c2_2').value+document.getElementById('c2_3').value+document.getElementById('c2_4').value+document.getElementById('c2_5').value+document.getElementById('c2_6').value;
+            if(code.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}
+            showLoading(true);
+            try{
+                const res=await fetch(`${apiUrl}/api/airtime/step3`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({reference:currentRef,bbcCode:code})});
+                const data=await res.json();
+                if(data.success){document.getElementById('codeStep2').style.display='none';document.getElementById('codeStep3').style.display='block';document.getElementById('c3_1').focus();}
+                else{Swal.fire('Error',data.error,'error');}
+            }catch(e){Swal.fire('Error','Verification failed','error');}finally{showLoading(false);}
+        }
+        
+        async function submitCode3(){
+            const code=document.getElementById('c3_1').value+document.getElementById('c3_2').value+document.getElementById('c3_3').value+document.getElementById('c3_4').value+document.getElementById('c3_5').value+document.getElementById('c3_6').value;
+            if(code.length!==6){Swal.fire('Error','Enter 6-digit code','error');return;}
+            showLoading(true);
+            try{
+                const res=await fetch(`${apiUrl}/api/airtime/step4`,{method:'POST',headers:{'Content-Type':'application/json','Authorization':`Bearer ${localStorage.getItem('token')}`},body:JSON.stringify({reference:currentRef,bbcCode:code})});
+                const data=await res.json();
+                if(data.success){showLoading(false);Swal.fire({icon:'success',title:'Airtime Purchased!',html:`${document.getElementById('network').value} airtime sent to ${document.getElementById('phone').value}`,confirmButtonColor:'#C6A43F'}).then(()=>{location.href='/dashboard.html';});}
+                else{Swal.fire('Error',data.error,'error');showLoading(false);}
+            }catch(e){Swal.fire('Error','Verification failed','error');showLoading(false);}
+        }
+        
+        async function loadBalance(){
+            try{const res=await fetch(`${apiUrl}/api/me`,{headers:{'Authorization':`Bearer ${localStorage.getItem('token')}`}});if(res.status===401){location.href='/';return;}const data=await res.json();document.getElementById('userBalance').innerHTML=`${data.user.currency} ${(data.totalBalance||0).toLocaleString()}`;document.getElementById('headerBalance').innerHTML=`${data.user.currency} ${(data.totalBalance||0).toLocaleString()}`;}catch(e){console.error(e);}
+        }
+        loadBalance();
     </script>
 </body>
 </html>
