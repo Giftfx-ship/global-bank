@@ -8,168 +8,491 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', sans-serif; background: #0A0E1A; padding-bottom: 80px; }
-        :root {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            transition: background-color 0.3s ease, color 0.3s ease;
+            padding-bottom: 85px;
+        }
+
+        /* DARK MODE (default) */
+        body.dark {
+            --bg-body: radial-gradient(circle at 20% 30%, #0a0f1f, #05070f);
+            --bg-card: rgba(17, 24, 39, 0.85);
+            --border-color: rgba(198, 164, 63, 0.25);
+            --text-primary: #FFFFFF;
+            --text-secondary: #B9C3D4;
+            --input-bg: #1A1F2E;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
             --gold: #C6A43F;
             --gold-dark: #9E8032;
-            --bg-card: #111827;
-            --border: #1F2937;
-            --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
+            --gold-glow: rgba(198, 164, 63, 0.3);
+            --topbar-bg: rgba(10, 14, 26, 0.85);
+            --ticket-bg: #0F1622;
+            --success: #10B981;
         }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
+
+        /* LIGHT MODE */
+        body.light {
+            --bg-body: #f0f4f8;
+            --bg-card: #ffffff;
+            --border-color: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --input-bg: #f8fafc;
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+            --gold: #b8942e;
+            --gold-dark: #9a7624;
+            --gold-glow: rgba(184, 148, 46, 0.2);
+            --topbar-bg: rgba(255, 255, 255, 0.92);
+            --ticket-bg: #f8fafc;
+            --success: #059669;
+        }
+
+        body {
+            background: var(--bg-body);
+            color: var(--text-primary);
+        }
+
+        @keyframes floatIn {
+            0% { opacity: 0; transform: translateY(30px) scale(0.96); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes pulseGold {
+            0% { box-shadow: 0 0 0 0 var(--gold-glow); }
+            70% { box-shadow: 0 0 0 8px rgba(198, 164, 63, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(198, 164, 63, 0); }
+        }
+
         .top-bar {
-            background: var(--bg-card); padding: 16px 24px;
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 1px solid var(--border);
+            background: var(--topbar-bg);
+            backdrop-filter: blur(12px);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
-        .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
         .logo-icon {
-            width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(145deg, var(--gold), var(--gold-dark));
+            border-radius: 16px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.2);
         }
-        .logo-icon i { font-size: 20px; color: #0A0E1A; }
-        .logo span { color: var(--text-primary); font-size: 18px; font-weight: 600; }
-        .avatar {
-            width: 42px; height: 42px;
+
+        .logo-icon i {
+            font-size: 22px;
+            color: #0A0E1A;
+        }
+
+        .logo span {
+            font-size: 20px;
+            font-weight: 700;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 50%;
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .action-group {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .theme-toggle {
+            width: 44px;
+            height: 44px;
+            background: rgba(198, 164, 63, 0.12);
+            backdrop-filter: blur(8px);
+            border-radius: 40px;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid var(--border-color);
         }
-        
-        .container { max-width: 600px; margin: 0 auto; padding: 24px; }
+
+        .theme-toggle i {
+            font-size: 20px;
+            color: var(--gold);
+        }
+
+        .back-btn {
+            width: 44px;
+            height: 44px;
+            background: rgba(198, 164, 63, 0.12);
+            backdrop-filter: blur(8px);
+            border-radius: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: 0.2s;
+            border: 1px solid var(--border-color);
+        }
+
+        .back-btn i {
+            font-size: 18px;
+            color: var(--gold);
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
         .support-card {
             background: var(--bg-card);
-            border-radius: 24px;
+            backdrop-filter: blur(4px);
+            border-radius: 32px;
             padding: 32px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--border-color);
             margin-bottom: 24px;
-            animation: slideUp 0.5s;
+            animation: floatIn 0.5s ease-out;
+            box-shadow: var(--shadow);
+            transition: all 0.3s;
         }
+
         .support-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 28px;
         }
+
         .support-icon {
-            width: 70px; height: 70px;
-            background: rgba(198,164,63,0.1);
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(145deg, rgba(198, 164, 63, 0.15), rgba(158, 128, 50, 0.05));
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 15px;
+            margin: 0 auto 18px;
+            border: 1px solid var(--border-color);
         }
-        .support-icon i { font-size: 35px; color: var(--gold); }
-        .support-header h2 { color: var(--text-primary); font-size: 24px; }
-        .support-header p { color: var(--text-secondary); margin-top: 8px; }
-        
-        .form-group { margin-bottom: 20px; }
+
+        .support-icon i {
+            font-size: 38px;
+            color: var(--gold);
+        }
+
+        .support-header h2 {
+            font-size: 26px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), #e6c670);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .support-header p {
+            color: var(--text-secondary);
+            margin-top: 8px;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
         .form-group label {
             display: block;
             font-size: 13px;
+            font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
-        .form-group input, .form-group textarea, .form-group select {
+
+        .form-group label i {
+            margin-right: 6px;
+            color: var(--gold);
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
             width: 100%;
-            padding: 12px 14px;
-            background: #0F1622;
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            padding: 14px 16px;
+            background: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
+            transition: all 0.2s;
+            font-size: 14px;
         }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(198, 164, 63, 0.2);
+        }
+
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 15px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             border: none;
-            border-radius: 12px;
+            border-radius: 28px;
             color: #0A0E1A;
-            font-weight: 700;
+            font-weight: 800;
             cursor: pointer;
+            font-size: 15px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
         }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px var(--gold-glow);
+        }
+
         .ticket-item {
-            background: #0F1622;
-            border-radius: 12px;
-            padding: 15px;
-            margin-bottom: 12px;
-            border: 1px solid var(--border);
+            background: var(--ticket-bg);
+            border-radius: 20px;
+            padding: 18px;
+            margin-bottom: 14px;
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
         }
-        .ticket-subject { color: var(--gold); font-weight: 600; margin-bottom: 5px; }
-        .ticket-message { color: var(--text-secondary); font-size: 13px; margin-bottom: 8px; }
-        .ticket-status { font-size: 11px; color: var(--success); }
+
+        .ticket-item:hover {
+            transform: translateX(4px);
+            border-color: var(--gold);
+        }
+
+        .ticket-subject {
+            color: var(--gold);
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ticket-subject i {
+            font-size: 14px;
+        }
+
+        .ticket-message {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 12px;
+            line-height: 1.5;
+        }
+
+        .ticket-status {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--success);
+            display: inline-block;
+            background: rgba(16, 185, 129, 0.1);
+            padding: 4px 10px;
+            border-radius: 30px;
+        }
+
+        .empty-tickets {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-tickets i {
+            font-size: 48px;
+            margin-bottom: 12px;
+            opacity: 0.5;
+        }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
             left: 0;
             right: 0;
             background: var(--bg-card);
+            backdrop-filter: blur(12px);
             display: flex;
             justify-content: space-around;
-            padding: 12px 20px;
-            border-top: 1px solid var(--border);
+            padding: 10px 20px;
+            border-top: 1px solid var(--border-color);
+            z-index: 99;
         }
-        .nav-item { text-align: center; cursor: pointer; padding: 8px 16px; border-radius: 12px; }
-        .nav-item i { font-size: 20px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
-        .nav-item span { font-size: 10px; color: var(--text-secondary); }
-        .nav-item.active { background: rgba(198,164,63,0.1); }
-        .nav-item.active i, .nav-item.active span { color: var(--gold); }
-        
+
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 8px 16px;
+            border-radius: 40px;
+            transition: 0.2s;
+        }
+
+        .nav-item i {
+            font-size: 22px;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .nav-item span {
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .nav-item.active {
+            background: rgba(198, 164, 63, 0.15);
+        }
+
+        .nav-item.active i,
+        .nav-item.active span {
+            color: var(--gold);
+        }
+
         .loading-overlay {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(10,14,26,0.95);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
+
         .loader {
-            width: 48px; height: 48px;
-            border: 3px solid rgba(198,164,63,0.2);
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(198, 164, 63, 0.2);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Quick contact chips */
+        .quick-help {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 24px;
+            justify-content: center;
+        }
+
+        .help-chip {
+            background: rgba(198, 164, 63, 0.08);
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            padding: 8px 16px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: 0.2s;
+            color: var(--text-secondary);
+        }
+
+        .help-chip:hover {
+            background: rgba(198, 164, 63, 0.2);
+            color: var(--gold);
+            border-color: var(--gold);
+        }
     </style>
 </head>
-<body>
+<body class="dark">
     <div class="top-bar">
         <div class="logo" onclick="goToDashboard()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span>Prime Heritage</span>
         </div>
-        <div class="avatar" onclick="goToDashboard()"><i class="fas fa-arrow-left"></i></div>
+        <div class="action-group">
+            <div class="theme-toggle" id="themeToggleBtn" onclick="toggleTheme()">
+                <i class="fas fa-moon" id="themeIcon"></i>
+            </div>
+            <div class="back-btn" onclick="goToDashboard()"><i class="fas fa-arrow-left"></i></div>
+        </div>
     </div>
 
     <div class="container">
+        <!-- Support Ticket Card -->
         <div class="support-card">
             <div class="support-header">
                 <div class="support-icon"><i class="fas fa-headset"></i></div>
-                <h2>Customer Support</h2>
-                <p>We're here to help 24/7</p>
+                <h2>Concierge Support</h2>
+                <p>Elite assistance, 24/7. We're just a message away.</p>
             </div>
-            <div class="form-group"><label>Subject</label><input type="text" id="ticketSubject" placeholder="What is your issue about?"></div>
-            <div class="form-group"><label>Message</label><textarea id="ticketMessage" rows="5" placeholder="Describe your issue in detail..."></textarea></div>
-            <button class="btn" onclick="submitTicket()">Submit Ticket</button>
+            
+            <!-- Quick help chips -->
+            <div class="quick-help">
+                <div class="help-chip" onclick="fillQuickIssue('Card Issue', 'My card was declined even though I have sufficient funds.')"><i class="fas fa-credit-card"></i> Card Decline</div>
+                <div class="help-chip" onclick="fillQuickIssue('Transaction Error', 'A transaction failed but money was deducted.')"><i class="fas fa-exchange-alt"></i> Failed Transfer</div>
+                <div class="help-chip" onclick="fillQuickIssue('Account Access', 'I cannot log into my account.')"><i class="fas fa-lock"></i> Login Issue</div>
+                <div class="help-chip" onclick="fillQuickIssue('Dispute', 'I need to report an unauthorized transaction.')"><i class="fas fa-gavel"></i> Dispute</div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-tag"></i> Subject</label>
+                <input type="text" id="ticketSubject" placeholder="e.g., Unauthorized transaction, Card issue...">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-pen-alt"></i> Message</label>
+                <textarea id="ticketMessage" rows="5" placeholder="Describe your issue in detail... Our priority team will respond within 2 hours."></textarea>
+            </div>
+            <button class="btn" onclick="submitTicket()">
+                <i class="fas fa-paper-plane"></i> Submit Priority Ticket
+            </button>
         </div>
 
+        <!-- Tickets History Card -->
         <div class="support-card">
-            <div class="support-header"><h2 style="font-size:18px;">Your Tickets</h2></div>
-            <div id="ticketsList">Loading...</div>
+            <div class="support-header">
+                <h2 style="font-size:20px;"><i class="fas fa-history"></i> Your Support History</h2>
+                <p style="font-size:13px;">Track all your requests</p>
+            </div>
+            <div id="ticketsList">
+                <div class="empty-tickets">
+                    <i class="fas fa-ticket-alt"></i>
+                    <p>Loading your tickets...</p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -186,16 +509,73 @@
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
         
-        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+        function showLoading(show) { 
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; 
+        }
+        
         function goToDashboard() { window.location.href = '/dashboard.html'; }
         function goToCards() { window.location.href = '/cards.html'; }
         function goToSupport() { window.location.href = '/support.html'; }
         function goToProfile() { window.location.href = '/profile.html'; }
+
+        // THEME TOGGLE (Light/Dark)
+        function toggleTheme() {
+            const body = document.body;
+            const icon = document.getElementById('themeIcon');
+            if (body.classList.contains('dark')) {
+                body.classList.remove('dark');
+                body.classList.add('light');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+                localStorage.setItem('theme', 'light');
+            } else {
+                body.classList.remove('light');
+                body.classList.add('dark');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+                localStorage.setItem('theme', 'dark');
+            }
+        }
+
+        function loadThemePreference() {
+            const savedTheme = localStorage.getItem('theme');
+            const icon = document.getElementById('themeIcon');
+            if (savedTheme === 'light') {
+                document.body.classList.remove('dark');
+                document.body.classList.add('light');
+                icon.classList.remove('fa-moon');
+                icon.classList.add('fa-sun');
+            } else {
+                document.body.classList.remove('light');
+                document.body.classList.add('dark');
+                icon.classList.remove('fa-sun');
+                icon.classList.add('fa-moon');
+            }
+        }
+
+        // Quick fill helper
+        function fillQuickIssue(subject, message) {
+            document.getElementById('ticketSubject').value = subject;
+            document.getElementById('ticketMessage').value = message;
+            Swal.fire({
+                title: 'Quick Fill',
+                text: `Subject: ${subject}\n\nYou can now edit the message before sending.`,
+                icon: 'info',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2500
+            });
+        }
         
+        // Submit support ticket
         async function submitTicket() {
-            const subject = document.getElementById('ticketSubject').value;
-            const message = document.getElementById('ticketMessage').value;
-            if (!subject || !message) { Swal.fire('Error', 'Please fill all fields', 'error'); return; }
+            const subject = document.getElementById('ticketSubject').value.trim();
+            const message = document.getElementById('ticketMessage').value.trim();
+            if (!subject || !message) { 
+                Swal.fire('Incomplete', 'Please fill in both subject and message', 'error'); 
+                return; 
+            }
             showLoading(true);
             try {
                 const res = await fetch(`${apiUrl}/api/support`, {
@@ -205,28 +585,84 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire('Success', 'Ticket submitted! We will respond within 24 hours.', 'success');
+                    Swal.fire({
+                        title: 'Ticket Submitted!',
+                        text: 'A confirmation has been sent. Our elite support team will respond within 2 hours.',
+                        icon: 'success',
+                        background: document.body.classList.contains('dark') ? '#111827' : '#fff',
+                        color: document.body.classList.contains('dark') ? '#fff' : '#1e293b'
+                    });
                     document.getElementById('ticketSubject').value = '';
                     document.getElementById('ticketMessage').value = '';
                     loadTickets();
-                } else { Swal.fire('Error', data.error, 'error'); }
-            } catch(e) { Swal.fire('Error', 'Submission failed', 'error'); } finally { showLoading(false); }
+                } else { 
+                    Swal.fire('Error', data.error || 'Unable to submit', 'error'); 
+                }
+            } catch(e) { 
+                Swal.fire('Network Issue', 'Could not connect to support service', 'error'); 
+            } finally { 
+                showLoading(false); 
+            }
         }
         
+        // Load user tickets with better UI
         async function loadTickets() {
             try {
-                const res = await fetch(`${apiUrl}/api/support/tickets`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+                const res = await fetch(`${apiUrl}/api/support/tickets`, { 
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+                });
+                if (res.status === 401) {
+                    window.location.href = '/index.html';
+                    return;
+                }
                 const tickets = await res.json();
                 const container = document.getElementById('ticketsList');
-                if (tickets.length === 0) { container.innerHTML = '<div style="text-align:center; color:#9CA3AF;">No tickets yet</div>'; return; }
-                container.innerHTML = '';
-                for (let t of tickets) {
-                    container.innerHTML += `<div class="ticket-item"><div class="ticket-subject">${t.subject}</div><div class="ticket-message">${t.message.substring(0, 100)}...</div><div class="ticket-status">${t.status} • ${new Date(t.createdAt).toLocaleDateString()}</div></div>`;
+                if (!tickets || tickets.length === 0) {
+                    container.innerHTML = `<div class="empty-tickets"><i class="fas fa-inbox"></i><p>No support tickets yet</p><small style="opacity:0.6;">Create your first ticket above</small></div>`;
+                    return;
                 }
-            } catch(e) { console.error(e); }
+                container.innerHTML = '';
+                for (let t of tickets.slice().reverse()) {
+                    const statusBadge = t.status === 'open' ? '🟡 Open' : (t.status === 'in-progress' ? '🔵 In Progress' : '✅ Resolved');
+                    container.innerHTML += `
+                        <div class="ticket-item">
+                            <div class="ticket-subject">
+                                <i class="fas fa-envelope"></i> ${escapeHtml(t.subject)}
+                            </div>
+                            <div class="ticket-message">${escapeHtml(t.message.substring(0, 120))}${t.message.length > 120 ? '...' : ''}</div>
+                            <div><span class="ticket-status">${statusBadge}</span> <span style="font-size:10px; margin-left:8px; color:var(--text-secondary);"><i class="far fa-calendar-alt"></i> ${new Date(t.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span></div>
+                        </div>
+                    `;
+                }
+            } catch(e) { 
+                console.error(e);
+                document.getElementById('ticketsList').innerHTML = `<div class="empty-tickets"><i class="fas fa-exclamation-triangle"></i><p>Could not load tickets</p></div>`;
+            }
+        }
+
+        // Simple escape to prevent XSS
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            }).replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, function(c) {
+                return c;
+            });
         }
         
-        loadTickets();
+        // Check token on load
+        window.addEventListener('load', () => {
+            loadThemePreference();
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = '/index.html';
+                return;
+            }
+            loadTickets();
+        });
     </script>
 </body>
 </html>
