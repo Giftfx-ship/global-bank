@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Admin - Prime Heritage Bank</title>
+    <title>Admin Portal - Prime Heritage Bank</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -129,8 +129,6 @@
         .btn-sm:hover { background: var(--gold); color: #0A0E1A; }
         .btn-danger { border-color: var(--error); color: var(--error); }
         .btn-danger:hover { background: var(--error); color: white; }
-        .btn-warning { border-color: var(--warning); color: var(--warning); }
-        .btn-warning:hover { background: var(--warning); color: white; }
         
         .status-active { color: var(--success); }
         .status-inactive { color: var(--error); }
@@ -141,7 +139,7 @@
             flex-wrap: wrap;
             gap: 10px;
             margin-top: 15px;
-            max-height: 300px;
+            max-height: 400px;
             overflow-y: auto;
         }
         .bbc-code-item {
@@ -174,6 +172,13 @@
             font-size: 10px;
             color: var(--text-secondary);
         }
+        .bbc-status {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 20px;
+        }
+        .status-used { background: rgba(239,68,68,0.2); color: var(--error); }
+        .status-unused { background: rgba(16,185,129,0.2); color: var(--success); }
         .bbc-actions {
             display: flex;
             gap: 5px;
@@ -186,6 +191,7 @@
             padding: 4px 8px;
             border-radius: 8px;
             font-size: 12px;
+            transition: all 0.3s;
         }
         .bbc-action-btn.edit { color: var(--warning); }
         .bbc-action-btn.delete { color: var(--error); }
@@ -325,7 +331,7 @@
 
     <!-- View BBC Modal -->
     <div id="bbcModal" class="modal">
-        <div class="modal-content" style="max-width: 700px;">
+        <div class="modal-content" style="max-width: 750px;">
             <div class="modal-header">
                 <h3><i class="fas fa-key"></i> BBC Codes Management - <span id="bbcUserName">User</span></h3>
                 <button class="close-modal" onclick="closeModal('bbcModal')">&times;</button>
@@ -334,10 +340,10 @@
                 <div class="form-group">
                     <label>Filter by Step:</label>
                     <select id="bbcStepFilter" onchange="filterBBCodes()" style="width: 100%; padding: 10px; background: #0F1622; border: 1px solid var(--border); border-radius: 12px; color: white;">
-                        <option value="all">All Steps (1,2,3)</option>
-                        <option value="1">Step 1 - Currency Exchange</option>
-                        <option value="2">Step 2 - Transfer Authorization</option>
-                        <option value="3">Step 3 - Final Security</option>
+                        <option value="all">All Steps (1, 2, 3)</option>
+                        <option value="1">Step 1 - Currency Exchange / Initial Verification</option>
+                        <option value="2">Step 2 - Transfer Authorization / Second Check</option>
+                        <option value="3">Step 3 - Final Security / Completion Code</option>
                     </select>
                 </div>
             </div>
@@ -355,9 +361,9 @@
             <div class="modal-header"><h3>Generate BBC Codes</h3><button class="close-modal" onclick="closeModal('generateBBCModal')">&times;</button></div>
             <div class="form-group"><label>Select User</label><select id="bbcUserId" style="width:100%; padding:12px;"></select></div>
             <div class="form-group"><label>BBC Step</label><select id="bbcStep">
-                <option value="1">Step 1 - Currency Exchange Verification</option>
+                <option value="1">Step 1 - Currency Exchange / Initial</option>
                 <option value="2">Step 2 - Transfer Authorization</option>
-                <option value="3">Step 3 - Final Security Check</option>
+                <option value="3">Step 3 - Final Security</option>
             </select></div>
             <div class="form-group"><label>Quantity</label><input type="number" id="bbcQuantity" value="10" min="1" max="100"></div>
             <div class="form-group"><label>Expiry (days)</label><input type="number" id="bbcExpiryDays" value="30" min="1" max="365"></div>
@@ -370,7 +376,7 @@
         <div class="modal-content">
             <div class="modal-header"><h3>Edit BBC Code</h3><button class="close-modal" onclick="closeModal('editBBCModal')">&times;</button></div>
             <input type="hidden" id="editBbcId">
-            <div class="form-group"><label>BBC Code</label><input type="text" id="editBbcCode" placeholder="6-digit code"></div>
+            <div class="form-group"><label>BBC Code</label><input type="text" id="editBbcCode" placeholder="6-digit code" maxlength="6"></div>
             <div class="form-group"><label>Step</label><select id="editBbcStep">
                 <option value="1">Step 1 - Currency Exchange</option>
                 <option value="2">Step 2 - Transfer Authorization</option>
@@ -419,12 +425,12 @@
                         <td class="${u.isActive ? 'status-active' : 'status-inactive'}">${u.isActive ? 'Active' : 'Frozen'}</td>
                         <td>
                             <button class="btn-sm" onclick="openSendModal('${u._id}', '${u.fullName}', '${u.accountNumber}')">Send $</button>
-                            <button class="btn-sm" onclick="toggleUserStatus('${u._id}')">${u.isActive ? 'Freeze' : 'Activate'}</button>
-                        </td>
+                            <button class="btn-sm ${u.isActive ? 'btn-danger' : ''}" onclick="toggleUserStatus('${u._id}')">${u.isActive ? 'Freeze' : 'Activate'}</button>
+                         </td>
                         <td>
-                            <button class="btn-sm" onclick="viewBBCodes('${u._id}', '${u.fullName}')"><i class="fas fa-key"></i> Manage BBC (${u.bbcCount || 0})</button>
-                        </td>
-                    </tr>
+                            <button class="btn-sm" onclick="viewBBCodes('${u._id}', '${u.fullName}')"><i class="fas fa-key"></i> Manage (${u.bbcCount || 0})</button>
+                         </td>
+                     </tr>
                 `;
             }
         }
@@ -436,7 +442,7 @@
                 <div class="stat-card"><div class="value">${users.length}</div><div class="label">Total Users</div></div>
                 <div class="stat-card"><div class="value">$${total.toLocaleString()}</div><div class="label">Total Balance</div></div>
                 <div class="stat-card"><div class="value">${totalBbc}</div><div class="label">Total BBC Codes</div></div>
-                <div class="stat-card"><div class="value"><i class="fas fa-crown"></i></div><div class="label">Heritage Bank</div></div>
+                <div class="stat-card"><div class="value">24/7</div><div class="label">Active Support</div></div>
             `;
         }
         
@@ -516,12 +522,15 @@
             container.innerHTML = '';
             for (let code of filtered) {
                 const expiryDate = code.expiresAt ? new Date(code.expiresAt).toLocaleDateString() : 'No expiry';
-                const stepName = code.step == 1 ? 'Currency Exchange' : code.step == 2 ? 'Transfer Authorization' : 'Final Security';
+                const stepName = code.step == 1 ? 'Currency Exchange' : code.step == 2 ? 'Transfer Auth' : 'Final Security';
+                const statusClass = code.isUsed ? 'status-used' : 'status-unused';
+                const statusText = code.isUsed ? 'USED' : 'ACTIVE';
                 container.innerHTML += `
                     <div class="bbc-code-item">
                         <div class="bbc-code-number">${code.code}</div>
                         <div class="bbc-step">Step ${code.step} - ${stepName}</div>
                         <div class="bbc-expiry">Exp: ${expiryDate}</div>
+                        <div class="bbc-status ${statusClass}">${statusText}</div>
                         <div class="bbc-actions">
                             <button class="bbc-action-btn copy" onclick="copyCode('${code.code}')" title="Copy"><i class="fas fa-copy"></i></button>
                             <button class="bbc-action-btn edit" onclick="editBBCode('${code._id}', '${code.code}', ${code.step}, ${code.isUsed})" title="Edit"><i class="fas fa-edit"></i></button>
@@ -608,7 +617,7 @@
         
         function openGenerateForUser() {
             const select = document.getElementById('bbcUserId');
-            select.innerHTML = `<option value="${currentBbcUserId}">Current User</option>`;
+            select.innerHTML = `<option value="${currentBbcUserId}">Current User (${document.getElementById('bbcUserName').innerText})</option>`;
             closeModal('bbcModal');
             openModal('generateBBCModal');
         }
