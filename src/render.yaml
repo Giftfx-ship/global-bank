@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: global-bank-api
+    env: node
+    buildCommand: npm install
+    startCommand: node server.js
+    envVars:
+      - key: MONGODB_URI
+        value: mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/globalbank?retryWrites=true&w=majority
+      - key: JWT_SECRET
+        value: globalbank_super_secret_key_2025
+      - key: SESSION_SECRET
+        value: banking_session_secret_demo
+      - key: PORT
+        value: 3000
