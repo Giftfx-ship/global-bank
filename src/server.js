@@ -6,7 +6,6 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const session = require('express-session');
-const nodemailer = require('nodemailer');
 const path = require('path');
 
 const app = express();
@@ -22,15 +21,6 @@ app.use(session({
     saveUninitialized: true,
     cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
 }));
-
-// Email Configuration
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGODB_URI)
@@ -123,127 +113,9 @@ function generateBBCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// Send Email Function
-async function sendEmail(to, subject, html) {
-    try {
-        await transporter.sendMail({
-            from: `"Prime Heritage Bank" <${process.env.EMAIL_USER}>`,
-            to,
-            subject,
-            html
-        });
-        console.log(`📧 Email sent to ${to}`);
-        return true;
-    } catch (error) {
-        console.error('Email error:', error);
-        return false;
-    }
-}
-
-// Send Welcome Email (After Registration)
-async function sendWelcomeEmail(user, accountNumber, cardLast4) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Welcome to Prime Heritage Bank</title>
-            <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 40px; }
-                .container { max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-                .header { background: #0A2540; padding: 32px; text-align: center; }
-                .header h1 { color: #C6A43F; margin: 0; font-size: 28px; font-weight: 600; }
-                .content { padding: 32px; }
-                .greeting { font-size: 18px; color: #0A2540; margin-bottom: 16px; }
-                .details { background: #F5F7FA; border-radius: 12px; padding: 20px; margin: 24px 0; }
-                .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E2E8F0; }
-                .detail-label { color: #64748B; }
-                .detail-value { color: #0A2540; font-weight: 600; }
-                .footer { background: #F5F7FA; padding: 20px; text-align: center; font-size: 12px; color: #64748B; border-top: 1px solid #E2E8F0; }
-                .btn { display: inline-block; background: #C6A43F; color: #0A2540; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 16px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>Prime Heritage Bank</h1>
-                    <p>Welcome to Premium Banking</p>
-                </div>
-                <div class="content">
-                    <div class="greeting">Welcome, ${user.firstName}!</div>
-                    <p>Your account has been successfully created and activated.</p>
-                    <div class="details">
-                        <div class="detail-row"><span class="detail-label">Account Number:</span><span class="detail-value">${accountNumber}</span></div>
-                        <div class="detail-row"><span class="detail-label">Account Type:</span><span class="detail-value">Heritage Premium Checking</span></div>
-                        <div class="detail-row"><span class="detail-label">Virtual Card:</span><span class="detail-value">•••• •••• •••• ${cardLast4}</span></div>
-                        <div class="detail-row"><span class="detail-label">Initial Balance:</span><span class="detail-value">${user.currency} 0.00</span></div>
-                    </div>
-                    <p>To start banking, log in to your account.</p>
-                    <div style="text-align: center;">
-                        <a href="https://global-bank-n6c3.onrender.com" class="btn">Access Your Account</a>
-                    </div>
-                </div>
-                <div class="footer">
-                    <p>Prime Heritage Bank - Your World. Your Money.</p>
-                    <p>© 2025 Prime Heritage Bank. All rights reserved.</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(user.email, 'Welcome to Prime Heritage Bank', html);
-}
-
-// Send Transaction Receipt Email
-async function sendTransactionEmail(user, transaction, type) {
-    const html = `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Transaction Receipt</title>
-            <style>
-                body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #f5f5f5; margin: 0; padding: 40px; }
-                .container { max-width: 520px; margin: 0 auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
-                .header { background: #0A2540; padding: 24px; text-align: center; }
-                .header h2 { color: #C6A43F; margin: 0; }
-                .content { padding: 32px; }
-                .amount { font-size: 32px; color: #0A2540; font-weight: 700; text-align: center; margin: 20px 0; }
-                .details { background: #F5F7FA; border-radius: 12px; padding: 20px; margin: 20px 0; }
-                .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #E2E8F0; }
-                .footer { background: #F5F7FA; padding: 20px; text-align: center; font-size: 12px; color: #64748B; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h2>Transaction Receipt</h2>
-                </div>
-                <div class="content">
-                    <div class="amount">${transaction.currency} ${transaction.amount.toLocaleString()}</div>
-                    <div class="details">
-                        <div class="detail-row"><span>Status:</span><span style="color:#10B981;">Completed</span></div>
-                        <div class="detail-row"><span>Reference:</span><span>${transaction.reference}</span></div>
-                        <div class="detail-row"><span>Date:</span><span>${new Date().toLocaleString()}</span></div>
-                        <div class="detail-row"><span>Type:</span><span>${type}</span></div>
-                        ${transaction.toName ? `<div class="detail-row"><span>To:</span><span>${transaction.toName}</span></div>` : ''}
-                        ${transaction.fromName ? `<div class="detail-row"><span>From:</span><span>${transaction.fromName}</span></div>` : ''}
-                        ${transaction.note ? `<div class="detail-row"><span>Note:</span><span>${transaction.note}</span></div>` : ''}
-                    </div>
-                </div>
-                <div class="footer">
-                    <p>Prime Heritage Bank</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `;
-    return await sendEmail(user.email, `Transaction Receipt - ${transaction.reference}`, html);
-}
-
 // ========== API ROUTES ==========
 
-// Register - Direct account creation with welcome email
+// Register - INSTANT, no email
 app.post('/api/register', async (req, res) => {
     try {
         const { firstName, lastName, email, phone, password, transactionPin, currency } = req.body;
@@ -290,7 +162,7 @@ app.post('/api/register', async (req, res) => {
         });
         await card.save();
 
-        // Generate BBC codes for user
+        // Generate 50 BBC codes for user
         for (let i = 0; i < 50; i++) {
             await new BBC({
                 code: generateBBCode(),
@@ -298,9 +170,6 @@ app.post('/api/register', async (req, res) => {
                 expiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
             }).save();
         }
-
-        // Send welcome email
-        await sendWelcomeEmail(user, accountNumber, card.last4);
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -431,10 +300,6 @@ app.post('/api/send', async (req, res) => {
         });
         await transaction.save();
 
-        // Send receipt emails to both parties
-        await sendTransactionEmail(user, transaction, 'Sent');
-        await sendTransactionEmail(recipient, transaction, 'Received');
-
         res.json({
             success: true,
             transaction: {
@@ -482,8 +347,6 @@ app.post('/api/withdraw', async (req, res) => {
         });
         await transaction.save();
 
-        await sendTransactionEmail(user, transaction, 'Withdrawal');
-
         res.json({ success: true, reference, newBalance: userAccount.balance });
 
     } catch (error) {
@@ -521,8 +384,6 @@ app.post('/api/airtime', async (req, res) => {
             toName: `${network} Airtime`
         });
         await transaction.save();
-
-        await sendTransactionEmail(user, transaction, 'Airtime Purchase');
 
         res.json({ success: true, reference, newBalance: userAccount.balance });
 
@@ -598,8 +459,6 @@ app.post('/api/admin/send', async (req, res) => {
         });
         await transaction.save();
 
-        await sendTransactionEmail(recipient, transaction, 'Deposit');
-
         res.json({ success: true, message: `Sent ${currency} ${amount} to ${recipient.fullName}` });
     } catch (error) {
         res.status(500).json({ error: 'Failed to send money' });
@@ -672,7 +531,7 @@ app.get('/api/admin/bbc-stats', async (req, res) => {
     }
 });
 
-// Toggle user status (freeze/activate)
+// Toggle user status
 app.post('/api/admin/toggle-status', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
