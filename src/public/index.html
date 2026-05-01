@@ -2,15 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Global Bank - International Banking</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prime Heritage Bank - Premium Banking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0A2540 0%, #1A3A5F 100%);
+            background: linear-gradient(135deg, #0A1A2F 0%, #0D2B3E 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -18,205 +18,91 @@
             position: relative;
             overflow-x: hidden;
         }
-        @keyframes float {
-            0%, 100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-30px) rotate(10deg); }
-        }
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .bg-circles {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            z-index: 0;
-        }
-        .bg-circles div {
-            position: absolute;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.03);
-            animation: float 20s infinite;
-        }
-        .bg-circles div:nth-child(1) { width: 300px; height: 300px; top: -100px; left: -100px; }
-        .bg-circles div:nth-child(2) { width: 500px; height: 500px; bottom: -200px; right: -100px; animation-delay: 5s; }
-        .bg-circles div:nth-child(3) { width: 200px; height: 200px; top: 50%; left: 50%; animation-delay: 10s; }
-        .container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 500px;
-            padding: 20px;
-            animation: slideIn 0.5s ease-out;
-        }
+        @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes glow { 0% { box-shadow: 0 0 5px #D4AF37; } 50% { box-shadow: 0 0 30px #D4AF37; } 100% { box-shadow: 0 0 5px #D4AF37; } }
+        
+        .bg-animation { position: fixed; top: 0; left: 0; width: 100%; height: 100%; overflow: hidden; z-index: 0; }
+        .bg-animation div { position: absolute; border-radius: 50%; background: rgba(212,175,55,0.03); animation: float 15s infinite; }
+        .bg-animation div:nth-child(1) { width: 400px; height: 400px; top: -150px; left: -150px; }
+        .bg-animation div:nth-child(2) { width: 600px; height: 600px; bottom: -250px; right: -150px; animation-delay: 5s; }
+        .bg-animation div:nth-child(3) { width: 300px; height: 300px; top: 50%; left: 50%; animation-delay: 10s; }
+        
+        .container { position: relative; z-index: 1; width: 100%; max-width: 500px; padding: 20px; animation: slideIn 0.5s ease-out; }
         .logo { text-align: center; margin-bottom: 30px; }
         .logo-icon {
-            width: 70px; height: 70px;
-            background: linear-gradient(135deg, #00D4AA, #0066FF);
-            border-radius: 20px;
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #D4AF37, #B8860B);
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 15px;
-            box-shadow: 0 10px 30px rgba(0,102,255,0.3);
-            animation: pulse 2s infinite;
+            animation: glow 2s infinite;
         }
-        .logo-icon i { font-size: 36px; color: white; }
-        .logo h1 { color: white; font-size: 28px; letter-spacing: -0.5px; }
-        .logo p { color: rgba(255,255,255,0.7); font-size: 14px; margin-top: 5px; }
-        .card {
-            background: white;
-            border-radius: 28px;
-            padding: 32px;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
-        }
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 28px;
-            background: #F1F5F9;
-            padding: 5px;
-            border-radius: 16px;
-        }
-        .tab {
-            flex: 1;
-            text-align: center;
-            padding: 12px;
-            border: none;
-            background: transparent;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 12px;
-            transition: all 0.3s;
-            font-family: 'Inter', sans-serif;
-        }
-        .tab.active {
-            background: #0066FF;
-            color: white;
-            box-shadow: 0 2px 8px rgba(0,102,255,0.3);
-        }
-        .form-group { margin-bottom: 20px; }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: 600;
-            color: #1E293B;
-            margin-bottom: 8px;
-        }
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 14px 16px;
-            border: 1.5px solid #E2E8F0;
-            border-radius: 14px;
-            font-size: 15px;
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-            background: #F8FAFC;
-        }
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #0066FF;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(0,102,255,0.1);
-        }
-        .pin-inputs { display: flex; gap: 12px; justify-content: center; }
-        .pin-inputs input {
-            width: 60px; height: 60px;
-            text-align: center;
-            font-size: 24px;
+        .logo-icon i { font-size: 42px; color: #0A1A2F; }
+        .logo h1 { 
+            color: #D4AF37; 
+            font-size: 32px; 
+            letter-spacing: -0.5px;
             font-weight: 700;
         }
+        .logo p { color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 5px; }
+        
+        .card {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.3);
+        }
+        .tabs { display: flex; gap: 10px; margin-bottom: 28px; background: #F1F5F9; padding: 5px; border-radius: 20px; }
+        .tab {
+            flex: 1; text-align: center; padding: 12px; border: none; background: transparent;
+            font-size: 16px; font-weight: 600; cursor: pointer; border-radius: 16px; transition: all 0.3s;
+        }
+        .tab.active { background: linear-gradient(135deg, #D4AF37, #B8860B); color: white; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #1E293B; margin-bottom: 8px; }
+        .form-group input, .form-group select {
+            width: 100%; padding: 14px 16px; border: 1.5px solid #E2E8F0; border-radius: 16px;
+            font-size: 15px; font-family: 'Inter', sans-serif; transition: all 0.3s; background: #F8FAFC;
+        }
+        .form-group input:focus { outline: none; border-color: #D4AF37; background: white; box-shadow: 0 0 0 3px rgba(212,175,55,0.1); }
+        .pin-inputs { display: flex; gap: 12px; justify-content: center; }
+        .pin-inputs input { width: 60px; height: 60px; text-align: center; font-size: 24px; font-weight: 700; border-radius: 16px; }
         .currency-selector { display: flex; gap: 15px; margin-top: 10px; }
         .currency-option {
-            flex: 1;
-            padding: 15px;
-            border: 2px solid #E2E8F0;
-            border-radius: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
+            flex: 1; padding: 15px; border: 2px solid #E2E8F0; border-radius: 20px; text-align: center;
+            cursor: pointer; transition: all 0.3s;
         }
-        .currency-option.selected {
-            border-color: #0066FF;
-            background: rgba(0,102,255,0.05);
-        }
+        .currency-option.selected { border-color: #D4AF37; background: rgba(212,175,55,0.1); }
         .currency-option i { font-size: 28px; display: block; margin-bottom: 8px; }
         .currency-option .symbol { font-size: 20px; font-weight: 700; }
-        .currency-option .name { font-size: 11px; color: #64748B; margin-top: 4px; }
         .btn {
-            width: 100%;
-            padding: 16px;
-            background: #0066FF;
-            color: white;
-            border: none;
-            border-radius: 16px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-family: 'Inter', sans-serif;
-            margin-top: 10px;
+            width: 100%; padding: 16px; background: linear-gradient(135deg, #D4AF37, #B8860B);
+            color: #0A1A2F; border: none; border-radius: 20px; font-size: 16px; font-weight: 700;
+            cursor: pointer; transition: all 0.3s; margin-top: 10px;
         }
-        .btn:hover {
-            background: #0052CC;
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,102,255,0.3);
-        }
-        .error-message, .success-message {
-            padding: 12px;
-            border-radius: 12px;
-            font-size: 13px;
-            margin-bottom: 20px;
-            display: none;
-        }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 25px -5px rgba(212,175,55,0.4); }
+        .error-message, .success-message { padding: 12px; border-radius: 16px; font-size: 13px; margin-bottom: 20px; display: none; }
         .error-message { background: #FEE2E2; color: #DC2626; }
         .success-message { background: #D1FAE5; color: #059669; }
-        .disclaimer {
-            text-align: center;
-            margin-top: 20px;
-            font-size: 11px;
-            color: rgba(255,255,255,0.5);
-        }
-        .loading {
-            display: none;
-            text-align: center;
-            margin-top: 20px;
-        }
-        .loading-spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid #E2E8F0;
-            border-top-color: #0066FF;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
+        .disclaimer { text-align: center; margin-top: 20px; font-size: 11px; color: rgba(255,255,255,0.5); }
+        .loading { display: none; text-align: center; margin-top: 20px; }
+        .loading-spinner { width: 40px; height: 40px; border: 3px solid #E2E8F0; border-top-color: #D4AF37; border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 10px; }
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        @media (max-width: 500px) {
-            .card { padding: 24px; }
-            .currency-option .symbol { font-size: 16px; }
-            .pin-inputs input { width: 50px; height: 50px; }
-        }
+        @media (max-width: 500px) { .card { padding: 24px; } .pin-inputs input { width: 50px; height: 50px; } }
     </style>
 </head>
 <body>
-    <div class="bg-circles"><div></div><div></div><div></div></div>
+    <div class="bg-animation"><div></div><div></div><div></div></div>
     <div class="container">
         <div class="logo">
-            <div class="logo-icon"><i class="fas fa-globe-americas"></i></div>
-            <h1>Global Bank</h1>
-            <p>Your World. Your Money.</p>
+            <div class="logo-icon"><i class="fas fa-crown"></i></div>
+            <h1>Prime Heritage Bank</h1>
+            <p>Est. 2025 | Premium Global Banking</p>
         </div>
         <div class="card">
             <div class="tabs">
@@ -226,57 +112,46 @@
             <div id="errorMessage" class="error-message"></div>
             <div id="successMessage" class="success-message"></div>
             <div id="loginForm">
-                <div class="form-group">
-                    <label><i class="fas fa-envelope"></i> Email or Account Number</label>
-                    <input type="text" id="loginIdentifier" placeholder="john@example.com or GB-USA-1234">
-                </div>
-                <div class="form-group">
-                    <label><i class="fas fa-lock"></i> Password</label>
-                    <input type="password" id="loginPassword" placeholder="Enter your password">
-                </div>
-                <button class="btn" onclick="handleLogin()"><i class="fas fa-arrow-right-to-bracket"></i> Sign In</button>
+                <div class="form-group"><label>Email or Account Number</label><input type="text" id="loginIdentifier" placeholder="john@example.com or PHB-USA-1234"></div>
+                <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Enter your password"></div>
+                <button class="btn" onclick="handleLogin()"><i class="fas fa-crown"></i> Sign In</button>
             </div>
             <div id="registerForm" style="display: none;">
                 <div class="row-2">
                     <div class="form-group"><label>First Name</label><input type="text" id="regFirstName" placeholder="John"></div>
                     <div class="form-group"><label>Last Name</label><input type="text" id="regLastName" placeholder="Doe"></div>
                 </div>
-                <div class="form-group"><label>Email Address</label><input type="email" id="regEmail" placeholder="john@example.com"></div>
-                <div class="form-group"><label>Phone Number</label><input type="tel" id="regPhone" placeholder="+1 (234) 567-8900"></div>
+                <div class="form-group"><label>Email</label><input type="email" id="regEmail" placeholder="john@example.com"></div>
+                <div class="form-group"><label>Phone</label><input type="tel" id="regPhone" placeholder="+1 (234) 567-8900"></div>
                 <div class="form-group">
-                    <label>Select Primary Currency</label>
+                    <label>Primary Currency</label>
                     <div class="currency-selector">
-                        <div class="currency-option selected" data-currency="USD" onclick="selectCurrency('USD')">
-                            <i class="fas fa-dollar-sign"></i><div class="symbol">USD</div><div class="name">US Dollar</div>
-                        </div>
-                        <div class="currency-option" data-currency="EUR" onclick="selectCurrency('EUR')">
-                            <i class="fas fa-euro-sign"></i><div class="symbol">EUR</div><div class="name">Euro</div>
-                        </div>
-                        <div class="currency-option" data-currency="GBP" onclick="selectCurrency('GBP')">
-                            <i class="fas fa-pound-sign"></i><div class="symbol">GBP</div><div class="name">British Pound</div>
-                        </div>
+                        <div class="currency-option selected" data-currency="USD" onclick="selectCurrency('USD')"><i class="fas fa-dollar-sign"></i><div class="symbol">USD</div><div class="name">US Dollar</div></div>
+                        <div class="currency-option" data-currency="EUR" onclick="selectCurrency('EUR')"><i class="fas fa-euro-sign"></i><div class="symbol">EUR</div><div class="name">Euro</div></div>
+                        <div class="currency-option" data-currency="GBP" onclick="selectCurrency('GBP')"><i class="fas fa-pound-sign"></i><div class="symbol">GBP</div><div class="name">British Pound</div></div>
                     </div>
                 </div>
-                <div class="form-group"><label>Create Password</label><input type="password" id="regPassword" placeholder="••••••••"></div>
+                <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="••••••••"></div>
                 <div class="form-group"><label>Confirm Password</label><input type="password" id="regConfirmPassword" placeholder="••••••••"></div>
                 <div class="form-group">
-                    <label>4-Digit Transaction PIN</label>
+                    <label>4-Digit PIN</label>
                     <div class="pin-inputs">
-                        <input type="password" maxlength="1" id="pin1" onkeyup="moveToNext(this, 'pin2')">
-                        <input type="password" maxlength="1" id="pin2" onkeyup="moveToNext(this, 'pin3')">
-                        <input type="password" maxlength="1" id="pin3" onkeyup="moveToNext(this, 'pin4')">
+                        <input type="password" maxlength="1" id="pin1" onkeyup="moveToNext(this,'pin2')">
+                        <input type="password" maxlength="1" id="pin2" onkeyup="moveToNext(this,'pin3')">
+                        <input type="password" maxlength="1" id="pin3" onkeyup="moveToNext(this,'pin4')">
                         <input type="password" maxlength="1" id="pin4">
                     </div>
                 </div>
-                <button class="btn" onclick="handleRegister()"><i class="fas fa-user-plus"></i> Open Account</button>
+                <button class="btn" onclick="handleRegister()"><i class="fas fa-crown"></i> Open Heritage Account</button>
             </div>
             <div id="loading" class="loading"><div class="loading-spinner"></div><p>Processing...</p></div>
         </div>
-        <div class="disclaimer">🔒 EDUCATIONAL SIMULATION - NO REAL MONEY | International Banking System</div>
+        <div class="disclaimer">🏦 PRIME HERITAGE BANK</div>
     </div>
     <script>
         let selectedCurrency = 'USD';
-        const apiUrl = 'https://global-bank-n6c3.onrender.com';
+        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        
         function selectCurrency(currency) {
             selectedCurrency = currency;
             document.querySelectorAll('.currency-option').forEach(opt => {
@@ -285,89 +160,54 @@
             });
         }
         function switchTab(tab) {
-            const loginDiv = document.getElementById('loginForm');
-            const registerDiv = document.getElementById('registerForm');
-            const tabs = document.querySelectorAll('.tab');
-            tabs.forEach(t => t.classList.remove('active'));
-            if(tab === 'login') {
-                loginDiv.style.display = 'block';
-                registerDiv.style.display = 'none';
-                tabs[0].classList.add('active');
-            } else {
-                loginDiv.style.display = 'none';
-                registerDiv.style.display = 'block';
-                tabs[1].classList.add('active');
-            }
-            document.getElementById('errorMessage').style.display = 'none';
-            document.getElementById('successMessage').style.display = 'none';
+            document.getElementById('loginForm').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('registerForm').style.display = tab === 'register' ? 'block' : 'none';
+            document.querySelectorAll('.tab').forEach((t, i) => t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1)));
         }
-        function moveToNext(current, nextId) {
-            if(current.value.length === 1) document.getElementById(nextId).focus();
-        }
-        function showError(message) {
-            const errorDiv = document.getElementById('errorMessage');
-            errorDiv.textContent = message;
-            errorDiv.style.display = 'block';
-            setTimeout(() => errorDiv.style.display = 'none', 5000);
-        }
-        function showSuccess(message) {
-            const successDiv = document.getElementById('successMessage');
-            successDiv.textContent = message;
-            successDiv.style.display = 'block';
-            setTimeout(() => successDiv.style.display = 'none', 5000);
-        }
-        function showLoading(show) {
-            document.getElementById('loading').style.display = show ? 'block' : 'none';
-        }
+        function moveToNext(current, nextId) { if(current.value.length === 1) document.getElementById(nextId).focus(); }
+        function showError(msg) { let e = document.getElementById('errorMessage'); e.textContent = msg; e.style.display = 'block'; setTimeout(() => e.style.display = 'none', 5000); }
+        function showSuccess(msg) { let s = document.getElementById('successMessage'); s.textContent = msg; s.style.display = 'block'; setTimeout(() => s.style.display = 'none', 5000); }
+        function showLoading(show) { document.getElementById('loading').style.display = show ? 'block' : 'none'; }
+        
         async function handleLogin() {
             const identifier = document.getElementById('loginIdentifier').value;
             const password = document.getElementById('loginPassword').value;
-            if(!identifier || !password) { showError('Please enter email/account number and password'); return; }
+            if(!identifier || !password) { showError('Please enter email/account and password'); return; }
             showLoading(true);
             try {
-                const response = await fetch(`${apiUrl}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier, password })
-                });
-                const data = await response.json();
+                const res = await fetch(`${apiUrl}/api/login`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ identifier, password }) });
+                const data = await res.json();
                 if(data.success) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    if(data.user.isAdmin) window.location.href = '/admin.html';
-                    else window.location.href = '/dashboard.html';
-                } else showError(data.error || 'Login failed');
-            } catch(error) { showError('Connection error. Make sure server is running.'); }
-            finally { showLoading(false); }
+                    window.location.href = data.user.isAdmin ? '/admin.html' : '/dashboard.html';
+                } else showError(data.error);
+            } catch(e) { showError('Connection error'); } finally { showLoading(false); }
         }
+        
         async function handleRegister() {
             const firstName = document.getElementById('regFirstName').value;
             const lastName = document.getElementById('regLastName').value;
             const email = document.getElementById('regEmail').value;
             const phone = document.getElementById('regPhone').value;
             const password = document.getElementById('regPassword').value;
-            const confirmPassword = document.getElementById('regConfirmPassword').value;
+            const confirm = document.getElementById('regConfirmPassword').value;
             const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + document.getElementById('pin3').value + document.getElementById('pin4').value;
-            if(!firstName || !lastName || !email || !phone || !password || pin.length !== 4) { showError('Please fill all fields correctly'); return; }
-            if(password !== confirmPassword) { showError('Passwords do not match'); return; }
-            if(password.length < 6) { showError('Password must be at least 6 characters'); return; }
+            if(!firstName || !lastName || !email || !phone || !password || pin.length !== 4) { showError('Fill all fields'); return; }
+            if(password !== confirm) { showError('Passwords do not match'); return; }
             showLoading(true);
             try {
-                const response = await fetch(`${apiUrl}/api/register`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ firstName, lastName, email, phone, password, transactionPin: pin, currency: selectedCurrency })
-                });
-                const data = await response.json();
+                const res = await fetch(`${apiUrl}/api/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ firstName, lastName, email, phone, password, transactionPin: pin, currency: selectedCurrency }) });
+                const data = await res.json();
                 if(data.success) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
-                    showSuccess('Account created! Check your email for confirmation. Redirecting...');
-                    setTimeout(() => window.location.href = '/dashboard.html', 3000);
-                } else showError(data.error || 'Registration failed');
-            } catch(error) { showError('Connection error. Make sure server is running.'); }
-            finally { showLoading(false); }
+                    showSuccess('Account created! Redirecting...');
+                    setTimeout(() => window.location.href = '/dashboard.html', 2000);
+                } else showError(data.error);
+            } catch(e) { showError('Connection error'); } finally { showLoading(false); }
         }
+        
         const token = localStorage.getItem('token');
         if(token && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
