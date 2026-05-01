@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Buy Airtime - Prime Heritage Bank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0A0E1A;
+            padding-bottom: 80px;
+        }
+        :root {
+            --gold: #C6A43F;
+            --gold-dark: #9E8032;
+            --bg-card: #111827;
+            --border: #1F2937;
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+        }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        
+        .top-bar {
+            background: var(--bg-card);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+        }
+        .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .logo-icon i { font-size: 20px; color: #0A0E1A; }
+        .logo span { color: var(--text-primary); font-size: 18px; font-weight: 600; }
+        .back-btn {
+            background: rgba(198,164,63,0.1);
+            border: 1px solid var(--gold);
+            padding: 8px 20px;
+            border-radius: 30px;
+            color: var(--gold);
+            cursor: pointer;
+        }
+        
+        .container { max-width: 500px; margin: 0 auto; padding: 24px; }
+        .card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            animation: slideUp 0.5s;
+        }
+        .title {
+            color: var(--gold);
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0F1622;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 15px;
+        }
+        .pin-inputs {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            margin: 20px 0;
+        }
+        .pin-inputs input {
+            width: 55px;
+            height: 55px;
+            text-align: center;
+            font-size: 22px;
+            font-weight: 600;
+            background: #0F1622;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: var(--gold);
+        }
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border: none;
+            border-radius: 14px;
+            color: #0A0E1A;
+            font-weight: 700;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        .info-box {
+            background: rgba(198,164,63,0.05);
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(198,164,63,0.2);
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+        .step-container {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .step-circle {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: rgba(198,164,63,0.2);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 8px;
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .step-circle.active { background: var(--gold); color: #0A0E1A; }
+        
+        .network-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .network-option.selected {
+            border-color: var(--gold);
+            background: rgba(198,164,63,0.1);
+        }
+        .network-option i { font-size: 24px; color: var(--gold); margin-right: 12px; }
+        .network-name { color: var(--text-primary); font-weight: 500; }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(10,14,26,0.95);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .loader {
+            width: 48px; height: 48px;
+            border: 3px solid rgba(198,164,63,0.2);
+            border-top: 3px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-card);
+            display: flex;
+            justify-content: space-around;
+            padding: 12px 20px;
+            border-top: 1px solid var(--border);
+        }
+        .nav-item { text-align: center; cursor: pointer; padding: 8px 16px; border-radius: 12px; }
+        .nav-item i { font-size: 20px; color: var(--text-secondary); display: block; margin-bottom: 4px; }
+        .nav-item span { font-size: 10px; color: var(--text-secondary); }
+        .nav-item.active { background: rgba(198,164,63,0.1); }
+        .nav-item.active i, .nav-item.active span { color: var(--gold); }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="logo" onclick="goToDashboard()">
+            <div class="logo-icon"><i class="fas fa-crown"></i></div>
+            <span>Prime Heritage</span>
+        </div>
+        <div class="back-btn" onclick="goToDashboard()"><i class="fas fa-arrow-left"></i> Back</div>
+    </div>
+
+    <div class="container">
+        <div class="card">
+            <div class="title"><i class="fas fa-mobile-alt"></i> Buy Airtime</div>
+            
+            <div class="info-box">
+                <div class="info-row"><span>Available Balance:</span><span id="userBalance" style="color:var(--gold);">$0.00</span></div>
+                <div class="info-row"><span>Currency:</span><span id="userCurrency">USD</span></div>
+            </div>
+            
+            <div id="step1Form">
+                <div class="form-group">
+                    <label>Country</label>
+                    <select id="countryCode">
+                        <option value="US">🇺🇸 United States (+1)</option>
+                        <option value="GB">🇬🇧 United Kingdom (+44)</option>
+                        <option value="NG">🇳🇬 Nigeria (+234)</option>
+                        <option value="GH">🇬🇭 Ghana (+233)</option>
+                        <option value="KE">🇰🇪 Kenya (+254)</option>
+                        <option value="ZA">🇿🇦 South Africa (+27)</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Network Provider</label>
+                    <div id="networkList">
+                        <div class="network-option" data-network="MTN" onclick="selectNetwork('MTN')">
+                            <i class="fas fa-signal"></i><span class="network-name">MTN</span>
+                        </div>
+                        <div class="network-option" data-network="Glo" onclick="selectNetwork('Glo')">
+                            <i class="fas fa-signal"></i><span class="network-name">Glo</span>
+                        </div>
+                        <div class="network-option" data-network="Airtel" onclick="selectNetwork('Airtel')">
+                            <i class="fas fa-signal"></i><span class="network-name">Airtel</span>
+                        </div>
+                        <div class="network-option" data-network="9mobile" onclick="selectNetwork('9mobile')">
+                            <i class="fas fa-signal"></i><span class="network-name">9mobile</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="selectedNetwork">
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" id="phoneNumber" placeholder="Enter phone number">
+                </div>
+                <div class="form-group">
+                    <label>Amount (USD)</label>
+                    <input type="number" id="amount" placeholder="0.00">
+                </div>
+                <div class="form-group">
+                    <label>Transaction PIN</label>
+                    <div class="pin-inputs">
+                        <input type="password" maxlength="1" id="pin1" onkeyup="movePin(this,'pin2')">
+                        <input type="password" maxlength="1" id="pin2" onkeyup="movePin(this,'pin3')">
+                        <input type="password" maxlength="1" id="pin3" onkeyup="movePin(this,'pin4')">
+                        <input type="password" maxlength="1" id="pin4">
+                    </div>
+                </div>
+                <button class="btn" onclick="airtimeStep1()">Continue →</button>
+            </div>
+            
+            <div id="bbcForm" style="display: none;">
+                <div class="step-container" id="stepIndicator">
+                    <div class="step-circle" id="step1Circle">1</div>
+                    <div class="step-circle" id="step2Circle">2</div>
+                    <div class="step-circle" id="step3Circle">3</div>
+                    <div class="step-circle" id="step4Circle">✓</div>
+                </div>
+                <div id="bbcRequestMessage" style="color:var(--gold); text-align:center; margin:20px 0;"></div>
+                <div class="pin-inputs">
+                    <input type="text" maxlength="1" id="bbc1" onkeyup="movePin(this,'bbc2')">
+                    <input type="text" maxlength="1" id="bbc2" onkeyup="movePin(this,'bbc3')">
+                    <input type="text" maxlength="1" id="bbc3" onkeyup="movePin(this,'bbc4')">
+                    <input type="text" maxlength="1" id="bbc4" onkeyup="movePin(this,'bbc5')">
+                    <input type="text" maxlength="1" id="bbc5" onkeyup="movePin(this,'bbc6')">
+                    <input type="text" maxlength="1" id="bbc6">
+                </div>
+                <button class="btn" onclick="submitBBC()">Verify Code</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bottom-nav">
+        <div class="nav-item" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="nav-item" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
+        <div class="nav-item active" onclick="goToAirtime()"><i class="fas fa-mobile-alt"></i><span>Airtime</span></div>
+        <div class="nav-item" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
+        <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
+    </div>
+
+    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing</div></div>
+
+    <script>
+        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
+        let currentStep = 1;
+        let currentRef = null;
+        let selectedNetwork = 'MTN';
+        
+        function selectNetwork(network) {
+            selectedNetwork = network;
+            document.querySelectorAll('.network-option').forEach(opt => {
+                opt.classList.remove('selected');
+                if(opt.getAttribute('data-network') === network) opt.classList.add('selected');
+            });
+            document.getElementById('selectedNetwork').value = network;
+        }
+        
+        function goToDashboard() { window.location.href = '/dashboard.html'; }
+        function goToCards() { window.location.href = '/cards.html'; }
+        function goToAirtime() { window.location.href = '/airtime.html'; }
+        function goToSupport() { window.location.href = '/support.html'; }
+        function goToProfile() { window.location.href = '/profile.html'; }
+        
+        function movePin(current, nextId) { if(current.value.length === 1) document.getElementById(nextId).focus(); }
+        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+        
+        function updateStepDisplay(step) {
+            document.getElementById('step1Circle').classList.remove('active');
+            document.getElementById('step2Circle').classList.remove('active');
+            document.getElementById('step3Circle').classList.remove('active');
+            document.getElementById('step4Circle').classList.remove('active');
+            if (step === 1) document.getElementById('step1Circle').classList.add('active');
+            else if (step === 2) document.getElementById('step2Circle').classList.add('active');
+            else if (step === 3) document.getElementById('step3Circle').classList.add('active');
+            else if (step === 4) document.getElementById('step4Circle').classList.add('active');
+        }
+        
+        async function airtimeStep1() {
+            const countryCode = document.getElementById('countryCode').value;
+            const phone = document.getElementById('phoneNumber').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + document.getElementById('pin3').value + document.getElementById('pin4').value;
+            
+            if (!selectedNetwork || !phone || !amount || pin.length !== 4) {
+                Swal.fire('Error', 'Please fill all fields correctly', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            try {
+                const res = await fetch(`${apiUrl}/api/airtime/step1`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                    body: JSON.stringify({ phoneNumber: phone, countryCode, network: selectedNetwork, amount, transactionPin: pin })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentRef = data.reference;
+                    currentStep = 1;
+                    document.getElementById('step1Form').style.display = 'none';
+                    document.getElementById('bbcForm').style.display = 'block';
+                    updateStepDisplay(1);
+                    document.getElementById('bbcRequestMessage').innerHTML = 'Step 1: Enter BBC Code 1';
+                } else {
+                    Swal.fire('Error', data.error, 'error');
+                }
+            } catch(e) { Swal.fire('Error', 'Request failed', 'error'); } finally { showLoading(false); }
+        }
+        
+        async function submitBBC() {
+            const bbc = document.getElementById('bbc1').value + document.getElementById('bbc2').value + document.getElementById('bbc3').value + 
+                        document.getElementById('bbc4').value + document.getElementById('bbc5').value + document.getElementById('bbc6').value;
+            if (bbc.length !== 6) { Swal.fire('Error', 'Enter 6-digit code', 'error'); return; }
+            
+            showLoading(true);
+            try {
+                const url = `${apiUrl}/api/airtime/step${currentStep + 1}`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: bbc })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    if (data.step === 2 || data.step === 3) {
+                        currentStep = data.step;
+                        updateStepDisplay(data.step);
+                        document.getElementById('bbcRequestMessage').innerHTML = `Step ${data.step}: Enter BBC Code ${data.step - 1}`;
+                        document.querySelectorAll('#bbcForm .pin-inputs input').forEach(i => i.value = '');
+                    } else if (data.success) {
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Airtime Purchased!',
+                            html: `${selectedNetwork} airtime of $${document.getElementById('amount').value} sent to ${document.getElementById('phoneNumber').value}`,
+                            confirmButtonColor: '#C6A43F'
+                        });
+                        goToDashboard();
+                    }
+                } else { Swal.fire('Error', data.error, 'error'); }
+            } catch(e) { Swal.fire('Error', 'Verification failed', 'error'); } finally { showLoading(false); }
+        }
+        
+        async function loadBalance() {
+            try {
+                const res = await fetch(`${apiUrl}/api/me`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+                if (res.status === 401) { window.location.href = '/'; return; }
+                const data = await res.json();
+                document.getElementById('userBalance').innerHTML = `${data.user.currency} ${data.totalBalance?.toLocaleString() || '0.00'}`;
+                document.getElementById('userCurrency').innerHTML = data.user.currency;
+            } catch(e) { console.error(e); }
+        }
+        
+        selectNetwork('MTN');
+        loadBalance();
+    </script>
+</body>
+</html>
