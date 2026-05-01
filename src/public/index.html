@@ -28,14 +28,29 @@
             --text-secondary: #9CA3AF;
             --border: #1F2937;
         }
+
+        /* ========== 3D CUBE LOADING ANIMATION ========== */
         @keyframes splashFadeOut {
             0% { opacity: 1; visibility: visible; }
-            80% { opacity: 1; }
+            70% { opacity: 1; }
             100% { opacity: 0; visibility: hidden; }
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        
+        @keyframes cubeRotate {
+            0% { transform: rotateX(0deg) rotateY(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg); }
+        }
+        
+        @keyframes cubeGlow {
+            0% { box-shadow: 0 0 0px rgba(198,164,63,0); }
+            50% { box-shadow: 0 0 30px rgba(198,164,63,0.5); }
+            100% { box-shadow: 0 0 0px rgba(198,164,63,0); }
+        }
+        
+        @keyframes pulseText {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
         
         /* Splash Screen */
         .splash-screen {
@@ -50,66 +65,310 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            animation: splashFadeOut 2.2s ease forwards;
+            animation: splashFadeOut 2.5s ease forwards;
             pointer-events: none;
         }
-        .splash-logo-icon {
-            width: 80px;
-            height: 80px;
+        
+        /* 3D Cube Container */
+        .cube-container {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 30px;
+            perspective: 400px;
+        }
+        
+        .cube {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: cubeRotate 2s linear infinite;
+        }
+        
+        .cube-face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 24px;
+            border: 2px solid rgba(255,255,255,0.2);
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            animation: pulse 1s ease-out;
+            font-size: 40px;
+            color: #0A0E1A;
+            animation: cubeGlow 2s infinite;
         }
-        .splash-logo-icon i { font-size: 40px; color: var(--bg-dark); }
-        .splash-logo h1 { color: var(--gold); font-size: 28px; font-weight: 700; text-align: center; }
-        .splash-progress { width: 200px; height: 2px; background: rgba(198,164,63,0.2); border-radius: 2px; margin-top: 30px; overflow: hidden; }
-        .splash-progress-bar { width: 100%; height: 100%; background: var(--gold); animation: spin 1s linear infinite; }
         
-        .main-content { opacity: 0; animation: slideUp 0.5s ease 2.2s forwards; width: 100%; display: flex; justify-content: center; }
-        .bg-pattern { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.05) 0%, transparent 50%); z-index: 0; }
-        .container { position: relative; z-index: 1; width: 100%; max-width: 460px; padding: 20px; }
+        .cube-face-front { transform: translateZ(50px); }
+        .cube-face-back { transform: rotateY(180deg) translateZ(50px); }
+        .cube-face-right { transform: rotateY(90deg) translateZ(50px); }
+        .cube-face-left { transform: rotateY(-90deg) translateZ(50px); }
+        .cube-face-top { transform: rotateX(90deg) translateZ(50px); }
+        .cube-face-bottom { transform: rotateX(-90deg) translateZ(50px); }
+        
+        .loading-text {
+            color: var(--gold);
+            font-size: 14px;
+            letter-spacing: 3px;
+            margin-top: 20px;
+            animation: pulseText 1.5s ease infinite;
+            text-transform: uppercase;
+        }
+        
+        .loading-dots {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+        }
+        
+        .loading-dots span {
+            width: 6px;
+            height: 6px;
+            background: var(--gold);
+            border-radius: 50%;
+            animation: pulseText 1s ease infinite;
+        }
+        
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        
+        .main-content { opacity: 0; animation: fadeIn 0.5s ease 2.5s forwards; width: 100%; display: flex; justify-content: center; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .bg-pattern {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.05) 0%, transparent 50%);
+            z-index: 0;
+        }
+        
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 460px;
+            padding: 20px;
+            animation: slideUp 0.5s ease;
+        }
+        
         .logo { text-align: center; margin-bottom: 32px; }
-        .logo-icon { width: 64px; height: 64px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); border-radius: 20px; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+        .logo-icon {
+            width: 64px;
+            height: 64px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 16px;
+        }
         .logo-icon i { font-size: 32px; color: var(--bg-dark); }
         .logo h1 { color: var(--gold); font-size: 26px; font-weight: 700; letter-spacing: -0.5px; }
         .logo p { color: var(--text-secondary); font-size: 12px; margin-top: 4px; }
-        .card { background: var(--bg-card); border-radius: 24px; padding: 32px; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
-        .tabs { display: flex; gap: 8px; margin-bottom: 28px; background: #0F1622; padding: 4px; border-radius: 16px; }
-        .tab { flex: 1; text-align: center; padding: 12px; border: none; background: transparent; font-size: 15px; font-weight: 600; cursor: pointer; border-radius: 12px; color: var(--text-secondary); }
-        .tab.active { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--bg-dark); }
+        
+        .card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 32px;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 28px;
+            background: #0F1622;
+            padding: 4px;
+            border-radius: 16px;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            border: none;
+            background: transparent;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 12px;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--bg-dark);
+        }
+        
         .form-group { margin-bottom: 20px; }
-        .form-group label { display: block; font-size: 13px; font-weight: 500; color: var(--text-secondary); margin-bottom: 8px; }
-        .form-group input, .form-group select { width: 100%; padding: 14px 16px; background: #0F1622; border: 1px solid var(--border); border-radius: 12px; font-size: 15px; color: var(--text-primary); font-family: 'Inter', sans-serif; }
-        .form-group input:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(198,164,63,0.1); }
+        .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+        }
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 14px 16px;
+            background: #0F1622;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 15px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
+        }
+        
         .pin-inputs { display: flex; gap: 12px; justify-content: center; }
-        .pin-inputs input { width: 56px; height: 56px; text-align: center; font-size: 24px; font-weight: 600; background: #0F1622; border: 1px solid var(--border); border-radius: 12px; color: var(--gold); }
+        .pin-inputs input {
+            width: 56px;
+            height: 56px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 600;
+            background: #0F1622;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--gold);
+        }
+        
         .currency-selector { display: flex; gap: 12px; margin-top: 10px; }
-        .currency-option { flex: 1; padding: 12px; border: 1px solid var(--border); border-radius: 12px; text-align: center; cursor: pointer; background: #0F1622; }
-        .currency-option.selected { border-color: var(--gold); background: rgba(198,164,63,0.1); }
+        .currency-option {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #0F1622;
+        }
+        .currency-option.selected {
+            border-color: var(--gold);
+            background: rgba(198,164,63,0.1);
+        }
         .currency-option i { font-size: 22px; display: block; margin-bottom: 6px; color: var(--text-secondary); }
         .currency-option .symbol { font-size: 15px; font-weight: 600; color: var(--text-primary); }
         .currency-option.selected i, .currency-option.selected .symbol { color: var(--gold); }
-        .btn { width: 100%; padding: 16px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--bg-dark); border: none; border-radius: 12px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 8px; }
-        .btn:hover { transform: translateY(-1px); filter: brightness(1.05); }
-        .error-message, .success-message { padding: 12px; border-radius: 12px; font-size: 13px; margin-bottom: 20px; display: none; }
+        
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--bg-dark);
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 8px;
+        }
+        .btn:hover {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+        }
+        
+        .error-message, .success-message {
+            padding: 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            margin-bottom: 20px;
+            display: none;
+        }
         .error-message { background: rgba(239,68,68,0.1); border: 1px solid #EF4444; color: #EF4444; }
         .success-message { background: rgba(16,185,129,0.1); border: 1px solid #10B981; color: #10B981; }
-        .loading-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,14,26,0.95); backdrop-filter: blur(4px); z-index: 2000; align-items: center; justify-content: center; flex-direction: column; }
-        .loader { width: 48px; height: 48px; border: 3px solid rgba(198,164,63,0.2); border-top: 3px solid var(--gold); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
+        
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10,14,26,0.95);
+            backdrop-filter: blur(4px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        
+        .loader-cube {
+            width: 60px;
+            height: 60px;
+            perspective: 200px;
+            margin-bottom: 20px;
+        }
+        .loader-cube-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            animation: cubeRotate 1s linear infinite;
+        }
+        .loader-cube-face {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            opacity: 0.8;
+        }
+        .loader-cube-face-front { transform: translateZ(30px); }
+        .loader-cube-face-back { transform: rotateY(180deg) translateZ(30px); }
+        .loader-cube-face-right { transform: rotateY(90deg) translateZ(30px); }
+        .loader-cube-face-left { transform: rotateY(-90deg) translateZ(30px); }
+        .loader-cube-face-top { transform: rotateX(90deg) translateZ(30px); }
+        .loader-cube-face-bottom { transform: rotateX(-90deg) translateZ(30px); }
+        
+        .loader-text {
+            color: var(--gold);
+            font-size: 14px;
+            letter-spacing: 2px;
+        }
+        
         .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        @media (max-width: 500px) { .card { padding: 24px; } .pin-inputs input { width: 48px; height: 48px; } }
+        
+        @media (max-width: 500px) {
+            .card { padding: 24px; }
+            .pin-inputs input { width: 48px; height: 48px; }
+        }
     </style>
 </head>
 <body>
+    <!-- 3D CUBE SPLASH SCREEN -->
     <div class="splash-screen" id="splashScreen">
-        <div class="splash-logo">
-            <div class="splash-logo-icon"><i class="fas fa-building"></i></div>
-            <h1>Prime Heritage Bank</h1>
-            <div class="splash-progress"><div class="splash-progress-bar"></div></div>
+        <div class="cube-container">
+            <div class="cube">
+                <div class="cube-face cube-face-front"><i class="fas fa-crown"></i></div>
+                <div class="cube-face cube-face-back"><i class="fas fa-building"></i></div>
+                <div class="cube-face cube-face-right"><i class="fas fa-coins"></i></div>
+                <div class="cube-face cube-face-left"><i class="fas fa-globe"></i></div>
+                <div class="cube-face cube-face-top"><i class="fas fa-chart-line"></i></div>
+                <div class="cube-face cube-face-bottom"><i class="fas fa-shield-alt"></i></div>
+            </div>
+        </div>
+        <div class="loading-text">PRIME HERITAGE BANK</div>
+        <div class="loading-dots">
+            <span></span><span></span><span></span>
         </div>
     </div>
 
@@ -130,8 +389,14 @@
                 <div id="successMessage" class="success-message"></div>
                 
                 <div id="loginForm">
-                    <div class="form-group"><label>Email or Account Number</label><input type="text" id="loginIdentifier" placeholder="Enter email or account number"></div>
-                    <div class="form-group"><label>Password</label><input type="password" id="loginPassword" placeholder="Enter your password"></div>
+                    <div class="form-group">
+                        <label>Email or Account Number</label>
+                        <input type="text" id="loginIdentifier" placeholder="Enter email or account number">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password">
+                    </div>
                     <button class="btn" onclick="handleLogin()">Sign In</button>
                 </div>
                 
@@ -152,37 +417,39 @@
                     </div>
                     <div class="form-group"><label>Password</label><input type="password" id="regPassword" placeholder="Create password"></div>
                     <div class="form-group"><label>Confirm Password</label><input type="password" id="regConfirmPassword" placeholder="Confirm password"></div>
-                    <div class="form-group"><label>4-Digit PIN</label><div class="pin-inputs"><input type="password" maxlength="1" id="pin1" onkeyup="moveToNext(this,'pin2')"><input type="password" maxlength="1" id="pin2" onkeyup="moveToNext(this,'pin3')"><input type="password" maxlength="1" id="pin3" onkeyup="moveToNext(this,'pin4')"><input type="password" maxlength="1" id="pin4"></div></div>
+                    <div class="form-group">
+                        <label>4-Digit PIN</label>
+                        <div class="pin-inputs">
+                            <input type="password" maxlength="1" id="pin1" onkeyup="moveToNext(this,'pin2')">
+                            <input type="password" maxlength="1" id="pin2" onkeyup="moveToNext(this,'pin3')">
+                            <input type="password" maxlength="1" id="pin3" onkeyup="moveToNext(this,'pin4')">
+                            <input type="password" maxlength="1" id="pin4">
+                        </div>
+                    </div>
                     <button class="btn" onclick="handleRegister()">Open Account</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Verification Modal -->
-    <div id="verifyModal" class="modal" style="display: none; position: fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); z-index:3000; align-items:center; justify-content:center;">
-        <div style="background:#111827; border-radius:24px; padding:32px; max-width:400px; width:90%; border:1px solid #C6A43F;">
-            <h3 style="color:#C6A43F; margin-bottom:20px;">Verify Your Email</h3>
-            <p style="color:#9CA3AF; margin-bottom:20px;">Please enter the 6-digit verification code sent to your email.</p>
-            <div class="pin-inputs" style="margin-bottom:20px;">
-                <input type="text" maxlength="1" id="v1" onkeyup="moveToNextVerify(this,'v2')" style="width:50px;height:50px;text-align:center;font-size:24px;background:#0F1622;border:1px solid #1F2937;border-radius:12px;color:#C6A43F;">
-                <input type="text" maxlength="1" id="v2" onkeyup="moveToNextVerify(this,'v3')" style="width:50px;height:50px;text-align:center;font-size:24px;background:#0F1622;border:1px solid #1F2937;border-radius:12px;color:#C6A43F;">
-                <input type="text" maxlength="1" id="v3" onkeyup="moveToNextVerify(this,'v4')" style="width:50px;height:50px;text-align:center;font-size:24px;background:#0F1622;border:1px solid #1F2937;border-radius:12px;color:#C6A43F;">
-                <input type="text" maxlength="1" id="v4" onkeyup="moveToNextVerify(this,'v5')" style="width:50px;height:50px;text-align:center;font-size:24px;background:#0F1622;border:1px solid #1F2937;border-radius:12px;color:#C6A43F;">
-                <input type="text" maxlength="1" id="v5" onkeyup="moveToNextVerify(this,'v6')" style="width:50px;height:50px;text-align:center;font-size:24px;background:#0F1622;border:1px solid #1F2937;border-radius:12px;color:#C6A43F;">
-                <input type="text" maxlength="1" id="v6" style="width:50px;height:50px;text-align:center;font-size:24px;background:#0F1622;border:1px solid #1F2937;border-radius:12px;color:#C6A43F;">
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loader-cube">
+            <div class="loader-cube-inner">
+                <div class="loader-cube-face loader-cube-face-front"></div>
+                <div class="loader-cube-face loader-cube-face-back"></div>
+                <div class="loader-cube-face loader-cube-face-right"></div>
+                <div class="loader-cube-face loader-cube-face-left"></div>
+                <div class="loader-cube-face loader-cube-face-top"></div>
+                <div class="loader-cube-face loader-cube-face-bottom"></div>
             </div>
-            <button class="btn" onclick="verifyCode()" style="width:100%;">Verify Account</button>
-            <p style="text-align:center; margin-top:16px; font-size:12px; color:#9CA3AF;">Check your spam/junk folder if you don't see the email.</p>
         </div>
+        <div class="loader-text">Processing</div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing</div></div>
-
     <script>
-        const apiUrl = 'https://global-bank-n6c3.onrender.com';
+        // AUTO-DETECT API URL - FIXES CONNECTION ERROR
+        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
         let selectedCurrency = 'USD';
-        let pendingUserId = null;
 
         function selectCurrency(currency) {
             selectedCurrency = currency;
@@ -204,10 +471,6 @@
             if(current.value.length === 1) document.getElementById(nextId).focus();
         }
 
-        function moveToNextVerify(current, nextId) {
-            if(current.value.length === 1) document.getElementById(nextId).focus();
-        }
-
         function showError(msg) {
             let el = document.getElementById('errorMessage');
             el.textContent = msg;
@@ -224,53 +487,6 @@
 
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
-
-        function openVerifyModal(userId) {
-            pendingUserId = userId;
-            document.getElementById('verifyModal').style.display = 'flex';
-            document.querySelectorAll('#verifyModal input').forEach(i => i.value = '');
-            document.getElementById('v1').focus();
-        }
-
-        async function verifyCode() {
-            const code = document.getElementById('v1').value + document.getElementById('v2').value + document.getElementById('v3').value + 
-                         document.getElementById('v4').value + document.getElementById('v5').value + document.getElementById('v6').value;
-            
-            if(code.length !== 6) {
-                Swal.fire('Error', 'Please enter the 6-digit verification code', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            try {
-                const response = await fetch(`${apiUrl}/api/verify`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId: pendingUserId, code })
-                });
-                const data = await response.json();
-                if(data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    document.getElementById('verifyModal').style.display = 'none';
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Email Verified!',
-                        html: 'Your account has been activated.<br>Check your email for welcome message.',
-                        confirmButtonColor: '#C6A43F'
-                    });
-                    setTimeout(() => {
-                        window.location.href = '/dashboard.html';
-                    }, 2000);
-                } else {
-                    Swal.fire('Error', data.error, 'error');
-                }
-            } catch(error) {
-                Swal.fire('Error', 'Verification failed', 'error');
-            } finally {
-                showLoading(false);
-            }
         }
 
         async function handleLogin() {
@@ -291,7 +507,8 @@
                     if(data.user.isAdmin) window.location.href = '/admin.html';
                     else window.location.href = '/dashboard.html';
                 } else { showError(data.error); }
-            } catch(error) { showError('Connection error'); } finally { showLoading(false); }
+            } catch(error) { showError('Connection error. Make sure server is running.'); }
+            finally { showLoading(false); }
         }
 
         async function handleRegister() {
@@ -305,6 +522,7 @@
             
             if(!firstName || !lastName || !email || !phone || !password || pin.length !== 4) { showError('Please fill all fields'); return; }
             if(password !== confirm) { showError('Passwords do not match'); return; }
+            if(password.length < 6) { showError('Password must be at least 6 characters'); return; }
             
             showLoading(true);
             try {
@@ -315,18 +533,32 @@
                 });
                 const data = await response.json();
                 if(data.success) {
-                    showSuccess('Verification code sent! Check your email (and spam folder)');
-                    openVerifyModal(data.userId);
-                    document.getElementById('registerForm').querySelectorAll('input').forEach(i => i.value = '');
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Account Created!',
+                        html: 'Welcome to Prime Heritage Bank.<br>Check your email or spam email message for more details.',
+                        confirmButtonColor: '#C6A43F',
+                        background: '#111827',
+                        color: '#FFFFFF'
+                    });
+                    setTimeout(() => {
+                        if(data.user.isAdmin) window.location.href = '/admin.html';
+                        else window.location.href = '/dashboard.html';
+                    }, 2000);
                 } else { showError(data.error); }
-            } catch(error) { showError('Connection error'); } finally { showLoading(false); }
+            } catch(error) { showError('Connection error'); }
+            finally { showLoading(false); }
         }
 
+        // Remove splash screen after animation
         setTimeout(() => {
             const splash = document.getElementById('splashScreen');
             if(splash) splash.style.display = 'none';
-        }, 2200);
+        }, 2500);
 
+        // Check if already logged in
         const token = localStorage.getItem('token');
         if(token && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
