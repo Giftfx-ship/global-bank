@@ -11,21 +11,36 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
-            background: #0A0E1A;
+            background: var(--bg-body);
             padding-bottom: 80px;
+            transition: background 0.3s ease;
         }
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --pending: #F59E0B;
+        }
+        [data-theme="dark"] {
+            --bg-body: #0A0E1A;
             --bg-card: #111827;
             --border: #1F2937;
             --text-primary: #FFFFFF;
             --text-secondary: #9CA3AF;
-            --success: #10B981;
-            --error: #EF4444;
+            --input-bg: #0F1622;
+        }
+        [data-theme="light"] {
+            --bg-body: #F3F4F6;
+            --bg-card: #FFFFFF;
+            --border: #E5E7EB;
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --input-bg: #F9FAFB;
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         
         .top-bar {
             background: var(--bg-card);
@@ -46,22 +61,47 @@
         }
         .logo-icon i { font-size: 20px; color: #0A0E1A; }
         .logo span { color: var(--text-primary); font-size: 18px; font-weight: 600; }
-        .back-btn {
-            background: rgba(198,164,63,0.1);
-            border: 1px solid var(--gold);
+        .user-section { display: flex; align-items: center; gap: 20px; }
+        .balance-pill {
+            background: rgba(198,164,63,0.15);
             padding: 8px 20px;
-            border-radius: 30px;
-            color: var(--gold);
+            border-radius: 40px;
+            border: 1px solid rgba(198,164,63,0.3);
+        }
+        .balance-pill i { color: var(--gold); margin-right: 8px; }
+        .balance-pill span { color: var(--gold); font-weight: 600; }
+        .theme-toggle {
+            background: rgba(198,164,63,0.1);
+            border: 1px solid var(--border);
+            border-radius: 40px;
+            padding: 5px;
+            display: flex;
             cursor: pointer;
         }
+        .theme-option {
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        .theme-option.active {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+        }
+        .avatar {
+            width: 42px; height: 42px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .avatar i { color: #0A0E1A; font-size: 18px; }
         
         .container { max-width: 600px; margin: 0 auto; padding: 24px; }
-        .title {
-            color: var(--gold);
-            font-size: 24px;
-            font-weight: 600;
-            margin-bottom: 24px;
-        }
+        .title { color: var(--gold); font-size: 24px; font-weight: 600; margin-bottom: 24px; }
         
         .credit-card {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
@@ -69,44 +109,18 @@
             padding: 24px;
             margin-bottom: 24px;
             position: relative;
-            overflow: hidden;
             border: 1px solid rgba(198,164,63,0.3);
             transition: transform 0.3s;
         }
         .credit-card:hover { transform: translateY(-4px); }
         .card-chip { margin-bottom: 30px; }
         .card-chip i { font-size: 40px; color: var(--gold); }
-        .card-number {
-            font-size: 22px;
-            letter-spacing: 3px;
-            color: white;
-            font-family: monospace;
-            margin: 20px 0;
-        }
-        .card-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-        .card-expiry, .card-name {
-            color: rgba(255,255,255,0.6);
-            font-size: 12px;
-        }
+        .card-number { font-size: 22px; letter-spacing: 3px; color: white; font-family: monospace; margin: 20px 0; }
+        .card-details { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .card-expiry, .card-name { color: rgba(255,255,255,0.6); font-size: 12px; }
         .card-name { text-transform: uppercase; font-weight: 600; }
-        .card-network {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 40px;
-            color: rgba(255,255,255,0.1);
-        }
-        .card-actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
-        }
+        .card-network { position: absolute; bottom: 20px; right: 20px; font-size: 40px; color: rgba(255,255,255,0.1); }
+        .card-actions { display: flex; gap: 12px; margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); }
         .card-btn {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--gold);
@@ -115,7 +129,6 @@
             color: var(--gold);
             cursor: pointer;
             font-size: 13px;
-            transition: all 0.3s;
         }
         .card-btn:hover { background: var(--gold); color: #0A0E1A; }
         .card-status {
@@ -126,7 +139,13 @@
             font-weight: 600;
         }
         .status-active { background: rgba(16,185,129,0.2); color: var(--success); }
-        .status-frozen { background: rgba(239,68,68,0.2); color: var(--error); }
+        .status-pending { background: rgba(245,158,11,0.2); color: var(--pending); }
+        .status-frozen { background: rgba(239,68,68,0.2); color: #EF4444; }
+        
+        .pending-card {
+            background: linear-gradient(135deg, #2d2d3a, #1a1a2e);
+            opacity: 0.8;
+        }
         
         .add-card {
             background: rgba(255,255,255,0.03);
@@ -144,10 +163,8 @@
         .modal {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.8);
             backdrop-filter: blur(4px);
             z-index: 1000;
@@ -162,17 +179,11 @@
             width: 90%;
             border: 1px solid var(--border);
         }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
+        .modal-header { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .modal-header h3 { color: var(--gold); font-size: 20px; }
         .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
-            color: var(--text-secondary);
+            background: none; border: none;
+            font-size: 24px; color: var(--text-secondary);
             cursor: pointer;
         }
         .form-group { margin-bottom: 18px; }
@@ -185,7 +196,7 @@
         .form-group input, .form-group select {
             width: 100%;
             padding: 12px 14px;
-            background: #0F1622;
+            background: var(--input-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
             color: var(--text-primary);
@@ -193,15 +204,17 @@
         }
         .pin-inputs {
             display: flex;
-            gap: 10px;
+            gap: 12px;
             justify-content: center;
+            margin: 15px 0;
         }
         .pin-inputs input {
-            width: 50px;
-            height: 50px;
+            width: 55px;
+            height: 55px;
             text-align: center;
-            font-size: 20px;
-            background: #0F1622;
+            font-size: 22px;
+            font-weight: 600;
+            background: var(--input-bg);
             border: 1px solid var(--border);
             border-radius: 12px;
             color: var(--gold);
@@ -215,6 +228,13 @@
             color: #0A0E1A;
             font-weight: 700;
             cursor: pointer;
+        }
+        .fee-info {
+            background: rgba(198,164,63,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            margin: 15px 0;
+            text-align: center;
         }
         
         .bottom-nav {
@@ -239,7 +259,8 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(10,14,26,0.95);
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(4px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
@@ -254,22 +275,29 @@
         }
     </style>
 </head>
-<body>
+<body data-theme="dark">
     <div class="top-bar">
         <div class="logo" onclick="goToDashboard()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span>Prime Heritage</span>
         </div>
-        <div class="back-btn" onclick="goToDashboard()"><i class="fas fa-arrow-left"></i> Back</div>
+        <div class="user-section">
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i></div>
+                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div>
+            </div>
+            <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
+            <div class="avatar" onclick="goToProfile()"><i class="fas fa-user"></i></div>
+        </div>
     </div>
 
     <div class="container">
         <div class="title"><i class="fas fa-credit-card"></i> My Cards</div>
         <div id="cardsList"></div>
-        <div class="add-card" onclick="requestNewCard()">
+        <div class="add-card" onclick="openRequestModal()">
             <i class="fas fa-plus-circle"></i>
             <p>Request New Card</p>
-            <small style="color: var(--text-secondary);">Virtual or Physical</small>
+            <small style="color: var(--text-secondary);">Virtual ($5) | Physical ($15)</small>
         </div>
     </div>
 
@@ -282,45 +310,37 @@
             </div>
             <div class="form-group">
                 <label>Card Type</label>
-                <select id="cardType">
-                    <option value="virtual">Virtual Card (Instant)</option>
-                    <option value="physical">Physical Card (Delivered in 5-7 days)</option>
+                <select id="cardType" onchange="updateCardFee()">
+                    <option value="virtual">Virtual Card - $5.00</option>
+                    <option value="physical">Physical Card - $15.00</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Card Design</label>
                 <select id="cardDesign">
                     <option value="Classic Heritage">Classic Heritage</option>
-                    <option value="Premium Gold">Premium Gold</option>
-                    <option value="Platinum Black">Platinum Black</option>
+                    <option value="Premium Gold">Premium Gold (+$10)</option>
+                    <option value="Platinum Black">Platinum Black (+$25)</option>
                 </select>
             </div>
             <div class="form-group">
                 <label>Daily Limit (USD)</label>
-                <input type="number" id="cardLimit" value="5000">
+                <input type="number" id="cardLimit" value="5000" placeholder="Daily spending limit">
             </div>
-            <button class="btn" onclick="submitCardRequest()">Request Card</button>
-        </div>
-    </div>
-
-    <!-- Freeze/Unfreeze Modal -->
-    <div id="freezeModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 id="freezeTitle">Freeze Card</h3>
-                <button class="close-modal" onclick="closeModal('freezeModal')">&times;</button>
+            <div class="fee-info" id="feeInfo">
+                <i class="fas fa-info-circle"></i> Card Fee: $5.00<br>
+                This amount will be deducted from your balance.
             </div>
-            <p id="freezeMessage" style="color: var(--text-secondary); margin-bottom: 20px;">Are you sure you want to freeze this card?</p>
             <div class="form-group">
                 <label>Confirm with Transaction PIN</label>
                 <div class="pin-inputs">
-                    <input type="password" maxlength="1" id="fPin1" onkeyup="movePin(this,'fPin2')">
-                    <input type="password" maxlength="1" id="fPin2" onkeyup="movePin(this,'fPin3')">
-                    <input type="password" maxlength="1" id="fPin3" onkeyup="movePin(this,'fPin4')">
-                    <input type="password" maxlength="1" id="fPin4">
+                    <input type="password" maxlength="1" id="pin1" onkeyup="movePin(this,'pin2')">
+                    <input type="password" maxlength="1" id="pin2" onkeyup="movePin(this,'pin3')">
+                    <input type="password" maxlength="1" id="pin3" onkeyup="movePin(this,'pin4')">
+                    <input type="password" maxlength="1" id="pin4">
                 </div>
             </div>
-            <button class="btn" onclick="confirmFreeze()">Confirm</button>
+            <button class="btn" onclick="submitCardRequest()">Pay & Request Card</button>
         </div>
     </div>
 
@@ -332,14 +352,41 @@
         <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing</div></div>
+    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing Payment</div></div>
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
         let userData = null;
         let currentUser = null;
-        let currentCardId = null;
-        let currentAction = null;
+        let pendingRequests = JSON.parse(localStorage.getItem('cardRequests') || '[]');
+        
+        function updateCardFee() {
+            const type = document.getElementById('cardType').value;
+            const design = document.getElementById('cardDesign').value;
+            let fee = type === 'virtual' ? 5 : 15;
+            if (design === 'Premium Gold') fee += 10;
+            if (design === 'Platinum Black') fee += 25;
+            document.getElementById('feeInfo').innerHTML = `<i class="fas fa-info-circle"></i> Card Fee: $${fee}.00<br>This amount will be deducted from your balance.`;
+        }
+        
+        function movePin(current, nextId) {
+            if(current.value.length === 1) document.getElementById(nextId).focus();
+        }
+        
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.getElementById('darkOption').classList.remove('active');
+            document.getElementById('lightOption').classList.remove('active');
+            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
+            else document.getElementById('lightOption').classList.add('active');
+        }
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
         
         function goToDashboard() { window.location.href = '/dashboard.html'; }
         function goToCards() { window.location.href = '/cards.html'; }
@@ -347,10 +394,13 @@
         function goToSupport() { window.location.href = '/support.html'; }
         function goToProfile() { window.location.href = '/profile.html'; }
         
-        function movePin(current, nextId) { if(current.value.length === 1) document.getElementById(nextId).focus(); }
         function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openRequestModal() { 
+            updateCardFee();
+            openModal('cardModal'); 
+        }
         
         async function loadUserData() {
             try {
@@ -358,6 +408,7 @@
                 if (res.status === 401) { window.location.href = '/'; return; }
                 userData = await res.json();
                 currentUser = userData.user;
+                document.getElementById('headerBalance').innerHTML = `${currentUser.currency} ${(userData.totalBalance || 0).toLocaleString()}`;
                 renderCards();
             } catch(e) { console.error(e); }
         }
@@ -365,89 +416,151 @@
         function renderCards() {
             const container = document.getElementById('cardsList');
             container.innerHTML = '';
-            if (!userData.cards || userData.cards.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);">No cards yet. Request your first card.</div>';
-                return;
+            
+            if (userData.cards && userData.cards.length > 0) {
+                for (let card of userData.cards) {
+                    const statusClass = card.status === 'active' ? 'status-active' : 'status-frozen';
+                    const statusText = card.status === 'active' ? 'Active' : 'Frozen';
+                    container.innerHTML += `
+                        <div class="credit-card">
+                            <div class="card-chip"><i class="fas fa-microchip"></i></div>
+                            <div class="card-number">4532 ${card.last4.slice(0,4)} ${card.last4.slice(4,8)} ${card.last4.slice(8,12)}</div>
+                            <div class="card-details">
+                                <div class="card-expiry">VALID THRU<br>${card.expiryMonth}/${card.expiryYear}</div>
+                                <div class="card-name">${currentUser.fullName.toUpperCase()}</div>
+                            </div>
+                            <div class="card-network"><i class="fab fa-cc-visa"></i></div>
+                            <div class="card-actions">
+                                <span class="card-status ${statusClass}">● ${statusText}</span>
+                                <button class="card-btn" onclick="toggleCardStatus('${card._id}', '${card.status}')">${card.status === 'active' ? 'Freeze' : 'Unfreeze'}</button>
+                                <button class="card-btn" onclick="viewCardDetails('${card._id}')">Details</button>
+                            </div>
+                        </div>
+                    `;
+                }
             }
-            for (let card of userData.cards) {
-                const statusClass = card.status === 'active' ? 'status-active' : 'status-frozen';
-                const statusText = card.status === 'active' ? 'Active' : 'Frozen';
-                container.innerHTML += `
-                    <div class="credit-card">
-                        <div class="card-chip"><i class="fas fa-microchip"></i></div>
-                        <div class="card-number">4532 ${card.last4.slice(0,4)} ${card.last4.slice(4,8)} ${card.last4.slice(8,12)}</div>
-                        <div class="card-details">
-                            <div class="card-expiry">VALID THRU<br>${card.expiryMonth}/${card.expiryYear}</div>
-                            <div class="card-name">${currentUser.fullName.toUpperCase()}</div>
+            
+            if (pendingRequests.length > 0) {
+                for (let req of pendingRequests) {
+                    container.innerHTML += `
+                        <div class="credit-card pending-card">
+                            <div class="card-chip"><i class="fas fa-microchip"></i></div>
+                            <div class="card-number">•••• •••• •••• ••••</div>
+                            <div class="card-details">
+                                <div class="card-expiry">PENDING</div>
+                                <div class="card-name">${currentUser.fullName.toUpperCase()}</div>
+                            </div>
+                            <div class="card-network"><i class="fab fa-cc-visa"></i></div>
+                            <div class="card-actions">
+                                <span class="card-status status-pending">● Pending Approval</span>
+                                <span class="card-btn" style="opacity:0.5;">${req.type.toUpperCase()} • $${req.fee} paid</span>
+                            </div>
+                            <div style="margin-top:10px; font-size:11px; color:var(--text-secondary);">Requested: ${req.date}</div>
                         </div>
-                        <div class="card-network"><i class="fab fa-cc-visa"></i></div>
-                        <div class="card-actions">
-                            <span class="card-status ${statusClass}">● ${statusText}</span>
-                            <button class="card-btn" onclick="toggleCardStatus('${card._id}', '${card.status}')">${card.status === 'active' ? 'Freeze Card' : 'Unfreeze Card'}</button>
-                            <button class="card-btn" onclick="viewCardDetails('${card._id}')">View Details</button>
-                        </div>
-                    </div>
-                `;
+                    `;
+                }
+            }
+            
+            if ((!userData.cards || userData.cards.length === 0) && pendingRequests.length === 0) {
+                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);">No cards yet. Request your first card.</div>';
             }
         }
         
-        function requestNewCard() { openModal('cardModal'); }
-        
-        function submitCardRequest() {
+        async function submitCardRequest() {
             const type = document.getElementById('cardType').value;
             const design = document.getElementById('cardDesign').value;
             const limit = document.getElementById('cardLimit').value;
-            Swal.fire({
-                icon: 'success',
-                title: 'Card Requested!',
-                html: `Your ${design} ${type} card has been requested.<br>Daily limit: $${limit}<br>Processing time: ${type === 'virtual' ? 'Instant' : '5-7 business days'}`,
-                confirmButtonColor: '#C6A43F'
-            });
-            closeModal('cardModal');
+            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + document.getElementById('pin3').value + document.getElementById('pin4').value;
+            
+            if (pin.length !== 4) {
+                Swal.fire('Error', 'Please enter your 4-digit transaction PIN', 'error');
+                return;
+            }
+            
+            let fee = type === 'virtual' ? 5 : 15;
+            if (design === 'Premium Gold') fee += 10;
+            if (design === 'Platinum Black') fee += 25;
+            
+            // Check if user has enough balance
+            const currentBalance = userData.totalBalance || 0;
+            if (currentBalance < fee) {
+                Swal.fire('Insufficient Funds', `You need $${fee} to request this card. Your balance: $${currentBalance}`, 'error');
+                return;
+            }
+            
+            showLoading(true);
+            
+            // Simulate deducting fee (in real app, would call API)
+            setTimeout(() => {
+                // Save pending request
+                const newRequest = {
+                    id: Date.now(),
+                    type: type,
+                    design: design,
+                    limit: limit,
+                    fee: fee,
+                    date: new Date().toLocaleString(),
+                    status: 'pending'
+                };
+                pendingRequests.push(newRequest);
+                localStorage.setItem('cardRequests', JSON.stringify(pendingRequests));
+                
+                showLoading(false);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Card Request Submitted!',
+                    html: `$${fee} has been deducted from your account.<br>Your ${design} ${type} card request is now <strong>pending approval</strong>.<br>Daily limit: $${limit}<br>You will be notified once approved.`,
+                    confirmButtonColor: '#C6A43F'
+                });
+                closeModal('cardModal');
+                renderCards();
+                
+                // Reset form
+                document.getElementById('cardType').value = 'virtual';
+                document.getElementById('cardDesign').value = 'Classic Heritage';
+                document.getElementById('cardLimit').value = '5000';
+                document.getElementById('pin1').value = '';
+                document.getElementById('pin2').value = '';
+                document.getElementById('pin3').value = '';
+                document.getElementById('pin4').value = '';
+                
+                // Update balance in UI
+                loadUserData();
+            }, 1500);
         }
         
         function toggleCardStatus(cardId, currentStatus) {
-            currentCardId = cardId;
-            currentAction = currentStatus === 'active' ? 'freeze' : 'unfreeze';
-            document.getElementById('freezeTitle').innerHTML = currentStatus === 'active' ? 'Freeze Card' : 'Unfreeze Card';
-            document.getElementById('freezeMessage').innerHTML = currentStatus === 'active' ? 'Are you sure you want to freeze this card? You can unfreeze anytime.' : 'Are you sure you want to unfreeze this card?';
-            openModal('freezeModal');
-        }
-        
-        async function confirmFreeze() {
-            const pin = document.getElementById('fPin1').value + document.getElementById('fPin2').value + document.getElementById('fPin3').value + document.getElementById('fPin4').value;
-            if (pin.length !== 4) { Swal.fire('Error', 'Enter your 4-digit PIN', 'error'); return; }
-            
-            showLoading(true);
-            try {
-                const res = await fetch(`${apiUrl}/api/cards/toggle`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ cardId: currentCardId, transactionPin: pin })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    Swal.fire('Success', `Card ${currentAction === 'freeze' ? 'frozen' : 'unfrozen'} successfully`, 'success');
-                    closeModal('freezeModal');
-                    loadUserData();
-                    document.querySelectorAll('#freezeModal .pin-inputs input').forEach(i => i.value = '');
-                } else { Swal.fire('Error', data.error, 'error'); }
-            } catch(e) { Swal.fire('Error', 'Operation failed', 'error'); } finally { showLoading(false); }
+            Swal.fire({
+                title: currentStatus === 'active' ? 'Freeze Card?' : 'Unfreeze Card?',
+                text: currentStatus === 'active' ? 'You can unfreeze anytime.' : 'Card will become active again.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#C6A43F',
+                confirmButtonText: 'Confirm'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        const res = await fetch(`${apiUrl}/api/cards/toggle`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                            body: JSON.stringify({ cardId, transactionPin: '0000' })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Success', `Card ${currentStatus === 'active' ? 'frozen' : 'unfrozen'} successfully`, 'success');
+                            loadUserData();
+                        } else { Swal.fire('Error', data.error, 'error'); }
+                    } catch(e) { Swal.fire('Error', 'Operation failed', 'error'); } finally { showLoading(false); }
+                }
+            });
         }
         
         function viewCardDetails(cardId) {
             const card = userData.cards.find(c => c._id === cardId);
             Swal.fire({
                 title: 'Card Details',
-                html: `
-                    <div style="text-align: left;">
-                        <p><strong>Card Number:</strong> 4532 **** **** ${card.last4}</p>
-                        <p><strong>Expiry:</strong> ${card.expiryMonth}/${card.expiryYear}</p>
-                        <p><strong>CVV:</strong> *** (Hidden for security)</p>
-                        <p><strong>Type:</strong> ${card.type || 'Virtual'}</p>
-                        <p><strong>Status:</strong> ${card.status}</p>
-                    </div>
-                `,
+                html: `<div style="text-align:left;"><p><strong>Card Number:</strong> 4532 **** **** ${card.last4}</p><p><strong>Expiry:</strong> ${card.expiryMonth}/${card.expiryYear}</p><p><strong>CVV:</strong> *** (Hidden)</p><p><strong>Status:</strong> ${card.status}</p></div>`,
                 confirmButtonColor: '#C6A43F',
                 background: '#111827',
                 color: '#FFFFFF'
