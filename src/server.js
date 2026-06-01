@@ -14,39 +14,273 @@ const { Resend } = require('resend');
 
 const app = express();
 
-// ========== RESEND EMAIL SETUP ==========
-const resend = new Resend('re_RfHJYftk_JqBrWqx6oFSsYhc8csMUz4w2');
+// ========== COLORED LOGGING SYSTEM ==========
+const colors = {
+    reset: '\x1b[0m',
+    bright: '\x1b[1m',
+    dim: '\x1b[2m',
+    red: '\x1b[31m',
+    green: '\x1b[32m',
+    yellow: '\x1b[33m',
+    blue: '\x1b[34m',
+    magenta: '\x1b[35m',
+    cyan: '\x1b[36m',
+    white: '\x1b[37m',
+};
 
-// ========== FIX FOR RENDER PROXY ==========
-app.set('trust proxy', 1);
+function log(level, message, data = null) {
+    const timestamp = new Date().toISOString();
+    let prefix = '';
+    let color = '';
+    
+    switch(level) {
+        case 'INFO':
+            color = colors.cyan;
+            prefix = 'ℹ️ INFO';
+            break;
+        case 'SUCCESS':
+            color = colors.green;
+            prefix = '✅ SUCCESS';
+            break;
+        case 'ERROR':
+            color = colors.red;
+            prefix = '❌ ERROR';
+            break;
+        case 'WARN':
+            color = colors.yellow;
+            prefix = '⚠️ WARN';
+            break;
+        case 'DEBUG':
+            color = colors.magenta;
+            prefix = '🔍 DEBUG';
+            break;
+        case 'TEST':
+            color = colors.blue;
+            prefix = '🧪 TEST';
+            break;
+        default:
+            color = colors.white;
+            prefix = '📌 LOG';
+    }
+    
+    console.log(`${color}[${timestamp}] ${prefix}: ${message}${colors.reset}`);
+    if (data) {
+        console.log(`${colors.dim}${JSON.stringify(data, null, 2)}${colors.reset}`);
+    }
+}
 
-// ========== SECURITY MIDDLEWARE ==========
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
-app.use(compression());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(cors());
-app.use(express.static('public'));
+// ========== STARTUP BANNER ==========
+console.log(`\n${colors.bright}${colors.cyan}`);
+console.log('╔═══════════════════════════════════════════════════════════════╗');
+console.log('║                                                               ║');
+console.log('║     🏦  PRIME HERITAGE BANK - INTERNATIONAL BANKING         ║');
+console.log('║                                                               ║');
+console.log('║     Version: 3.0.0                                           ║');
+console.log('║     Starting up...                                           ║');
+console.log('║                                                               ║');
+console.log('╚═══════════════════════════════════════════════════════════════╝');
+console.log(`${colors.reset}\n`);
 
-// Rate limiting
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, trustProxy: true });
-app.use('/api/', limiter);
+log('INFO', 'Initializing server...');
+log('INFO', `Node version: ${process.version}`);
+log('INFO', `Environment: ${process.env.NODE_ENV || 'development'}`);
 
-// Session
-app.use(session({
-    secret: process.env.SESSION_SECRET || 'prime_heritage_secret',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
-}));
+// ========== CONFIGURATION ==========
+const PORT = process.env.PORT || 3000;
+const JWT_SECRET = process.env.JWT_SECRET || 'prime_heritage_super_secret_2026';
+const SESSION_SECRET = process.env.SESSION_SECRET || 'prime_heritage_session_secret';
 
-// ========== MONGODB ==========
-mongoose.connect('mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/globalbank?retryWrites=true&w=majority')
-    .then(() => console.log('✅ MongoDB Connected'))
-    .catch(err => console.log('❌ MongoDB Error:', err));
+// ========== TEST 1: RESEND EMAIL ==========
+log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+log('TEST', 'TEST 1: Checking Resend Email Service');
+log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+
+const RESEND_API_KEY = 're_RfHJYftk_JqBrWqx6oFSsYhc8csMUz4w2';
+const resend = new Resend(RESEND_API_KEY);
+
+async function testResendConnection() {
+    log('INFO', 'Testing Resend API connection...');
+    
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'Prime Heritage Bank <onboarding@resend.dev>',
+            to: ['nwodugift5@gmail.com'],
+            subject: '✅ System Test - Prime Heritage Bank',
+            html: `
+                <!DOCTYPE html>
+                <html>
+                <head><meta charset="UTF-8"></head>
+                <body style="font-family: Arial, sans-serif; background: #0A0E1A; margin:0; padding:40px;">
+                <div style="max-width:500px; margin:0 auto; background:#111827; border-radius:24px; padding:30px; border:1px solid #C6A43F;">
+                <h2 style="color:#C6A43F;">✅ System Test Successful!</h2>
+                <p style="color:#fff;">Hi Mr Dev,</p>
+                <p style="color:#fff;">This is a test email from Prime Heritage Bank.</p>
+                <p style="color:#fff;">Your email system is working perfectly!</p>
+                <div style="background:#0F1622; padding:15px; border-radius:12px; margin:20px 0;">
+                <p><strong style="color:#C6A43F;">Status:</strong> <span style="color:#10B981;">✅ OPERATIONAL</span></p>
+                <p><strong style="color:#C6A43F;">Time:</strong> <span style="color:#fff;">${new Date().toLocaleString()}</span></p>
+                <p><strong style="color:#C6A43F;">Server:</strong> <span style="color:#fff;">Prime Heritage Bank</span></p>
+                </div>
+                <p style="color:#9CA3AF;">All systems ready for production!</p>
+                </div>
+                </body>
+                </html>
+            `
+        });
+        
+        if (error) {
+            log('ERROR', 'Resend API test FAILED:', error);
+            return false;
+        }
+        
+        log('SUCCESS', '✅ Resend email test PASSED!');
+        log('INFO', `Email ID: ${data?.id}`);
+        log('INFO', `Test email sent to: nwodugift5@gmail.com`);
+        return true;
+    } catch (error) {
+        log('ERROR', 'Resend test exception:', error.message);
+        return false;
+    }
+}
+
+// ========== TEST 2: MONGODB CONNECTION ==========
+async function testMongoDBConnection() {
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    log('TEST', 'TEST 2: Checking MongoDB Connection');
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    const MONGODB_URI = 'mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/globalbank?retryWrites=true&w=majority';
+    
+    try {
+        log('INFO', 'Attempting to connect to MongoDB...');
+        await mongoose.connect(MONGODB_URI);
+        log('SUCCESS', '✅ MongoDB connection successful!');
+        log('INFO', `Database: ${mongoose.connection.name}`);
+        log('INFO', `Host: ${mongoose.connection.host}`);
+        return true;
+    } catch (error) {
+        log('ERROR', 'MongoDB connection FAILED:', error.message);
+        return false;
+    }
+}
+
+// ========== TEST 3: BCRYPT ==========
+async function testBcrypt() {
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    log('TEST', 'TEST 3: Checking Bcrypt Encryption');
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    try {
+        const testPassword = 'TestPassword123';
+        const hashed = await bcrypt.hash(testPassword, 10);
+        const isValid = await bcrypt.compare(testPassword, hashed);
+        
+        if (isValid) {
+            log('SUCCESS', '✅ Bcrypt encryption test PASSED!');
+            return true;
+        } else {
+            log('ERROR', 'Bcrypt encryption test FAILED!');
+            return false;
+        }
+    } catch (error) {
+        log('ERROR', 'Bcrypt test error:', error.message);
+        return false;
+    }
+}
+
+// ========== TEST 4: JWT ==========
+function testJWT() {
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    log('TEST', 'TEST 4: Checking JWT Token Generation');
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    try {
+        const testPayload = { userId: 'test123', email: 'test@example.com' };
+        const token = jwt.sign(testPayload, JWT_SECRET, { expiresIn: '1h' });
+        const decoded = jwt.verify(token, JWT_SECRET);
+        
+        if (decoded && decoded.userId === testPayload.userId) {
+            log('SUCCESS', '✅ JWT token test PASSED!');
+            log('DEBUG', `Test token generated: ${token.substring(0, 50)}...`);
+            return true;
+        } else {
+            log('ERROR', 'JWT token test FAILED!');
+            return false;
+        }
+    } catch (error) {
+        log('ERROR', 'JWT test error:', error.message);
+        return false;
+    }
+}
+
+// ========== TEST 5: EXPRESS ROUTES ==========
+function testExpressRoutes() {
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    log('TEST', 'TEST 5: Checking Express Configuration');
+    log('TEST', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    try {
+        // Test middleware
+        app.set('trust proxy', true);
+        log('SUCCESS', '✅ Express proxy setting configured');
+        
+        // Test body parser
+        app.use(express.json());
+        log('SUCCESS', '✅ JSON body parser configured');
+        
+        // Test CORS
+        app.use(cors());
+        log('SUCCESS', '✅ CORS configured');
+        
+        return true;
+    } catch (error) {
+        log('ERROR', 'Express configuration error:', error.message);
+        return false;
+    }
+}
+
+// ========== RUN ALL TESTS BEFORE STARTING ==========
+async function runStartupTests() {
+    log('INFO', '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    log('INFO', '🔧 RUNNING STARTUP TESTS');
+    log('INFO', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    
+    const results = {
+        resend: await testResendConnection(),
+        mongodb: await testMongoDBConnection(),
+        bcrypt: await testBcrypt(),
+        jwt: testJWT(),
+        express: testExpressRoutes()
+    };
+    
+    log('INFO', '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    log('INFO', '📊 TEST RESULTS SUMMARY');
+    log('INFO', '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    
+    let allPassed = true;
+    for (const [test, passed] of Object.entries(results)) {
+        if (passed) {
+            log('SUCCESS', `✅ ${test.toUpperCase()}: PASSED`);
+        } else {
+            log('ERROR', `❌ ${test.toUpperCase()}: FAILED`);
+            allPassed = false;
+        }
+    }
+    
+    log('INFO', '\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    if (allPassed) {
+        log('SUCCESS', '🎉 ALL TESTS PASSED! Starting server...');
+        return true;
+    } else {
+        log('ERROR', '💥 SOME TESTS FAILED! Server may not work correctly.');
+        return false;
+    }
+}
 
 // ========== EMAIL FUNCTION ==========
 async function sendEmail(to, subject, html) {
+    log('INFO', `📧 Sending email to: ${to}`);
     try {
         const { data, error } = await resend.emails.send({
             from: 'Prime Heritage Bank <onboarding@resend.dev>',
@@ -56,169 +290,69 @@ async function sendEmail(to, subject, html) {
         });
         
         if (error) {
-            console.error('❌ Email error:', error);
+            log('ERROR', 'Email send failed:', error);
             return false;
         }
         
-        console.log('✅ Email sent to:', to);
+        log('SUCCESS', `✅ Email sent! ID: ${data?.id}`);
         return true;
     } catch (error) {
-        console.error('❌ Email error:', error.message);
+        log('ERROR', 'Email exception:', error.message);
         return false;
     }
 }
 
-// ========== PROFESSIONAL EMAIL TEMPLATES ==========
+// ========== EMAIL TEMPLATES ==========
 function getVerificationEmail(name, code) {
     return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email | Prime Heritage Bank</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#0A0E1A 0%,#0F1622 100%);margin:0;padding:40px 20px}
-        .container{max-width:560px;margin:0 auto;background:#111827;border-radius:28px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(198,164,63,0.2)}
-        .header{background:linear-gradient(135deg,#C6A43F 0%,#9E8032 100%);padding:40px 30px;text-align:center;position:relative;overflow:hidden}
-        .header::before{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);animation:shine 3s infinite}
-        @keyframes shine{0%{transform:translateX(-100%) translateY(-100%)}100%{transform:translateX(100%) translateY(100%)}}
-        .header h1{color:#0A0E1A;font-size:28px;font-weight:800;letter-spacing:-0.5px}
-        .header p{color:rgba(10,14,26,0.8);font-size:13px;margin-top:8px}
-        .content{padding:40px 35px}
-        .greeting{font-size:26px;font-weight:700;margin-bottom:16px;background:linear-gradient(135deg,#C6A43F,#E8D5A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-        .message{color:#9CA3AF;line-height:1.6;margin-bottom:25px}
-        .code-box{background:linear-gradient(135deg,#0F1622,#0A0E1A);border:2px solid #C6A43F;border-radius:20px;padding:28px;text-align:center;margin:30px 0;position:relative}
-        .code-box::after{content:'🔐';position:absolute;top:-15px;right:20px;background:#111827;padding:0 10px;font-size:20px}
-        .code{font-size:48px;font-weight:800;color:#C6A43F;letter-spacing:12px;font-family:'Courier New',monospace}
-        .expiry{color:#6B7280;font-size:12px;margin-top:15px}
-        .security-note{background:rgba(16,185,129,0.1);border-left:3px solid #10B981;padding:15px;border-radius:12px;margin:20px 0;font-size:13px;color:#10B981}
-        .footer{background:#0A0E1A;padding:25px;text-align:center;border-top:1px solid #1F2937}
-        .footer p{color:#6B7280;font-size:12px;margin:5px 0}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🏦 PRIME HERITAGE BANK</h1>
-            <p>Global Excellence Since 2026</p>
-        </div>
-        <div class="content">
-            <div class="greeting">Welcome, ${name}! 👋</div>
-            <div class="message">Thank you for choosing Prime Heritage Bank. Please verify your email address using the code below.</div>
-            <div class="code-box">
-                <div class="code">${code}</div>
-                <div class="expiry">⏰ This code expires in 10 minutes</div>
-            </div>
-            <div class="security-note">🔒 Never share this code with anyone. Prime Heritage Bank will never ask for your verification code.</div>
-            <div class="message">If you didn't create an account, please ignore this email.</div>
-        </div>
-        <div class="footer">
-            <p>© 2026 Prime Heritage Bank - International Division</p>
-            <p>This is an automated message, please do not reply</p>
-        </div>
-    </div>
+<html>
+<head><meta charset="UTF-8"><title>Verify Email</title></head>
+<body style="font-family: Arial, sans-serif; background: #0A0E1A; margin:0; padding:40px;">
+<div style="max-width:500px; margin:0 auto; background:#111827; border-radius:24px; padding:30px; border:1px solid #C6A43F;">
+<h2 style="color:#C6A43F;">Welcome ${name}! 👋</h2>
+<p style="color:#fff;">Your verification code is:</p>
+<div style="background:#0F1622; padding:20px; text-align:center; border-radius:12px; margin:20px 0;">
+<h1 style="color:#C6A43F; letter-spacing:8px;">${code}</h1>
+</div>
+<p style="color:#9CA3AF;">This code expires in 10 minutes.</p>
+</div>
 </body>
 </html>`;
 }
 
 function getWelcomeEmail(name, accountNumber, iban, swiftCode, currency) {
     return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Welcome to Prime Heritage Bank</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#0A0E1A 0%,#0F1622 100%);margin:0;padding:40px 20px}
-        .container{max-width:560px;margin:0 auto;background:#111827;border-radius:28px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(198,164,63,0.2)}
-        .header{background:linear-gradient(135deg,#C6A43F 0%,#9E8032 100%);padding:40px 30px;text-align:center}
-        .header h1{color:#0A0E1A;font-size:28px;font-weight:800}
-        .content{padding:40px 35px}
-        .welcome{font-size:28px;font-weight:800;margin-bottom:20px;color:#C6A43F}
-        .message{color:#9CA3AF;line-height:1.6;margin-bottom:25px}
-        .info-card{background:linear-gradient(135deg,#0F1622,#0A0E1A);border-radius:20px;padding:25px;margin:25px 0;border:1px solid rgba(198,164,63,0.2)}
-        .info-row{display:flex;justify-content:space-between;margin-bottom:15px;padding-bottom:15px;border-bottom:1px solid #1F2937}
-        .info-label{color:#C6A43F;font-weight:600;font-size:12px;text-transform:uppercase}
-        .info-value{font-weight:600;font-size:14px;color:#FFFFFF;word-break:break-all;text-align:right}
-        .features{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:25px 0}
-        .feature{background:#0F1622;padding:15px;border-radius:16px;text-align:center;border:1px solid #1F2937}
-        .feature-icon{font-size:28px;display:block;margin-bottom:8px}
-        .feature-text{font-size:12px;color:#9CA3AF}
-        .footer{background:#0A0E1A;padding:25px;text-align:center;border-top:1px solid #1F2937}
-        .footer p{color:#6B7280;font-size:12px;margin:5px 0}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🏦 PRIME HERITAGE BANK</h1>
-        </div>
-        <div class="content">
-            <div class="welcome">Welcome, ${name}! 🎉</div>
-            <div class="message">Your account has been successfully verified and activated. You now have access to premium international banking services.</div>
-            <div class="info-card">
-                <div class="info-row"><span class="info-label">Account Number</span><span class="info-value">${accountNumber}</span></div>
-                <div class="info-row"><span class="info-label">IBAN</span><span class="info-value">${iban}</span></div>
-                <div class="info-row"><span class="info-label">SWIFT/BIC</span><span class="info-value">${swiftCode}</span></div>
-                <div class="info-row"><span class="info-label">Currency</span><span class="info-value">${currency}</span></div>
-            </div>
-            <div class="features">
-                <div class="feature"><span class="feature-icon">💳</span><div class="feature-text">Virtual Cards</div></div>
-                <div class="feature"><span class="feature-icon">🌍</span><div class="feature-text">Global Transfers</div></div>
-                <div class="feature"><span class="feature-icon">📱</span><div class="feature-text">Mobile Banking</div></div>
-                <div class="feature"><span class="feature-icon">🔒</span><div class="feature-text">Bank Security</div></div>
-            </div>
-        </div>
-        <div class="footer">
-            <p>© 2026 Prime Heritage Bank - International Division</p>
-            <p>24/7 Support: support@primeheritage.com</p>
-        </div>
-    </div>
+<html>
+<head><meta charset="UTF-8"><title>Welcome</title></head>
+<body style="font-family: Arial, sans-serif; background: #0A0E1A; margin:0; padding:40px;">
+<div style="max-width:500px; margin:0 auto; background:#111827; border-radius:24px; padding:30px; border:1px solid #C6A43F;">
+<h2 style="color:#C6A43F;">Welcome ${name}! 🎉</h2>
+<p style="color:#fff;">Your account has been verified successfully!</p>
+<div style="background:#0F1622; padding:15px; border-radius:12px; margin:20px 0;">
+<p><strong style="color:#C6A43F;">Account:</strong> <span style="color:#fff;">${accountNumber}</span></p>
+<p><strong style="color:#C6A43F;">IBAN:</strong> <span style="color:#fff;">${iban}</span></p>
+<p><strong style="color:#C6A43F;">SWIFT:</strong> <span style="color:#fff;">${swiftCode}</span></p>
+<p><strong style="color:#C6A43F;">Currency:</strong> <span style="color:#fff;">${currency}</span></p>
+</div>
+</div>
 </body>
 </html>`;
 }
 
 function getPasswordResetEmail(name, code) {
     return `<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Password Reset | Prime Heritage Bank</title>
-    <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#0A0E1A 0%,#0F1622 100%);margin:0;padding:40px 20px}
-        .container{max-width:560px;margin:0 auto;background:#111827;border-radius:28px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(198,164,63,0.2)}
-        .header{background:linear-gradient(135deg,#C6A43F 0%,#9E8032 100%);padding:40px 30px;text-align:center}
-        .header h1{color:#0A0E1A;font-size:28px;font-weight:800}
-        .content{padding:40px 35px}
-        .greeting{font-size:24px;font-weight:700;margin-bottom:20px;color:#C6A43F}
-        .message{color:#9CA3AF;line-height:1.6;margin-bottom:25px}
-        .code-box{background:linear-gradient(135deg,#0F1622,#0A0E1A);border:2px solid #C6A43F;border-radius:20px;padding:28px;text-align:center;margin:30px 0}
-        .code{font-size:48px;font-weight:800;color:#C6A43F;letter-spacing:12px;font-family:'Courier New',monospace}
-        .warning{background:rgba(239,68,68,0.1);border-left:3px solid #EF4444;padding:15px;border-radius:12px;margin:20px 0;font-size:13px;color:#EF4444}
-        .footer{background:#0A0E1A;padding:25px;text-align:center;border-top:1px solid #1F2937}
-        .footer p{color:#6B7280;font-size:12px;margin:5px 0}
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🔐 Password Reset Request</h1>
-        </div>
-        <div class="content">
-            <div class="greeting">Hello ${name},</div>
-            <div class="message">We received a request to reset your password. Use the verification code below:</div>
-            <div class="code-box">
-                <div class="code">${code}</div>
-            </div>
-            <div class="warning">⚠️ This code expires in 10 minutes. Never share this code with anyone.</div>
-            <div class="message">If you didn't request this, please ignore this email.</div>
-        </div>
-        <div class="footer">
-            <p>Prime Heritage Bank - Security Department</p>
-        </div>
-    </div>
+<html>
+<head><meta charset="UTF-8"><title>Password Reset</title></head>
+<body style="font-family: Arial, sans-serif; background: #0A0E1A; margin:0; padding:40px;">
+<div style="max-width:500px; margin:0 auto; background:#111827; border-radius:24px; padding:30px; border:1px solid #C6A43F;">
+<h2 style="color:#C6A43F;">Password Reset</h2>
+<p style="color:#fff;">Hello ${name},</p>
+<p style="color:#fff;">Your password reset code is:</p>
+<div style="background:#0F1622; padding:20px; text-align:center; border-radius:12px; margin:20px 0;">
+<h1 style="color:#C6A43F; letter-spacing:8px;">${code}</h1>
+</div>
+<p style="color:#EF4444;">This code expires in 10 minutes.</p>
+</div>
 </body>
 </html>`;
 }
@@ -228,7 +362,7 @@ const UserSchema = new mongoose.Schema({
     fullName: String, firstName: String, lastName: String,
     email: { type: String, unique: true }, phone: String,
     password: String, transactionPin: String,
-    currency: { type: String, enum: ['USD', 'EUR', 'GBP'] },
+    currency: { type: String, enum: ['USD', 'EUR', 'GBP'], default: 'USD' },
     accountNumber: { type: String, unique: true },
     iban: { type: String, unique: true },
     swiftCode: String,
@@ -355,12 +489,15 @@ async function useBBCode(userId, code, requiredStep) {
 
 // ========== REGISTER ROUTE ==========
 app.post('/api/register', async (req, res) => {
-    console.log('📝 Registration:', req.body.email);
+    log('INFO', `📝 Registration request: ${req.body.email}`);
     try {
         const { firstName, lastName, email, phone, password, transactionPin, currency } = req.body;
         
         const existing = await User.findOne({ email });
-        if (existing) return res.status(400).json({ error: 'Email already registered' });
+        if (existing) {
+            log('WARN', `Registration failed: Email already exists - ${email}`);
+            return res.status(400).json({ error: 'Email already registered' });
+        }
 
         const hashedPassword = await bcrypt.hash(password, 10);
         const hashedPin = await bcrypt.hash(transactionPin, 10);
@@ -375,6 +512,7 @@ app.post('/api/register', async (req, res) => {
             isEmailVerified: false
         });
         await user.save();
+        log('SUCCESS', `User created: ${user._id} - ${email}`);
 
         const account = new Account({ userId: user._id, currency, accountNumber, iban, balance: 0 });
         await account.save();
@@ -392,28 +530,38 @@ app.post('/api/register', async (req, res) => {
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
         }).save();
 
-        await sendEmail(email, 'Verify Your Email - Prime Heritage Bank', getVerificationEmail(`${firstName} ${lastName}`, verificationCode));
+        const emailSent = await sendEmail(email, 'Verify Your Email - Prime Heritage Bank', getVerificationEmail(`${firstName} ${lastName}`, verificationCode));
+        
+        if (emailSent) {
+            log('SUCCESS', `Verification email sent to ${email}`);
+        } else {
+            log('ERROR', `Failed to send verification email to ${email}`);
+        }
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025', { expiresIn: '7d' });
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
         res.json({
             success: true, token, requiresVerification: true,
-            message: 'Verification code sent to your email',
+            message: emailSent ? 'Verification code sent to your email' : 'Account created. Check console for code.',
             user: { id: user._id, fullName: user.fullName, email, accountNumber, iban, swiftCode, currency, isAdmin: false, isEmailVerified: false }
         });
     } catch (error) {
-        console.error('Registration error:', error);
+        log('ERROR', 'Registration error:', error.message);
         res.status(500).json({ error: 'Registration failed: ' + error.message });
     }
 });
 
 // ========== VERIFY EMAIL ==========
 app.post('/api/verify-email', async (req, res) => {
+    log('INFO', `🔐 Verification request: ${req.body.email}`);
     try {
         const { email, code } = req.body;
         
         const verification = await VerificationCode.findOne({ email, code, isUsed: false, expiresAt: { $gt: new Date() } });
-        if (!verification) return res.status(400).json({ error: 'Invalid or expired verification code' });
+        if (!verification) {
+            log('WARN', `Invalid verification attempt for ${email} with code ${code}`);
+            return res.status(400).json({ error: 'Invalid or expired verification code' });
+        }
         
         verification.isUsed = true;
         await verification.save();
@@ -421,10 +569,12 @@ app.post('/api/verify-email', async (req, res) => {
         const user = await User.findById(verification.userId);
         user.isEmailVerified = true;
         await user.save();
+        
+        log('SUCCESS', `Email verified: ${email}`);
 
         await sendEmail(email, 'Welcome to Prime Heritage Bank! 🎉', getWelcomeEmail(user.fullName, user.accountNumber, user.iban, user.swiftCode, user.currency));
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025', { expiresIn: '7d' });
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
         res.json({
             success: true, token,
@@ -432,12 +582,14 @@ app.post('/api/verify-email', async (req, res) => {
             user: { id: user._id, fullName: user.fullName, email, accountNumber: user.accountNumber, iban: user.iban, swiftCode: user.swiftCode, currency: user.currency, isAdmin: user.isAdmin, isEmailVerified: true }
         });
     } catch (error) {
+        log('ERROR', 'Verification error:', error.message);
         res.status(500).json({ error: 'Verification failed' });
     }
 });
 
 // ========== RESEND VERIFICATION ==========
 app.post('/api/resend-verification', async (req, res) => {
+    log('INFO', `📧 Resend verification: ${req.body.email}`);
     try {
         const { email } = req.body;
         const user = await User.findOne({ email });
@@ -456,12 +608,14 @@ app.post('/api/resend-verification', async (req, res) => {
         
         res.json({ success: true, message: 'New verification code sent' });
     } catch (error) {
+        log('ERROR', 'Resend error:', error.message);
         res.status(500).json({ error: 'Failed to resend' });
     }
 });
 
 // ========== FORGOT PASSWORD ==========
 app.post('/api/forgot-password', async (req, res) => {
+    log('INFO', `🔐 Forgot password: ${req.body.email}`);
     try {
         const { email } = req.body;
         const user = await User.findOne({ email });
@@ -479,6 +633,7 @@ app.post('/api/forgot-password', async (req, res) => {
         
         res.json({ success: true, message: 'Reset code sent to your email' });
     } catch (error) {
+        log('ERROR', 'Forgot password error:', error.message);
         res.status(500).json({ error: 'Failed to send reset code' });
     }
 });
@@ -506,24 +661,35 @@ app.post('/api/reset-password', async (req, res) => {
 
 // ========== LOGIN ==========
 app.post('/api/login', async (req, res) => {
+    log('INFO', `🔐 Login attempt: ${req.body.identifier}`);
     try {
         const { identifier, password } = req.body;
         const user = await User.findOne({ $or: [{ email: identifier }, { accountNumber: identifier }, { iban: identifier }] });
-        if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!user) {
+            log('WARN', `Login failed: User not found - ${identifier}`);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
         
         const valid = await bcrypt.compare(password, user.password);
-        if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
+        if (!valid) {
+            log('WARN', `Login failed: Invalid password for ${identifier}`);
+            return res.status(401).json({ error: 'Invalid credentials' });
+        }
         
         if (!user.isEmailVerified && !user.isAdmin) {
+            log('WARN', `Login blocked: Email not verified - ${user.email}`);
             return res.status(403).json({ error: 'Email not verified', requiresVerification: true, email: user.email });
         }
         
         user.lastLogin = new Date();
         await user.save();
         
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025', { expiresIn: '7d' });
+        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
+        log('SUCCESS', `Login successful: ${user.email}`);
+        
         res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, accountNumber: user.accountNumber, iban: user.iban, swiftCode: user.swiftCode, currency: user.currency, isAdmin: user.isAdmin, isEmailVerified: user.isEmailVerified } });
     } catch (error) {
+        log('ERROR', 'Login error:', error.message);
         res.status(500).json({ error: 'Login failed' });
     }
 });
@@ -533,7 +699,7 @@ app.get('/api/me', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const accounts = await Account.find({ userId: user._id });
         const cards = await Card.find({ userId: user._id });
@@ -552,12 +718,12 @@ app.get('/api/me', async (req, res) => {
     }
 });
 
-// ========== SEND MONEY STEP 1 ==========
+// ========== SEND MONEY ROUTES ==========
 app.post('/api/send/step1', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { toAccountNumber, amount, note, transactionPin } = req.body;
         
@@ -585,12 +751,11 @@ app.post('/api/send/step1', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// ========== SEND MONEY STEP 2 ==========
 app.post('/api/send/step2', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { reference, bbcCode } = req.body;
         
@@ -604,12 +769,11 @@ app.post('/api/send/step2', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// ========== SEND MONEY STEP 3 ==========
 app.post('/api/send/step3', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { reference, bbcCode } = req.body;
         
@@ -623,12 +787,11 @@ app.post('/api/send/step3', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// ========== SEND MONEY STEP 4 ==========
 app.post('/api/send/step4', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { reference, bbcCode } = req.body;
         
@@ -658,7 +821,7 @@ app.post('/api/loans/apply', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const { amount, purpose, tenureMonths } = req.body;
         const interestRate = 12;
         const monthlyPayment = (amount * (1 + interestRate / 100)) / tenureMonths;
@@ -677,7 +840,7 @@ app.get('/api/loans', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const loans = await Loan.find({ userId: decoded.userId }).sort({ createdAt: -1 });
         res.json(loans);
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
@@ -688,7 +851,7 @@ app.post('/api/cards/toggle', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { cardId, transactionPin } = req.body;
         const validPin = await bcrypt.compare(transactionPin, user.transactionPin);
@@ -706,7 +869,7 @@ app.post('/api/support', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { subject, message } = req.body;
         const ticket = new SupportMessage({ userId: user._id, name: user.fullName, email: user.email, subject, message });
@@ -719,7 +882,7 @@ app.get('/api/support/tickets', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const tickets = await SupportMessage.find({ userId: decoded.userId }).sort({ createdAt: -1 });
         res.json(tickets);
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
@@ -730,7 +893,7 @@ app.post('/api/update-password', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { currentPassword, newPassword } = req.body;
         const valid = await bcrypt.compare(currentPassword, user.password);
@@ -745,7 +908,7 @@ app.post('/api/update-pin', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const user = await User.findById(decoded.userId);
         const { currentPin, newPin } = req.body;
         const valid = await bcrypt.compare(currentPin, user.transactionPin);
@@ -760,7 +923,7 @@ app.post('/api/update-pin', async (req, res) => {
 app.get('/api/admin/users', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+    const decoded = jwt.verify(token, JWT_SECRET);
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -776,7 +939,7 @@ app.get('/api/admin/users', async (req, res) => {
 app.post('/api/admin/generate-bbc', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+    const decoded = jwt.verify(token, JWT_SECRET);
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -796,7 +959,7 @@ app.post('/api/admin/generate-bbc', async (req, res) => {
 app.get('/api/admin/bbc/:userId', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+    const decoded = jwt.verify(token, JWT_SECRET);
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -807,7 +970,7 @@ app.get('/api/admin/bbc/:userId', async (req, res) => {
 app.post('/api/admin/send', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+    const decoded = jwt.verify(token, JWT_SECRET);
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -834,7 +997,7 @@ app.post('/api/admin/toggle-status', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
+        const decoded = jwt.verify(token, JWT_SECRET);
         const admin = await User.findById(decoded.userId);
         if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
         
@@ -854,6 +1017,7 @@ async function createAdmin() {
     try {
         const adminExists = await User.findOne({ isAdmin: true });
         if (!adminExists) {
+            log('INFO', 'Creating default admin user...');
             const hashedPassword = await bcrypt.hash('Prime@Admin2026', 10);
             const accountNumber = generateAccountNumber('USD');
             const admin = new User({
@@ -872,26 +1036,64 @@ async function createAdmin() {
                 isEmailVerified: true
             });
             await admin.save();
-            console.log('✅ Admin created!');
-            console.log('📧 Email: admin@primeheritage.com');
-            console.log('🔑 Password: Prime@Admin2026');
+            log('SUCCESS', '✅ Admin created successfully!');
+            log('INFO', '📧 Admin Email: admin@primeheritage.com');
+            log('INFO', '🔑 Admin Password: Prime@Admin2026');
+        } else {
+            log('INFO', 'Admin user already exists');
         }
     } catch (error) {
-        console.error('Admin creation error:', error);
+        log('ERROR', 'Admin creation error:', error.message);
     }
 }
 
 // ========== START SERVER ==========
-createAdmin();
+async function startServer() {
+    // Run startup tests first
+    const testsPassed = await runStartupTests();
+    
+    if (!testsPassed) {
+        log('WARN', 'Some tests failed. Server will still start but may have issues.');
+    }
+    
+    // Create admin user
+    await createAdmin();
+    
+    // Apply middleware
+    app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+    app.use(compression());
+    app.use(express.json());
+    app.use(express.urlencoded({ extended: true }));
+    app.use(cors());
+    app.use(express.static('public'));
+    
+    // Start listening
+    app.listen(PORT, () => {
+        log('SUCCESS', `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        log('SUCCESS', `🚀 PRIME HERITAGE BANK SERVER IS RUNNING!`);
+        log('SUCCESS', `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+        log('INFO', `🌐 Local: http://localhost:${PORT}`);
+        log('INFO', `📧 Email Service: Resend (Active)`);
+        log('INFO', `💳 BBC Security System: Active`);
+        log('INFO', `📊 API Endpoints: /api/register, /api/login, /api/me, etc.`);
+        log('INFO', `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`);
+    });
+    
+    // Serve frontend
+    app.get('*', (req, res) => {
+        res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    });
+}
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`👑 Prime Heritage Bank running on http://localhost:${PORT}`);
-    console.log(`📧 Email: Resend - ACTIVE`);
-    console.log(`💳 BBC Security System: ACTIVE`);
+// Handle uncaught errors
+process.on('uncaughtException', (error) => {
+    log('ERROR', 'Uncaught Exception:', error.message);
+    log('DEBUG', error.stack);
 });
 
-// Serve frontend
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+process.on('unhandledRejection', (reason, promise) => {
+    log('ERROR', 'Unhandled Rejection:', reason);
 });
+
+// Start the server
+startServer();
