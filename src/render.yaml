@@ -1,13 +1,13 @@
 services:
   - type: web
-    name: global-bank-api
+    name: prime-heritage-bank-api
     env: node
     buildCommand: npm install
     startCommand: node server.js
     plan: free
     envVars:
       - key: MONGODB_URI
-        value: mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/globalbank?retryWrites=true&w=majority
+        value: mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/prime_heritage_bank?retryWrites=true&w=majority
       - key: JWT_SECRET
         value: globalbank_super_secret_key_2025
       - key: SESSION_SECRET
