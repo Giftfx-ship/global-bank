@@ -9,7 +9,7 @@ services:
       - key: MONGODB_URI
         value: mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/prime_heritage_bank?retryWrites=true&w=majority
       - key: JWT_SECRET
-        value: globalbank_super_secret_key_2025
+        value: PrimeHeritageBank_SuperSecure_JWT_2026_Global_International_Banking_System
       - key: SESSION_SECRET
         value: banking_session_secret_demo
       - key: PORT
