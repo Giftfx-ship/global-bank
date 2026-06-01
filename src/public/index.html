@@ -2,16 +2,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Prime Heritage Bank - Premium International Banking</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Prime Heritage Bank | Premium International Banking</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0A0E1A;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -19,50 +24,65 @@
             position: relative;
             overflow-x: hidden;
         }
-        :root {
-            --gold: #C6A43F;
-            --gold-dark: #9E8032;
-            --bg-card: #111827;
-            --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
-            --border: #1F2937;
-            --success: #10B981;
-            --error: #EF4444;
-        }
-        
-        /* Animated Background */
-        .bg-animation {
+
+        /* Premium Gradient Background */
+        body::before {
+            content: '';
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(198, 164, 63, 0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(198, 164, 63, 0.05) 0%, transparent 60%);
+            pointer-events: none;
             z-index: 0;
         }
-        .bg-animation div {
-            position: absolute;
+
+        /* Animated Orbs */
+        .orb {
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.4;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatOrb 20s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 400px;
+            height: 400px;
+            background: radial-gradient(circle, rgba(198, 164, 63, 0.4), transparent);
+            top: -200px;
+            left: -200px;
+        }
+
+        .orb-2 {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(158, 128, 50, 0.3), transparent);
+            bottom: -250px;
+            right: -250px;
+            animation-delay: 5s;
+        }
+
+        .orb-3 {
             width: 300px;
             height: 300px;
-            background: radial-gradient(circle, rgba(198,164,63,0.1) 0%, transparent 70%);
-            border-radius: 50%;
-            animation: float 20s infinite;
+            background: radial-gradient(circle, rgba(198, 164, 63, 0.2), transparent);
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            animation-delay: 10s;
         }
-        .bg-animation div:nth-child(1) { top: -150px; left: -150px; animation-delay: 0s; }
-        .bg-animation div:nth-child(2) { bottom: -150px; right: -150px; animation-delay: 5s; }
-        .bg-animation div:nth-child(3) { top: 50%; left: 50%; transform: translate(-50%, -50%); width: 500px; height: 500px; animation-delay: 10s; }
-        
-        @keyframes float {
+
+        @keyframes floatOrb {
             0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(50px, 50px) scale(1.2); }
+            50% { transform: translate(30px, 30px) scale(1.1); }
         }
-        
-        /* Loading Animation */
-        @keyframes fadeOut {
-            0% { opacity: 1; visibility: visible; }
-            80% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; }
-        }
+
+        /* Splash Screen */
         .splash {
             position: fixed;
             top: 0;
@@ -75,314 +95,602 @@
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            animation: fadeOut 2.5s ease forwards;
+            animation: fadeOut 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
             pointer-events: none;
         }
-        .cube-loader {
+
+        @keyframes fadeOut {
+            0% { opacity: 1; visibility: visible; backdrop-filter: blur(0); }
+            70% { opacity: 1; }
+            100% { opacity: 0; visibility: hidden; backdrop-filter: blur(10px); }
+        }
+
+        /* 3D Cube Animation */
+        .cube-3d {
             width: 80px;
             height: 80px;
-            perspective: 200px;
+            perspective: 400px;
         }
-        .cube-loader-inner {
+
+        .cube-3d-inner {
             width: 100%;
             height: 100%;
             position: relative;
             transform-style: preserve-3d;
-            animation: rotate 1.5s linear infinite;
+            animation: rotate3d 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
         }
-        @keyframes rotate {
-            0% { transform: rotateX(0deg) rotateY(0deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg); }
+
+        @keyframes rotate3d {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
         }
-        .cube-face {
+
+        .cube-face-3d {
             position: absolute;
             width: 80px;
             height: 80px;
             background: linear-gradient(135deg, #C6A43F, #9E8032);
             opacity: 0.9;
+            border: 1px solid rgba(255,255,255,0.2);
         }
-        .cube-face-front { transform: translateZ(40px); }
-        .cube-face-back { transform: rotateY(180deg) translateZ(40px); }
-        .cube-face-right { transform: rotateY(90deg) translateZ(40px); }
-        .cube-face-left { transform: rotateY(-90deg) translateZ(40px); }
-        .cube-face-top { transform: rotateX(90deg) translateZ(40px); }
-        .cube-face-bottom { transform: rotateX(-90deg) translateZ(40px); }
-        
+
+        .cube-face-3d.front { transform: translateZ(40px); }
+        .cube-face-3d.back { transform: rotateY(180deg) translateZ(40px); }
+        .cube-face-3d.right { transform: rotateY(90deg) translateZ(40px); }
+        .cube-face-3d.left { transform: rotateY(-90deg) translateZ(40px); }
+        .cube-face-3d.top { transform: rotateX(90deg) translateZ(40px); }
+        .cube-face-3d.bottom { transform: rotateX(-90deg) translateZ(40px); }
+
+        .splash-text {
+            margin-top: 30px;
+            color: #C6A43F;
+            font-size: 14px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            font-weight: 600;
+            animation: pulse 1.5s ease infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* Main Container */
         .container {
             position: relative;
             z-index: 1;
             width: 100%;
-            max-width: 550px;
+            max-width: 520px;
             padding: 20px;
             opacity: 0;
-            animation: slideUp 0.5s ease 2.5s forwards;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 2.8s forwards;
         }
+
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        
-        .logo { text-align: center; margin-bottom: 25px; }
+
+        /* Logo Section */
+        .logo-section {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+
         .logo-icon {
-            width: 65px;
-            height: 65px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 18px;
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 12px;
-            box-shadow: 0 10px 40px rgba(198,164,63,0.3);
+            margin: 0 auto 16px;
+            box-shadow: 0 20px 40px -12px rgba(198, 164, 63, 0.4);
+            transition: transform 0.3s ease;
         }
-        .logo-icon i { font-size: 32px; color: #0A0E1A; }
-        .logo h1 { color: var(--gold); font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-        .logo p { color: var(--text-secondary); font-size: 11px; margin-top: 4px; }
-        
+
+        .logo-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-icon i {
+            font-size: 36px;
+            color: #0A0E1A;
+        }
+
+        .logo-section h1 {
+            color: #C6A43F;
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 6px;
+        }
+
+        .logo-section .tagline {
+            color: #9CA3AF;
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        /* Card */
         .card {
-            background: var(--bg-card);
-            border-radius: 28px;
-            padding: 30px;
-            border: 1px solid var(--border);
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            background: rgba(17, 24, 39, 0.95);
             backdrop-filter: blur(10px);
+            border-radius: 32px;
+            padding: 32px;
+            border: 1px solid rgba(198, 164, 63, 0.15);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transition: all 0.3s ease;
         }
-        
+
+        /* Tabs */
         .tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 25px;
+            gap: 10px;
+            margin-bottom: 32px;
             background: #0F1622;
-            padding: 5px;
-            border-radius: 18px;
+            padding: 6px;
+            border-radius: 20px;
         }
+
         .tab {
             flex: 1;
             text-align: center;
-            padding: 12px;
+            padding: 12px 20px;
             border: none;
             background: transparent;
             font-size: 14px;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 14px;
-            color: var(--text-secondary);
-            transition: all 0.3s;
+            border-radius: 16px;
+            color: #9CA3AF;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
+
+        .tab::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            z-index: -1;
+        }
+
         .tab.active {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
             color: #0A0E1A;
+            transform: scale(1.02);
         }
-        
+
+        .tab:not(.active):hover {
+            color: #C6A43F;
+            background: rgba(198, 164, 63, 0.1);
+        }
+
         /* Progress Steps */
         .progress-steps {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 30px;
+            margin-bottom: 32px;
             position: relative;
         }
+
         .progress-steps::before {
             content: '';
             position: absolute;
             top: 20px;
-            left: 0;
-            right: 0;
+            left: 10%;
+            right: 10%;
             height: 2px;
-            background: var(--border);
+            background: linear-gradient(90deg, #1F2937, #374151, #1F2937);
+            border-radius: 2px;
             z-index: 0;
         }
+
         .step {
             text-align: center;
             z-index: 1;
-            background: var(--bg-card);
+            background: transparent;
             flex: 1;
+            cursor: pointer;
+            transition: all 0.3s ease;
         }
+
         .step-number {
-            width: 40px;
-            height: 40px;
+            width: 42px;
+            height: 42px;
             background: #0F1622;
-            border: 2px solid var(--border);
+            border: 2px solid #1F2937;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 8px;
             font-weight: 700;
-            color: var(--text-secondary);
-            transition: all 0.3s;
+            font-size: 16px;
+            color: #9CA3AF;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .step.active .step-number {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-color: var(--gold);
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
+            border-color: #C6A43F;
             color: #0A0E1A;
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(198, 164, 63, 0.5);
         }
+
         .step.completed .step-number {
-            background: var(--success);
-            border-color: var(--success);
+            background: #10B981;
+            border-color: #10B981;
             color: white;
         }
-        .step.completed .step-number::after {
-            content: '✓';
-        }
+
         .step.completed .step-number span {
             display: none;
         }
+
+        .step.completed .step-number::after {
+            content: '✓';
+            font-size: 18px;
+            font-weight: bold;
+        }
+
         .step-label {
             font-size: 11px;
-            color: var(--text-secondary);
+            color: #9CA3AF;
+            font-weight: 500;
+            transition: color 0.3s ease;
         }
+
         .step.active .step-label {
-            color: var(--gold);
+            color: #C6A43F;
             font-weight: 600;
         }
-        
+
         /* Form Sections */
         .form-section {
             display: none;
-            animation: fadeInSection 0.5s ease;
+            animation: fadeSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
         }
+
         .form-section.active-section {
             display: block;
         }
-        @keyframes fadeInSection {
-            from { opacity: 0; transform: translateX(20px); }
-            to { opacity: 1; transform: translateX(0); }
+
+        @keyframes fadeSlide {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
-        
+
         .section-title {
             font-size: 20px;
             font-weight: 700;
-            color: var(--gold);
-            margin-bottom: 20px;
+            background: linear-gradient(135deg, #C6A43F, #E8D5A4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 24px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
+
         .section-title i {
             font-size: 24px;
+            background: none;
+            -webkit-text-fill-color: #C6A43F;
         }
-        
-        .form-group { margin-bottom: 18px; }
+
+        /* Form Groups */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
         .form-group label {
             display: block;
             font-size: 12px;
-            font-weight: 500;
-            color: var(--text-secondary);
-            margin-bottom: 6px;
+            font-weight: 600;
+            color: #9CA3AF;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+
         .form-group label i {
-            margin-right: 6px;
+            margin-right: 8px;
             width: 16px;
+            color: #C6A43F;
         }
-        .form-group input, .form-group select {
+
+        .form-group input,
+        .form-group select {
             width: 100%;
-            padding: 12px 14px;
+            padding: 14px 16px;
             background: #0F1622;
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            border: 1.5px solid #1F2937;
+            border-radius: 16px;
             font-size: 14px;
-            color: var(--text-primary);
+            color: #FFFFFF;
             font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
         }
-        .form-group input:focus, .form-group select:focus {
+
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
+            border-color: #C6A43F;
+            box-shadow: 0 0 0 3px rgba(198, 164, 63, 0.1);
+            transform: translateY(-1px);
         }
-        
+
+        .form-group input:hover,
+        .form-group select:hover {
+            border-color: #C6A43F;
+        }
+
         .row-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 16px;
         }
-        
-        /* PIN Input */
+
+        /* PIN Inputs */
         .pin-inputs {
             display: flex;
             gap: 12px;
             justify-content: center;
         }
+
         .pin-inputs input {
-            width: 55px;
-            height: 55px;
+            width: 60px;
+            height: 60px;
             text-align: center;
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             background: #0F1622;
-            border: 2px solid var(--border);
-            border-radius: 14px;
-            color: var(--gold);
+            border: 2px solid #1F2937;
+            border-radius: 16px;
+            color: #C6A43F;
+            transition: all 0.2s ease;
         }
+
         .pin-inputs input:focus {
-            border-color: var(--gold);
+            border-color: #C6A43F;
+            transform: scale(1.05);
         }
-        
+
         /* Password Strength */
         .password-strength {
-            margin-top: 8px;
+            margin-top: 10px;
             height: 4px;
-            background: var(--border);
-            border-radius: 2px;
+            background: #1F2937;
+            border-radius: 4px;
             overflow: hidden;
         }
+
         .strength-bar {
             width: 0%;
             height: 100%;
-            transition: width 0.3s;
+            transition: width 0.3s ease, background 0.3s ease;
+            border-radius: 4px;
         }
+
         .strength-text {
-            font-size: 10px;
-            margin-top: 5px;
-            color: var(--text-secondary);
+            font-size: 11px;
+            margin-top: 8px;
+            color: #9CA3AF;
         }
-        
-        /* Button Styles */
+
+        /* Currency Selector */
+        .currency-selector {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px;
+        }
+
+        .currency-option {
+            flex: 1;
+            padding: 14px;
+            border: 1.5px solid #1F2937;
+            border-radius: 16px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: #0F1622;
+        }
+
+        .currency-option:hover {
+            border-color: #C6A43F;
+            transform: translateY(-2px);
+        }
+
+        .currency-option.selected {
+            border-color: #C6A43F;
+            background: linear-gradient(135deg, rgba(198, 164, 63, 0.15), rgba(158, 128, 50, 0.1));
+            transform: scale(1.02);
+        }
+
+        .currency-option i {
+            font-size: 24px;
+            display: block;
+            margin-bottom: 6px;
+            color: #9CA3AF;
+            transition: color 0.3s ease;
+        }
+
+        .currency-option .symbol {
+            font-size: 13px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        .currency-option.selected i,
+        .currency-option.selected .symbol {
+            color: #C6A43F;
+        }
+
+        /* Review Box */
+        .review-box {
+            background: linear-gradient(135deg, #0F1622, #0A0E1A);
+            border-radius: 20px;
+            padding: 24px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(198, 164, 63, 0.2);
+        }
+
+        .review-item {
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #1F2937;
+        }
+
+        .review-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .review-label {
+            font-size: 11px;
+            color: #C6A43F;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .review-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #FFFFFF;
+        }
+
+        /* Buttons */
         .btn {
             width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            padding: 15px;
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
             color: #0A0E1A;
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 10px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
         }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(198,164,63,0.3);
+            box-shadow: 0 10px 30px rgba(198, 164, 63, 0.4);
         }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
         .btn-secondary {
             background: transparent;
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
+            border: 1.5px solid #1F2937;
+            color: #9CA3AF;
         }
+
         .btn-secondary:hover {
-            border-color: var(--gold);
-            color: var(--gold);
-            transform: none;
+            border-color: #C6A43F;
+            color: #C6A43F;
+            transform: translateY(-2px);
             box-shadow: none;
         }
-        
+
         .btn-group {
             display: flex;
             gap: 12px;
-            margin-top: 20px;
+            margin-top: 24px;
         }
+
         .btn-group .btn {
             margin-top: 0;
         }
-        
-        .verification-box {
+
+        /* Checkbox */
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            padding: 12px;
             background: #0F1622;
-            border-radius: 16px;
-            padding: 20px;
-            margin-top: 20px;
-            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-top: 16px;
         }
-        
+
+        .checkbox-group input {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            accent-color: #C6A43F;
+        }
+
+        .checkbox-group label {
+            margin: 0;
+            cursor: pointer;
+            font-size: 13px;
+            color: #9CA3AF;
+        }
+
+        .checkbox-group a {
+            color: #C6A43F;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .checkbox-group a:hover {
+            text-decoration: underline;
+        }
+
+        /* Verification Box */
+        .verification-box {
+            background: linear-gradient(135deg, #0F1622, #0A0E1A);
+            border-radius: 20px;
+            padding: 28px;
+            text-align: center;
+            border: 1px solid rgba(198, 164, 63, 0.2);
+        }
+
+        /* Loading Overlay */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -390,78 +698,120 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(10,14,26,0.95);
+            background: rgba(10, 14, 26, 0.98);
+            backdrop-filter: blur(8px);
             z-index: 10001;
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
-        
-        .currency-selector {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 3px solid #1F2937;
+            border-top-color: #C6A43F;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
         }
-        .currency-option {
-            flex: 1;
-            padding: 12px;
-            border: 1px solid var(--border);
-            border-radius: 12px;
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Links */
+        .forgot-link {
             text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            background: #0F1622;
+            margin-top: 20px;
         }
-        .currency-option.selected {
-            border-color: var(--gold);
-            background: rgba(198,164,63,0.1);
+
+        .forgot-link a {
+            color: #C6A43F;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.3s ease;
         }
-        .currency-option i { font-size: 20px; display: block; margin-bottom: 5px; color: var(--text-secondary); }
-        .currency-option .symbol { font-size: 13px; font-weight: 600; color: var(--text-primary); }
-        .currency-option.selected i, .currency-option.selected .symbol { color: var(--gold); }
-        
+
+        .forgot-link a:hover {
+            color: #E8D5A4;
+            text-decoration: underline;
+        }
+
+        /* Responsive */
         @media (max-width: 500px) {
-            .card { padding: 20px; }
-            .pin-inputs input { width: 45px; height: 45px; font-size: 18px; }
-            .step-label { font-size: 9px; }
+            .container {
+                padding: 16px;
+            }
+            .card {
+                padding: 24px;
+            }
+            .pin-inputs input {
+                width: 50px;
+                height: 50px;
+                font-size: 20px;
+            }
+            .step-label {
+                font-size: 9px;
+            }
+            .step-number {
+                width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+        }
+
+        /* Animations */
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        .loading-skeleton {
+            background: linear-gradient(90deg, #1F2937 25%, #374151 50%, #1F2937 75%);
+            background-size: 1000px 100%;
+            animation: shimmer 2s infinite;
         }
     </style>
 </head>
 <body>
+    <!-- Animated Orbs -->
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <!-- Splash Screen -->
     <div class="splash">
-        <div class="cube-loader">
-            <div class="cube-loader-inner">
-                <div class="cube-face cube-face-front"></div>
-                <div class="cube-face cube-face-back"></div>
-                <div class="cube-face cube-face-right"></div>
-                <div class="cube-face cube-face-left"></div>
-                <div class="cube-face cube-face-top"></div>
-                <div class="cube-face cube-face-bottom"></div>
+        <div class="cube-3d">
+            <div class="cube-3d-inner">
+                <div class="cube-face-3d front"></div>
+                <div class="cube-face-3d back"></div>
+                <div class="cube-face-3d right"></div>
+                <div class="cube-face-3d left"></div>
+                <div class="cube-face-3d top"></div>
+                <div class="cube-face-3d bottom"></div>
             </div>
         </div>
-        <h2 style="color: #C6A43F; margin-top: 30px; font-size: 18px; letter-spacing: 3px;">PRIME HERITAGE BANK</h2>
-    </div>
-
-    <div class="bg-animation">
-        <div></div>
-        <div></div>
-        <div></div>
+        <div class="splash-text">Prime Heritage Bank</div>
     </div>
 
     <div class="container">
-        <div class="logo">
-            <div class="logo-icon"><i class="fas fa-crown"></i></div>
+        <div class="logo-section">
+            <div class="logo-icon">
+                <i class="fas fa-crown"></i>
+            </div>
             <h1>Prime Heritage Bank</h1>
-            <p>International Banking System 2026 | Global Excellence</p>
+            <div class="tagline">International Banking System 2026 | Global Excellence</div>
         </div>
-        
-        <div class="card" id="authCard">
+
+        <div class="card">
             <div class="tabs">
                 <button class="tab active" onclick="switchTab('login')">Sign In</button>
                 <button class="tab" onclick="switchTab('register')">Open Account</button>
             </div>
-            
-            <!-- LOGIN PANEL -->
+
+            <!-- Login Panel -->
             <div id="loginPanel">
                 <div class="form-group">
                     <label><i class="fas fa-envelope"></i> Email or Account Number</label>
@@ -472,34 +822,34 @@
                     <input type="password" id="loginPassword" placeholder="Enter your password">
                 </div>
                 <button class="btn" onclick="handleLogin()">Sign In</button>
-                <div style="text-align: center; margin-top: 20px;">
-                    <a href="#" onclick="showForgotPassword()" style="color: var(--gold); text-decoration: none; font-size: 12px;">Forgot Password?</a>
+                <div class="forgot-link">
+                    <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
                 </div>
             </div>
-            
-            <!-- REGISTRATION PANEL - SECTION BY SECTION -->
+
+            <!-- Registration Panel -->
             <div id="registerPanel" style="display: none;">
                 <!-- Progress Steps -->
                 <div class="progress-steps">
-                    <div class="step" id="step1">
+                    <div class="step" id="step1" onclick="goToSection(1)">
                         <div class="step-number"><span>1</span></div>
-                        <div class="step-label">Personal Info</div>
+                        <div class="step-label">Personal</div>
                     </div>
-                    <div class="step" id="step2">
+                    <div class="step" id="step2" onclick="goToSection(2)">
                         <div class="step-number"><span>2</span></div>
                         <div class="step-label">Security</div>
                     </div>
-                    <div class="step" id="step3">
+                    <div class="step" id="step3" onclick="goToSection(3)">
                         <div class="step-number"><span>3</span></div>
                         <div class="step-label">Banking</div>
                     </div>
-                    <div class="step" id="step4">
+                    <div class="step" id="step4" onclick="goToSection(4)">
                         <div class="step-number"><span>4</span></div>
                         <div class="step-label">Review</div>
                     </div>
                 </div>
-                
-                <!-- SECTION 1: PERSONAL INFORMATION -->
+
+                <!-- Section 1: Personal Info -->
                 <div class="form-section active-section" id="section1">
                     <div class="section-title">
                         <i class="fas fa-user-circle"></i>
@@ -528,8 +878,8 @@
                         <button class="btn" onclick="nextSection()">Continue →</button>
                     </div>
                 </div>
-                
-                <!-- SECTION 2: SECURITY -->
+
+                <!-- Section 2: Security -->
                 <div class="form-section" id="section2">
                     <div class="section-title">
                         <i class="fas fa-shield-alt"></i>
@@ -555,15 +905,15 @@
                             <input type="password" maxlength="1" id="pin3" onkeyup="moveToNext(this, 'pin4')" oninput="checkPin()">
                             <input type="password" maxlength="1" id="pin4" oninput="checkPin()">
                         </div>
-                        <div class="strength-text" id="pinError" style="color: var(--error); display: none;">PIN must be 4 digits</div>
+                        <div class="strength-text" id="pinError" style="color: #EF4444; display: none;">PIN must be 4 digits</div>
                     </div>
                     <div class="btn-group">
                         <button class="btn btn-secondary" onclick="prevSection()">← Back</button>
                         <button class="btn" onclick="nextSection()">Continue →</button>
                     </div>
                 </div>
-                
-                <!-- SECTION 3: BANKING PREFERENCES -->
+
+                <!-- Section 3: Banking Preferences -->
                 <div class="form-section" id="section3">
                     <div class="section-title">
                         <i class="fas fa-globe"></i>
@@ -572,7 +922,7 @@
                     <div class="form-group">
                         <label><i class="fas fa-money-bill-wave"></i> Preferred Currency</label>
                         <div class="currency-selector">
-                            <div class="currency-option" data-currency="USD" onclick="selectCurrency('USD')">
+                            <div class="currency-option selected" data-currency="USD" onclick="selectCurrency('USD')">
                                 <i class="fas fa-dollar-sign"></i>
                                 <div class="symbol">USD</div>
                             </div>
@@ -599,36 +949,34 @@
                         <button class="btn" onclick="nextSection()">Review Account →</button>
                     </div>
                 </div>
-                
-                <!-- SECTION 4: REVIEW & SUBMIT -->
+
+                <!-- Section 4: Review -->
                 <div class="form-section" id="section4">
                     <div class="section-title">
                         <i class="fas fa-clipboard-list"></i>
                         Review Your Information
                     </div>
-                    <div style="background: #0F1622; border-radius: 16px; padding: 20px; margin-bottom: 20px;">
-                        <div style="margin-bottom: 15px;">
-                            <p style="color: var(--gold); font-size: 12px; margin-bottom: 5px;">Full Name</p>
-                            <p style="color: white; font-weight: 500;" id="reviewName">-</p>
+                    <div class="review-box">
+                        <div class="review-item">
+                            <div class="review-label">Full Name</div>
+                            <div class="review-value" id="reviewName">-</div>
                         </div>
-                        <div style="margin-bottom: 15px;">
-                            <p style="color: var(--gold); font-size: 12px; margin-bottom: 5px;">Email & Phone</p>
-                            <p style="color: white; font-weight: 500;" id="reviewContact">-</p>
+                        <div class="review-item">
+                            <div class="review-label">Contact Information</div>
+                            <div class="review-value" id="reviewContact">-</div>
                         </div>
-                        <div style="margin-bottom: 15px;">
-                            <p style="color: var(--gold); font-size: 12px; margin-bottom: 5px;">Currency</p>
-                            <p style="color: white; font-weight: 500;" id="reviewCurrency">-</p>
+                        <div class="review-item">
+                            <div class="review-label">Currency</div>
+                            <div class="review-value" id="reviewCurrency">-</div>
                         </div>
-                        <div>
-                            <p style="color: var(--gold); font-size: 12px; margin-bottom: 5px;">Security</p>
-                            <p style="color: #10B981; font-weight: 500;" id="reviewSecurity">✓ Password & PIN set</p>
+                        <div class="review-item">
+                            <div class="review-label">Security</div>
+                            <div class="review-value" id="reviewSecurity">✓ Password & PIN set</div>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
-                            <input type="checkbox" id="termsCheckbox" style="width: 18px; height: 18px;">
-                            I agree to the <a href="#" style="color: var(--gold);">Terms & Conditions</a> and <a href="#" style="color: var(--gold);">Privacy Policy</a>
-                        </label>
+                    <div class="checkbox-group" onclick="toggleCheckbox()">
+                        <input type="checkbox" id="termsCheckbox">
+                        <label>I agree to the <a href="#" onclick="event.stopPropagation()">Terms & Conditions</a> and <a href="#" onclick="event.stopPropagation()">Privacy Policy</a></label>
                     </div>
                     <div class="btn-group">
                         <button class="btn btn-secondary" onclick="prevSection()">← Back</button>
@@ -636,68 +984,207 @@
                     </div>
                 </div>
             </div>
-            
-            <!-- VERIFICATION PANEL -->
+
+            <!-- Verification Panel -->
             <div id="verificationPanel" style="display: none;">
                 <div class="verification-box">
-                    <h3 style="color: var(--gold); margin-bottom: 20px; text-align: center;">Verify Your Email</h3>
-                    <p style="color: var(--text-secondary); text-align: center; margin-bottom: 20px;">We've sent a verification code to <strong id="verifyEmail"></strong></p>
+                    <i class="fas fa-envelope" style="font-size: 48px; color: #C6A43F; margin-bottom: 20px;"></i>
+                    <h3 style="color: #C6A43F; margin-bottom: 15px;">Verify Your Email</h3>
+                    <p style="color: #9CA3AF; margin-bottom: 20px;">We've sent a verification code to <strong id="verifyEmail" style="color: #C6A43F;"></strong></p>
                     <div class="form-group">
-                        <label>Verification Code</label>
                         <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6" style="text-align: center; font-size: 20px; letter-spacing: 5px;">
                     </div>
                     <button class="btn" onclick="verifyEmail()">Verify Account</button>
-                    <div style="text-align: center; margin-top: 15px;">
-                        <a href="#" onclick="resendVerification()" style="color: var(--gold); text-decoration: none; font-size: 12px;">Resend Code</a>
+                    <div class="forgot-link">
+                        <a href="#" onclick="resendVerification()">Resend Code</a>
                     </div>
                 </div>
             </div>
-            
-            <!-- FORGOT PASSWORD PANEL -->
+
+            <!-- Forgot Password Panel -->
             <div id="forgotPanel" style="display: none;">
                 <div class="form-group">
-                    <label>Email Address</label>
+                    <label><i class="fas fa-envelope"></i> Email Address</label>
                     <input type="email" id="resetEmail" placeholder="Enter your email">
                 </div>
                 <button class="btn" onclick="sendResetCode()">Send Reset Code</button>
-                <div style="text-align: center; margin-top: 15px;">
-                    <a href="#" onclick="switchTab('login')" style="color: var(--gold); text-decoration: none; font-size: 13px;">Back to Login</a>
+                <div class="forgot-link">
+                    <a href="#" onclick="switchTab('login')">Back to Sign In</a>
                 </div>
             </div>
         </div>
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="cube-loader">
-            <div class="cube-loader-inner">
-                <div class="cube-face cube-face-front"></div>
-                <div class="cube-face cube-face-back"></div>
-                <div class="cube-face cube-face-right"></div>
-                <div class="cube-face cube-face-left"></div>
-                <div class="cube-face cube-face-top"></div>
-                <div class="cube-face cube-face-bottom"></div>
-            </div>
-        </div>
-        <p style="color: var(--gold); margin-top: 20px;">Processing...</p>
+        <div class="loading-spinner"></div>
+        <p style="color: #C6A43F; margin-top: 20px; font-weight: 500;">Processing...</p>
     </div>
 
     <script>
-        <script>
-    const API_URL = 'https://prime-heritage-bank.onrender.com';  // ← CHANGE TO THIS
-    let pendingUserEmail = '';
+        // ========== CONFIGURATION ==========
+        // CHANGE THIS TO YOUR RENDER URL
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
+        
+        // ========== GLOBAL VARIABLES ==========
+        let pendingUserEmail = '';
         let pendingUserToken = '';
         let currentSection = 1;
         let selectedCurrency = 'USD';
         let registrationData = {};
 
-        // Initialize
-        document.querySelector('.currency-option[data-currency="USD"]').classList.add('selected');
+        // ========== UTILITY FUNCTIONS ==========
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
 
+        function switchTab(tab) {
+            document.getElementById('loginPanel').style.display = tab === 'login' ? 'block' : 'none';
+            document.getElementById('registerPanel').style.display = tab === 'register' ? 'block' : 'none';
+            document.getElementById('verificationPanel').style.display = 'none';
+            document.getElementById('forgotPanel').style.display = 'none';
+            
+            document.querySelectorAll('.tab').forEach((t, i) => {
+                t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
+            });
+            
+            if (tab === 'register') {
+                currentSection = 1;
+                updateProgress();
+                document.querySelectorAll('.form-section').forEach((section, index) => {
+                    if (index === 0) section.classList.add('active-section');
+                    else section.classList.remove('active-section');
+                });
+            }
+        }
+
+        function showForgotPassword() {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('registerPanel').style.display = 'none';
+            document.getElementById('verificationPanel').style.display = 'none';
+            document.getElementById('forgotPanel').style.display = 'block';
+        }
+
+        // ========== SECTION NAVIGATION ==========
+        function updateProgress() {
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                const section = document.getElementById(`section${i}`);
+                step.classList.remove('active', 'completed');
+                if (i < currentSection) {
+                    step.classList.add('completed');
+                } else if (i === currentSection) {
+                    step.classList.add('active');
+                }
+            }
+        }
+
+        function goToSection(section) {
+            if (section < currentSection) {
+                currentSection = section;
+                updateProgress();
+                document.querySelectorAll('.form-section').forEach((sec, idx) => {
+                    if (idx + 1 === currentSection) sec.classList.add('active-section');
+                    else sec.classList.remove('active-section');
+                });
+            }
+        }
+
+        function nextSection() {
+            if (validateSection(currentSection)) {
+                saveSectionData();
+                document.getElementById(`section${currentSection}`).classList.remove('active-section');
+                currentSection++;
+                document.getElementById(`section${currentSection}`).classList.add('active-section');
+                updateProgress();
+                if (currentSection === 4) updateReview();
+            }
+        }
+
+        function prevSection() {
+            document.getElementById(`section${currentSection}`).classList.remove('active-section');
+            currentSection--;
+            document.getElementById(`section${currentSection}`).classList.add('active-section');
+            updateProgress();
+        }
+
+        // ========== VALIDATION ==========
+        function validateSection(section) {
+            if (section === 1) {
+                const firstName = document.getElementById('firstName').value;
+                const lastName = document.getElementById('lastName').value;
+                const email = document.getElementById('email').value;
+                const phone = document.getElementById('phone').value;
+                
+                if (!firstName || !lastName || !email || !phone) {
+                    Swal.fire('Error', 'Please fill all personal information fields', 'error');
+                    return false;
+                }
+                if (!email.includes('@') || !email.includes('.')) {
+                    Swal.fire('Error', 'Please enter a valid email address', 'error');
+                    return false;
+                }
+                return true;
+            }
+            
+            if (section === 2) {
+                const password = document.getElementById('password').value;
+                const confirm = document.getElementById('confirmPassword').value;
+                const pin1 = document.getElementById('pin1').value;
+                const pin2 = document.getElementById('pin2').value;
+                const pin3 = document.getElementById('pin3').value;
+                const pin4 = document.getElementById('pin4').value;
+                const pin = pin1 + pin2 + pin3 + pin4;
+                
+                if (password.length < 6) {
+                    Swal.fire('Error', 'Password must be at least 6 characters', 'error');
+                    return false;
+                }
+                if (password !== confirm) {
+                    Swal.fire('Error', 'Passwords do not match', 'error');
+                    return false;
+                }
+                if (pin.length !== 4) {
+                    Swal.fire('Error', 'PIN must be 4 digits', 'error');
+                    return false;
+                }
+                return true;
+            }
+            return true;
+        }
+
+        function saveSectionData() {
+            if (currentSection === 1) {
+                registrationData.firstName = document.getElementById('firstName').value;
+                registrationData.lastName = document.getElementById('lastName').value;
+                registrationData.email = document.getElementById('email').value;
+                registrationData.phone = document.getElementById('phone').value;
+            }
+            if (currentSection === 2) {
+                registrationData.password = document.getElementById('password').value;
+                const pin1 = document.getElementById('pin1').value;
+                const pin2 = document.getElementById('pin2').value;
+                const pin3 = document.getElementById('pin3').value;
+                const pin4 = document.getElementById('pin4').value;
+                registrationData.transactionPin = pin1 + pin2 + pin3 + pin4;
+            }
+            if (currentSection === 3) {
+                registrationData.currency = selectedCurrency;
+                registrationData.notifications = document.getElementById('notifications').value;
+            }
+        }
+
+        function updateReview() {
+            document.getElementById('reviewName').innerHTML = `${registrationData.firstName} ${registrationData.lastName}`;
+            document.getElementById('reviewContact').innerHTML = `${registrationData.email} | ${registrationData.phone}`;
+            document.getElementById('reviewCurrency').innerHTML = registrationData.currency;
+        }
+
+        // ========== FORM HELPERS ==========
         function selectCurrency(currency) {
             selectedCurrency = currency;
             document.querySelectorAll('.currency-option').forEach(opt => {
                 opt.classList.remove('selected');
-                if(opt.getAttribute('data-currency') === currency) opt.classList.add('selected');
+                if (opt.getAttribute('data-currency') === currency) opt.classList.add('selected');
             });
         }
 
@@ -743,119 +1230,20 @@
         }
 
         function moveToNext(current, nextId) {
-            if(current.value.length === 1) {
+            if (current.value.length === 1) {
                 document.getElementById(nextId).focus();
             }
         }
 
-        function updateProgress() {
-            for(let i = 1; i <= 4; i++) {
-                const step = document.getElementById(`step${i}`);
-                const section = document.getElementById(`section${i}`);
-                step.classList.remove('active', 'completed');
-                if(i < currentSection) {
-                    step.classList.add('completed');
-                } else if(i === currentSection) {
-                    step.classList.add('active');
-                }
-            }
+        function toggleCheckbox() {
+            const checkbox = document.getElementById('termsCheckbox');
+            checkbox.checked = !checkbox.checked;
         }
 
-        function nextSection() {
-            if(validateSection(currentSection)) {
-                saveSectionData();
-                document.getElementById(`section${currentSection}`).classList.remove('active-section');
-                currentSection++;
-                document.getElementById(`section${currentSection}`).classList.add('active-section');
-                updateProgress();
-                if(currentSection === 4) {
-                    updateReview();
-                }
-            }
-        }
-
-        function prevSection() {
-            document.getElementById(`section${currentSection}`).classList.remove('active-section');
-            currentSection--;
-            document.getElementById(`section${currentSection}`).classList.add('active-section');
-            updateProgress();
-        }
-
-        function validateSection(section) {
-            if(section === 1) {
-                const firstName = document.getElementById('firstName').value;
-                const lastName = document.getElementById('lastName').value;
-                const email = document.getElementById('email').value;
-                const phone = document.getElementById('phone').value;
-                
-                if(!firstName || !lastName || !email || !phone) {
-                    Swal.fire('Error', 'Please fill all personal information fields', 'error');
-                    return false;
-                }
-                if(!email.includes('@')) {
-                    Swal.fire('Error', 'Please enter a valid email address', 'error');
-                    return false;
-                }
-                return true;
-            }
-            
-            if(section === 2) {
-                const password = document.getElementById('password').value;
-                const confirm = document.getElementById('confirmPassword').value;
-                const pin1 = document.getElementById('pin1').value;
-                const pin2 = document.getElementById('pin2').value;
-                const pin3 = document.getElementById('pin3').value;
-                const pin4 = document.getElementById('pin4').value;
-                const pin = pin1 + pin2 + pin3 + pin4;
-                
-                if(password.length < 6) {
-                    Swal.fire('Error', 'Password must be at least 6 characters', 'error');
-                    return false;
-                }
-                if(password !== confirm) {
-                    Swal.fire('Error', 'Passwords do not match', 'error');
-                    return false;
-                }
-                if(pin.length !== 4) {
-                    Swal.fire('Error', 'PIN must be 4 digits', 'error');
-                    return false;
-                }
-                return true;
-            }
-            
-            return true;
-        }
-
-        function saveSectionData() {
-            if(currentSection === 1) {
-                registrationData.firstName = document.getElementById('firstName').value;
-                registrationData.lastName = document.getElementById('lastName').value;
-                registrationData.email = document.getElementById('email').value;
-                registrationData.phone = document.getElementById('phone').value;
-            }
-            if(currentSection === 2) {
-                registrationData.password = document.getElementById('password').value;
-                const pin1 = document.getElementById('pin1').value;
-                const pin2 = document.getElementById('pin2').value;
-                const pin3 = document.getElementById('pin3').value;
-                const pin4 = document.getElementById('pin4').value;
-                registrationData.transactionPin = pin1 + pin2 + pin3 + pin4;
-            }
-            if(currentSection === 3) {
-                registrationData.currency = selectedCurrency;
-                registrationData.notifications = document.getElementById('notifications').value;
-            }
-        }
-
-        function updateReview() {
-            document.getElementById('reviewName').innerHTML = `${registrationData.firstName} ${registrationData.lastName}`;
-            document.getElementById('reviewContact').innerHTML = `${registrationData.email} | ${registrationData.phone}`;
-            document.getElementById('reviewCurrency').innerHTML = registrationData.currency;
-        }
-
+        // ========== API CALLS ==========
         async function submitRegistration() {
             const terms = document.getElementById('termsCheckbox').checked;
-            if(!terms) {
+            if (!terms) {
                 Swal.fire('Error', 'Please agree to the Terms & Conditions', 'error');
                 return;
             }
@@ -877,87 +1265,23 @@
                 });
                 const data = await response.json();
                 
-                if(data.success) {
+                if (data.success) {
                     pendingUserEmail = registrationData.email;
                     pendingUserToken = data.token;
                     document.getElementById('verifyEmail').textContent = registrationData.email;
                     document.getElementById('registerPanel').style.display = 'none';
                     document.getElementById('verificationPanel').style.display = 'block';
-                    Swal.fire('Success', 'Verification code sent to your email!', 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Verification Code Sent!',
+                        text: 'Please check your email for the verification code.',
+                        confirmButtonColor: '#C6A43F'
+                    });
                 } else {
                     Swal.fire('Error', data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
-                Swal.fire('Error', 'Connection error. Please try again.', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        function switchTab(tab) {
-            document.getElementById('loginPanel').style.display = tab === 'login' ? 'block' : 'none';
-            document.getElementById('registerPanel').style.display = tab === 'register' ? 'block' : 'none';
-            document.getElementById('verificationPanel').style.display = 'none';
-            document.getElementById('forgotPanel').style.display = 'none';
-            document.querySelectorAll('.tab').forEach((t, i) => {
-                t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
-            });
-            if(tab === 'register') {
-                currentSection = 1;
-                updateProgress();
-                document.getElementById('section1').classList.add('active-section');
-                document.getElementById('section2').classList.remove('active-section');
-                document.getElementById('section3').classList.remove('active-section');
-                document.getElementById('section4').classList.remove('active-section');
-            }
-        }
-
-        function showForgotPassword() {
-            document.getElementById('loginPanel').style.display = 'none';
-            document.getElementById('registerPanel').style.display = 'none';
-            document.getElementById('verificationPanel').style.display = 'none';
-            document.getElementById('forgotPanel').style.display = 'block';
-        }
-
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
-
-        async function handleLogin() {
-            const identifier = document.getElementById('loginIdentifier').value;
-            const password = document.getElementById('loginPassword').value;
-            
-            if(!identifier || !password) {
-                Swal.fire('Error', 'Please enter email/account and password', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            try {
-                const response = await fetch(`${API_URL}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier, password })
-                });
-                const data = await response.json();
-                
-                if(data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    Swal.fire('Success', 'Login successful! Redirecting...', 'success');
-                    setTimeout(() => {
-                        if(data.user.isAdmin) window.location.href = '/admin.html';
-                        else window.location.href = '/dashboard.html';
-                    }, 1500);
-                } else if(data.requiresVerification) {
-                    pendingUserEmail = data.email;
-                    document.getElementById('verifyEmail').textContent = data.email;
-                    document.getElementById('loginPanel').style.display = 'none';
-                    document.getElementById('verificationPanel').style.display = 'block';
-                } else {
-                    Swal.fire('Error', data.error || 'Login failed', 'error');
-                }
-            } catch(error) {
+                console.error('Registration error:', error);
                 Swal.fire('Error', 'Connection error. Please try again.', 'error');
             } finally {
                 showLoading(false);
@@ -966,7 +1290,7 @@
 
         async function verifyEmail() {
             const code = document.getElementById('verificationCode').value;
-            if(!code || code.length !== 6) {
+            if (!code || code.length !== 6) {
                 Swal.fire('Error', 'Please enter the 6-digit verification code', 'error');
                 return;
             }
@@ -980,7 +1304,7 @@
                 });
                 const data = await response.json();
                 
-                if(data.success) {
+                if (data.success) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
                     Swal.fire({
@@ -991,13 +1315,13 @@
                         showConfirmButton: false
                     });
                     setTimeout(() => {
-                        if(data.user.isAdmin) window.location.href = '/admin.html';
+                        if (data.user.isAdmin) window.location.href = '/admin.html';
                         else window.location.href = '/dashboard.html';
                     }, 2000);
                 } else {
                     Swal.fire('Error', data.error || 'Invalid verification code', 'error');
                 }
-            } catch(error) {
+            } catch (error) {
                 Swal.fire('Error', 'Verification failed. Please try again.', 'error');
             } finally {
                 showLoading(false);
@@ -1014,13 +1338,60 @@
                 });
                 const data = await response.json();
                 
-                if(data.success) {
+                if (data.success) {
                     Swal.fire('Success', 'New verification code sent to your email!', 'success');
                 } else {
                     Swal.fire('Error', data.error || 'Failed to resend code', 'error');
                 }
-            } catch(error) {
+            } catch (error) {
                 Swal.fire('Error', 'Failed to resend code', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        async function handleLogin() {
+            const identifier = document.getElementById('loginIdentifier').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!identifier || !password) {
+                Swal.fire('Error', 'Please enter email/account and password', 'error');
+                return;
+            }
+            
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ identifier, password })
+                });
+                const data = await response.json();
+                
+                if (data.success) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Login Successful!',
+                        text: 'Redirecting to dashboard...',
+                        timer: 1500,
+                        showConfirmButton: false
+                    });
+                    setTimeout(() => {
+                        if (data.user.isAdmin) window.location.href = '/admin.html';
+                        else window.location.href = '/dashboard.html';
+                    }, 1500);
+                } else if (data.requiresVerification) {
+                    pendingUserEmail = data.email;
+                    document.getElementById('verifyEmail').textContent = data.email;
+                    document.getElementById('loginPanel').style.display = 'none';
+                    document.getElementById('verificationPanel').style.display = 'block';
+                } else {
+                    Swal.fire('Error', data.error || 'Login failed', 'error');
+                }
+            } catch (error) {
+                Swal.fire('Error', 'Connection error. Please try again.', 'error');
             } finally {
                 showLoading(false);
             }
@@ -1028,7 +1399,7 @@
 
         async function sendResetCode() {
             const email = document.getElementById('resetEmail').value;
-            if(!email) {
+            if (!email) {
                 Swal.fire('Error', 'Please enter your email', 'error');
                 return;
             }
@@ -1042,25 +1413,25 @@
                 });
                 const data = await response.json();
                 
-                if(data.success) {
+                if (data.success) {
                     Swal.fire('Success', 'Password reset code sent to your email!', 'success');
                     switchTab('login');
                 } else {
                     Swal.fire('Error', data.error || 'Failed to send reset code', 'error');
                 }
-            } catch(error) {
+            } catch (error) {
                 Swal.fire('Error', 'Failed to send reset code', 'error');
             } finally {
                 showLoading(false);
             }
         }
 
-        // Check if already logged in
+        // ========== CHECK EXISTING SESSION ==========
         const token = localStorage.getItem('token');
-        if(token && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
+        if (token && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if(user.isAdmin) window.location.href = '/admin.html';
-            else if(user.id) window.location.href = '/dashboard.html';
+            if (user.isAdmin) window.location.href = '/admin.html';
+            else if (user.id) window.location.href = '/dashboard.html';
         }
     </script>
 </body>
