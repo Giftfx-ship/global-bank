@@ -7,12 +7,15 @@ const jwt = require('jsonwebtoken');
 const cors = require('cors');
 const session = require('express-session');
 const path = require('path');
-const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
 const helmet = require('helmet');
 const compression = require('compression');
+const { Resend } = require('resend');
 
 const app = express();
+
+// ========== RESEND EMAIL SETUP ==========
+const resend = new Resend('re_RfHJYftk_JqBrWqx6oFSsYhc8csMUz4w2');
 
 // ========== FIX FOR RENDER PROXY ==========
 app.set('trust proxy', 1);
@@ -38,343 +41,133 @@ app.use(session({
 }));
 
 // ========== MONGODB ==========
-mongoose.connect(process.env.MONGODB_URI)
+mongoose.connect('mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/globalbank?retryWrites=true&w=majority')
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.log('❌ MongoDB Error:', err));
 
-// ========== BREVO EMAIL CONFIGURATION ==========
-const transporter = nodemailer.createTransport({
-    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
-    port: parseInt(process.env.SMTP_PORT) || 587,
-    secure: false,
-    auth: {
-        user: process.env.EMAIL_USER || 'ad3d98001@smtp-brevo.com',
-        pass: process.env.EMAIL_PASS || 'bskq8uTe5pfqQdj'
-    },
-    tls: { rejectUnauthorized: false }
-});
-
-transporter.verify((error, success) => {
-    if (error) {
-        console.log('❌ Email error:', error.message);
-    } else {
-        console.log('✅ Brevo SMTP ready!');
+// ========== EMAIL FUNCTION ==========
+async function sendEmail(to, subject, html) {
+    try {
+        const { data, error } = await resend.emails.send({
+            from: 'Prime Heritage Bank <onboarding@resend.dev>',
+            to: [to],
+            subject: subject,
+            html: html
+        });
+        
+        if (error) {
+            console.error('❌ Email error:', error);
+            return false;
+        }
+        
+        console.log('✅ Email sent to:', to);
+        return true;
+    } catch (error) {
+        console.error('❌ Email error:', error.message);
+        return false;
     }
-});
+}
 
 // ========== PROFESSIONAL EMAIL TEMPLATES ==========
-
-const getVerificationEmail = (name, code) => `
-<!DOCTYPE html>
+function getVerificationEmail(name, code) {
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Your Email | Prime Heritage Bank</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
-            margin: 0;
-            padding: 40px 20px;
-        }
-        .email-container {
-            max-width: 560px;
-            margin: 0 auto;
-            background: #111827;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            border: 1px solid rgba(198, 164, 63, 0.2);
-        }
-        .email-header {
-            background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
-            padding: 35px 30px;
-            text-align: center;
-            position: relative;
-            overflow: hidden;
-        }
-        .email-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
-            animation: shine 3s infinite;
-        }
-        @keyframes shine {
-            0% { transform: translateX(-100%) translateY(-100%); }
-            100% { transform: translateX(100%) translateY(100%); }
-        }
-        .email-header h1 {
-            color: #0A0E1A;
-            font-size: 28px;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin: 0;
-        }
-        .email-header p {
-            color: rgba(10,14,26,0.8);
-            font-size: 13px;
-            margin-top: 8px;
-        }
-        .email-content {
-            padding: 40px 35px;
-        }
-        .greeting {
-            font-size: 26px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            background: linear-gradient(135deg, #C6A43F, #E8D5A4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        .message {
-            color: #9CA3AF;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
-        .code-box {
-            background: linear-gradient(135deg, #0F1622, #0A0E1A);
-            border: 2px solid #C6A43F;
-            border-radius: 20px;
-            padding: 28px;
-            text-align: center;
-            margin: 30px 0;
-            position: relative;
-        }
-        .code-box::after {
-            content: '🔐';
-            position: absolute;
-            top: -15px;
-            right: 20px;
-            background: #111827;
-            padding: 0 10px;
-            font-size: 20px;
-        }
-        .code {
-            font-size: 48px;
-            font-weight: 800;
-            color: #C6A43F;
-            letter-spacing: 12px;
-            font-family: 'Courier New', monospace;
-        }
-        .expiry {
-            color: #6B7280;
-            font-size: 12px;
-            margin-top: 15px;
-        }
-        .security-note {
-            background: rgba(16, 185, 129, 0.1);
-            border-left: 3px solid #10B981;
-            padding: 15px;
-            border-radius: 12px;
-            margin: 20px 0;
-            font-size: 13px;
-            color: #10B981;
-        }
-        .button {
-            display: inline-block;
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            color: #0A0E1A;
-            padding: 14px 32px;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: 600;
-            margin-top: 20px;
-            transition: transform 0.3s;
-        }
-        .footer {
-            background: #0A0E1A;
-            padding: 25px;
-            text-align: center;
-            border-top: 1px solid #1F2937;
-        }
-        .footer p {
-            color: #6B7280;
-            font-size: 12px;
-            margin: 5px 0;
-        }
-        .social-icons {
-            margin-top: 15px;
-        }
-        .social-icons a {
-            color: #6B7280;
-            margin: 0 8px;
-            text-decoration: none;
-            font-size: 18px;
-        }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#0A0E1A 0%,#0F1622 100%);margin:0;padding:40px 20px}
+        .container{max-width:560px;margin:0 auto;background:#111827;border-radius:28px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(198,164,63,0.2)}
+        .header{background:linear-gradient(135deg,#C6A43F 0%,#9E8032 100%);padding:40px 30px;text-align:center;position:relative;overflow:hidden}
+        .header::before{content:'';position:absolute;top:-50%;right:-50%;width:200%;height:200%;background:radial-gradient(circle,rgba(255,255,255,0.15) 0%,transparent 70%);animation:shine 3s infinite}
+        @keyframes shine{0%{transform:translateX(-100%) translateY(-100%)}100%{transform:translateX(100%) translateY(100%)}}
+        .header h1{color:#0A0E1A;font-size:28px;font-weight:800;letter-spacing:-0.5px}
+        .header p{color:rgba(10,14,26,0.8);font-size:13px;margin-top:8px}
+        .content{padding:40px 35px}
+        .greeting{font-size:26px;font-weight:700;margin-bottom:16px;background:linear-gradient(135deg,#C6A43F,#E8D5A4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+        .message{color:#9CA3AF;line-height:1.6;margin-bottom:25px}
+        .code-box{background:linear-gradient(135deg,#0F1622,#0A0E1A);border:2px solid #C6A43F;border-radius:20px;padding:28px;text-align:center;margin:30px 0;position:relative}
+        .code-box::after{content:'🔐';position:absolute;top:-15px;right:20px;background:#111827;padding:0 10px;font-size:20px}
+        .code{font-size:48px;font-weight:800;color:#C6A43F;letter-spacing:12px;font-family:'Courier New',monospace}
+        .expiry{color:#6B7280;font-size:12px;margin-top:15px}
+        .security-note{background:rgba(16,185,129,0.1);border-left:3px solid #10B981;padding:15px;border-radius:12px;margin:20px 0;font-size:13px;color:#10B981}
+        .footer{background:#0A0E1A;padding:25px;text-align:center;border-top:1px solid #1F2937}
+        .footer p{color:#6B7280;font-size:12px;margin:5px 0}
     </style>
 </head>
 <body>
-    <div class="email-container">
-        <div class="email-header">
+    <div class="container">
+        <div class="header">
             <h1>🏦 PRIME HERITAGE BANK</h1>
             <p>Global Excellence Since 2026</p>
         </div>
-        <div class="email-content">
+        <div class="content">
             <div class="greeting">Welcome, ${name}! 👋</div>
-            <div class="message">
-                Thank you for choosing <strong>Prime Heritage Bank</strong>. To complete your registration and secure your account, please verify your email address using the code below.
-            </div>
+            <div class="message">Thank you for choosing Prime Heritage Bank. Please verify your email address using the code below.</div>
             <div class="code-box">
                 <div class="code">${code}</div>
-                <div class="expiry">⏰ This verification code expires in <strong>10 minutes</strong></div>
+                <div class="expiry">⏰ This code expires in 10 minutes</div>
             </div>
-            <div class="security-note">
-                🔒 <strong>Security Tip:</strong> Never share this code with anyone. Prime Heritage Bank will never ask for your verification code.
-            </div>
-            <div class="message">
-                If you didn't create an account with Prime Heritage Bank, please ignore this email or contact our support team immediately.
-            </div>
-            <div style="text-align: center;">
-                <a href="#" class="button">Secure Dashboard →</a>
-            </div>
+            <div class="security-note">🔒 Never share this code with anyone. Prime Heritage Bank will never ask for your verification code.</div>
+            <div class="message">If you didn't create an account, please ignore this email.</div>
         </div>
         <div class="footer">
             <p>© 2026 Prime Heritage Bank - International Division</p>
             <p>This is an automated message, please do not reply</p>
-            <div class="social-icons">
-                <a href="#"><i class="fab fa-facebook"></i></a>
-                <a href="#"><i class="fab fa-twitter"></i></a>
-                <a href="#"><i class="fab fa-linkedin"></i></a>
-                <a href="#"><i class="fab fa-instagram"></i></a>
-            </div>
-            <p style="margin-top: 15px;">Need help? <a href="#" style="color: #C6A43F;">Contact Support</a></p>
         </div>
     </div>
 </body>
-</html>
-`;
+</html>`;
+}
 
-const getWelcomeEmail = (name, accountNumber, iban, swiftCode, currency) => `
-<!DOCTYPE html>
+function getWelcomeEmail(name, accountNumber, iban, swiftCode, currency) {
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Prime Heritage Bank</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
-            margin: 0;
-            padding: 40px 20px;
-        }
-        .email-container {
-            max-width: 560px;
-            margin: 0 auto;
-            background: #111827;
-            border-radius: 28px;
-            overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            border: 1px solid rgba(198, 164, 63, 0.2);
-        }
-        .header {
-            background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
-            padding: 35px 30px;
-            text-align: center;
-        }
-        .header h1 { color: #0A0E1A; font-size: 28px; font-weight: 800; }
-        .content { padding: 40px 35px; }
-        .welcome { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: #C6A43F; }
-        .message { color: #9CA3AF; line-height: 1.6; margin-bottom: 25px; }
-        .info-card {
-            background: linear-gradient(135deg, #0F1622, #0A0E1A);
-            border-radius: 20px;
-            padding: 25px;
-            margin: 25px 0;
-            border: 1px solid rgba(198, 164, 63, 0.2);
-        }
-        .info-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #1F2937;
-        }
-        .info-label { color: #C6A43F; font-weight: 600; font-size: 12px; text-transform: uppercase; }
-        .info-value { font-weight: 600; font-size: 14px; color: #FFFFFF; word-break: break-all; text-align: right; }
-        .features {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin: 25px 0;
-        }
-        .feature {
-            background: #0F1622;
-            padding: 15px;
-            border-radius: 16px;
-            text-align: center;
-            border: 1px solid #1F2937;
-        }
-        .feature-icon { font-size: 28px; display: block; margin-bottom: 8px; }
-        .feature-text { font-size: 12px; color: #9CA3AF; }
-        .button {
-            display: inline-block;
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            color: #0A0E1A;
-            padding: 14px 32px;
-            text-decoration: none;
-            border-radius: 50px;
-            font-weight: 600;
-            margin-top: 20px;
-        }
-        .footer {
-            background: #0A0E1A;
-            padding: 25px;
-            text-align: center;
-            border-top: 1px solid #1F2937;
-        }
-        .footer p { color: #6B7280; font-size: 12px; margin: 5px 0; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#0A0E1A 0%,#0F1622 100%);margin:0;padding:40px 20px}
+        .container{max-width:560px;margin:0 auto;background:#111827;border-radius:28px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(198,164,63,0.2)}
+        .header{background:linear-gradient(135deg,#C6A43F 0%,#9E8032 100%);padding:40px 30px;text-align:center}
+        .header h1{color:#0A0E1A;font-size:28px;font-weight:800}
+        .content{padding:40px 35px}
+        .welcome{font-size:28px;font-weight:800;margin-bottom:20px;color:#C6A43F}
+        .message{color:#9CA3AF;line-height:1.6;margin-bottom:25px}
+        .info-card{background:linear-gradient(135deg,#0F1622,#0A0E1A);border-radius:20px;padding:25px;margin:25px 0;border:1px solid rgba(198,164,63,0.2)}
+        .info-row{display:flex;justify-content:space-between;margin-bottom:15px;padding-bottom:15px;border-bottom:1px solid #1F2937}
+        .info-label{color:#C6A43F;font-weight:600;font-size:12px;text-transform:uppercase}
+        .info-value{font-weight:600;font-size:14px;color:#FFFFFF;word-break:break-all;text-align:right}
+        .features{display:grid;grid-template-columns:1fr 1fr;gap:15px;margin:25px 0}
+        .feature{background:#0F1622;padding:15px;border-radius:16px;text-align:center;border:1px solid #1F2937}
+        .feature-icon{font-size:28px;display:block;margin-bottom:8px}
+        .feature-text{font-size:12px;color:#9CA3AF}
+        .footer{background:#0A0E1A;padding:25px;text-align:center;border-top:1px solid #1F2937}
+        .footer p{color:#6B7280;font-size:12px;margin:5px 0}
     </style>
 </head>
 <body>
-    <div class="email-container">
+    <div class="container">
         <div class="header">
             <h1>🏦 PRIME HERITAGE BANK</h1>
         </div>
         <div class="content">
             <div class="welcome">Welcome, ${name}! 🎉</div>
-            <div class="message">
-                Your account has been successfully verified and activated. You now have access to premium international banking services.
-            </div>
+            <div class="message">Your account has been successfully verified and activated. You now have access to premium international banking services.</div>
             <div class="info-card">
-                <div class="info-row">
-                    <span class="info-label">Account Number</span>
-                    <span class="info-value">${accountNumber}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">IBAN</span>
-                    <span class="info-value">${iban}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">SWIFT/BIC</span>
-                    <span class="info-value">${swiftCode}</span>
-                </div>
-                <div class="info-row">
-                    <span class="info-label">Primary Currency</span>
-                    <span class="info-value">${currency}</span>
-                </div>
+                <div class="info-row"><span class="info-label">Account Number</span><span class="info-value">${accountNumber}</span></div>
+                <div class="info-row"><span class="info-label">IBAN</span><span class="info-value">${iban}</span></div>
+                <div class="info-row"><span class="info-label">SWIFT/BIC</span><span class="info-value">${swiftCode}</span></div>
+                <div class="info-row"><span class="info-label">Currency</span><span class="info-value">${currency}</span></div>
             </div>
             <div class="features">
                 <div class="feature"><span class="feature-icon">💳</span><div class="feature-text">Virtual Cards</div></div>
                 <div class="feature"><span class="feature-icon">🌍</span><div class="feature-text">Global Transfers</div></div>
                 <div class="feature"><span class="feature-icon">📱</span><div class="feature-text">Mobile Banking</div></div>
                 <div class="feature"><span class="feature-icon">🔒</span><div class="feature-text">Bank Security</div></div>
-            </div>
-            <div style="text-align: center;">
-                <a href="#" class="button">Access Dashboard →</a>
             </div>
         </div>
         <div class="footer">
@@ -383,105 +176,51 @@ const getWelcomeEmail = (name, accountNumber, iban, swiftCode, currency) => `
         </div>
     </div>
 </body>
-</html>
-`;
+</html>`;
+}
 
-const getPasswordResetEmail = (name, code) => `
-<!DOCTYPE html>
+function getPasswordResetEmail(name, code) {
+    return `<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Password Reset | Prime Heritage Bank</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
-            margin: 0;
-            padding: 40px 20px;
-        }
-        .email-container {
-            max-width: 560px;
-            margin: 0 auto;
-            background: #111827;
-            border-radius: 28px;
-            overflow: hidden;
-            border: 1px solid rgba(198, 164, 63, 0.2);
-        }
-        .header {
-            background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
-            padding: 35px 30px;
-            text-align: center;
-        }
-        .header h1 { color: #0A0E1A; font-size: 28px; }
-        .content { padding: 40px 35px; }
-        .code-box {
-            background: #0F1622;
-            border: 2px solid #C6A43F;
-            border-radius: 20px;
-            padding: 28px;
-            text-align: center;
-            margin: 30px 0;
-        }
-        .code { font-size: 48px; font-weight: 800; color: #C6A43F; letter-spacing: 12px; font-family: monospace; }
-        .warning {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid #EF4444;
-            border-radius: 12px;
-            padding: 15px;
-            margin: 20px 0;
-            color: #EF4444;
-            font-size: 13px;
-        }
-        .footer {
-            background: #0A0E1A;
-            padding: 25px;
-            text-align: center;
-            border-top: 1px solid #1F2937;
-        }
-        .footer p { color: #6B7280; font-size: 12px; }
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;background:linear-gradient(135deg,#0A0E1A 0%,#0F1622 100%);margin:0;padding:40px 20px}
+        .container{max-width:560px;margin:0 auto;background:#111827;border-radius:28px;overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);border:1px solid rgba(198,164,63,0.2)}
+        .header{background:linear-gradient(135deg,#C6A43F 0%,#9E8032 100%);padding:40px 30px;text-align:center}
+        .header h1{color:#0A0E1A;font-size:28px;font-weight:800}
+        .content{padding:40px 35px}
+        .greeting{font-size:24px;font-weight:700;margin-bottom:20px;color:#C6A43F}
+        .message{color:#9CA3AF;line-height:1.6;margin-bottom:25px}
+        .code-box{background:linear-gradient(135deg,#0F1622,#0A0E1A);border:2px solid #C6A43F;border-radius:20px;padding:28px;text-align:center;margin:30px 0}
+        .code{font-size:48px;font-weight:800;color:#C6A43F;letter-spacing:12px;font-family:'Courier New',monospace}
+        .warning{background:rgba(239,68,68,0.1);border-left:3px solid #EF4444;padding:15px;border-radius:12px;margin:20px 0;font-size:13px;color:#EF4444}
+        .footer{background:#0A0E1A;padding:25px;text-align:center;border-top:1px solid #1F2937}
+        .footer p{color:#6B7280;font-size:12px;margin:5px 0}
     </style>
 </head>
 <body>
-    <div class="email-container">
+    <div class="container">
         <div class="header">
             <h1>🔐 Password Reset Request</h1>
         </div>
         <div class="content">
-            <h2 style="color: #C6A43F; margin-bottom: 20px;">Hello ${name},</h2>
-            <p style="color: #9CA3AF;">We received a request to reset your password. Use the verification code below:</p>
+            <div class="greeting">Hello ${name},</div>
+            <div class="message">We received a request to reset your password. Use the verification code below:</div>
             <div class="code-box">
                 <div class="code">${code}</div>
             </div>
-            <div class="warning">
-                ⚠️ This code expires in 10 minutes. Never share this code with anyone.
-            </div>
-            <p style="color: #9CA3AF;">If you didn't request this, please ignore this email.</p>
+            <div class="warning">⚠️ This code expires in 10 minutes. Never share this code with anyone.</div>
+            <div class="message">If you didn't request this, please ignore this email.</div>
         </div>
         <div class="footer">
             <p>Prime Heritage Bank - Security Department</p>
         </div>
     </div>
 </body>
-</html>
-`;
-
-// ========== SEND EMAIL FUNCTION ==========
-async function sendEmail(to, subject, html) {
-    try {
-        const info = await transporter.sendMail({
-            from: `"Prime Heritage Bank" <${process.env.EMAIL_USER || 'ad3d98001@smtp-brevo.com'}>`,
-            to: to,
-            subject: subject,
-            html: html
-        });
-        console.log('✅ Email sent to:', to);
-        return true;
-    } catch (error) {
-        console.error('❌ Email error:', error.message);
-        return false;
-    }
+</html>`;
 }
 
 // ========== DATABASE SCHEMAS ==========
@@ -523,7 +262,8 @@ const CardSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     cardNumber: String, last4: String,
     expiryMonth: Number, expiryYear: Number,
-    cvv: String, status: { type: String, default: 'active' }
+    cvv: String, status: { type: String, default: 'active' },
+    dailyLimit: { type: Number, default: 5000 }
 });
 
 const LoanSchema = new mongoose.Schema({
@@ -613,9 +353,7 @@ async function useBBCode(userId, code, requiredStep) {
     return bbc;
 }
 
-// ========== AUTH ROUTES ==========
-
-// REGISTER
+// ========== REGISTER ROUTE ==========
 app.post('/api/register', async (req, res) => {
     console.log('📝 Registration:', req.body.email);
     try {
@@ -656,7 +394,7 @@ app.post('/api/register', async (req, res) => {
 
         await sendEmail(email, 'Verify Your Email - Prime Heritage Bank', getVerificationEmail(`${firstName} ${lastName}`, verificationCode));
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025', { expiresIn: '7d' });
 
         res.json({
             success: true, token, requiresVerification: true,
@@ -669,7 +407,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// VERIFY EMAIL
+// ========== VERIFY EMAIL ==========
 app.post('/api/verify-email', async (req, res) => {
     try {
         const { email, code } = req.body;
@@ -686,7 +424,7 @@ app.post('/api/verify-email', async (req, res) => {
 
         await sendEmail(email, 'Welcome to Prime Heritage Bank! 🎉', getWelcomeEmail(user.fullName, user.accountNumber, user.iban, user.swiftCode, user.currency));
 
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025', { expiresIn: '7d' });
 
         res.json({
             success: true, token,
@@ -698,7 +436,7 @@ app.post('/api/verify-email', async (req, res) => {
     }
 });
 
-// RESEND VERIFICATION
+// ========== RESEND VERIFICATION ==========
 app.post('/api/resend-verification', async (req, res) => {
     try {
         const { email } = req.body;
@@ -722,7 +460,7 @@ app.post('/api/resend-verification', async (req, res) => {
     }
 });
 
-// FORGOT PASSWORD
+// ========== FORGOT PASSWORD ==========
 app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
@@ -745,7 +483,7 @@ app.post('/api/forgot-password', async (req, res) => {
     }
 });
 
-// RESET PASSWORD
+// ========== RESET PASSWORD ==========
 app.post('/api/reset-password', async (req, res) => {
     try {
         const { email, code, newPassword } = req.body;
@@ -766,7 +504,7 @@ app.post('/api/reset-password', async (req, res) => {
     }
 });
 
-// LOGIN
+// ========== LOGIN ==========
 app.post('/api/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
@@ -783,19 +521,19 @@ app.post('/api/login', async (req, res) => {
         user.lastLogin = new Date();
         await user.save();
         
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025', { expiresIn: '7d' });
         res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, accountNumber: user.accountNumber, iban: user.iban, swiftCode: user.swiftCode, currency: user.currency, isAdmin: user.isAdmin, isEmailVerified: user.isEmailVerified } });
     } catch (error) {
         res.status(500).json({ error: 'Login failed' });
     }
 });
 
-// GET CURRENT USER
+// ========== GET CURRENT USER ==========
 app.get('/api/me', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const accounts = await Account.find({ userId: user._id });
         const cards = await Card.find({ userId: user._id });
@@ -814,12 +552,12 @@ app.get('/api/me', async (req, res) => {
     }
 });
 
-// ========== SEND MONEY ROUTES ==========
+// ========== SEND MONEY STEP 1 ==========
 app.post('/api/send/step1', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { toAccountNumber, amount, note, transactionPin } = req.body;
         
@@ -847,11 +585,12 @@ app.post('/api/send/step1', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// ========== SEND MONEY STEP 2 ==========
 app.post('/api/send/step2', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { reference, bbcCode } = req.body;
         
@@ -865,11 +604,12 @@ app.post('/api/send/step2', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// ========== SEND MONEY STEP 3 ==========
 app.post('/api/send/step3', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { reference, bbcCode } = req.body;
         
@@ -883,11 +623,12 @@ app.post('/api/send/step3', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// ========== SEND MONEY STEP 4 ==========
 app.post('/api/send/step4', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { reference, bbcCode } = req.body;
         
@@ -912,12 +653,12 @@ app.post('/api/send/step4', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// ========== OTHER ROUTES ==========
+// ========== LOANS ==========
 app.post('/api/loans/apply', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const { amount, purpose, tenureMonths } = req.body;
         const interestRate = 12;
         const monthlyPayment = (amount * (1 + interestRate / 100)) / tenureMonths;
@@ -936,17 +677,18 @@ app.get('/api/loans', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const loans = await Loan.find({ userId: decoded.userId }).sort({ createdAt: -1 });
         res.json(loans);
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// ========== CARDS ==========
 app.post('/api/cards/toggle', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { cardId, transactionPin } = req.body;
         const validPin = await bcrypt.compare(transactionPin, user.transactionPin);
@@ -959,11 +701,12 @@ app.post('/api/cards/toggle', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// ========== SUPPORT ==========
 app.post('/api/support', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { subject, message } = req.body;
         const ticket = new SupportMessage({ userId: user._id, name: user.fullName, email: user.email, subject, message });
@@ -976,17 +719,18 @@ app.get('/api/support/tickets', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const tickets = await SupportMessage.find({ userId: decoded.userId }).sort({ createdAt: -1 });
         res.json(tickets);
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
+// ========== PROFILE ==========
 app.post('/api/update-password', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { currentPassword, newPassword } = req.body;
         const valid = await bcrypt.compare(currentPassword, user.password);
@@ -1001,7 +745,7 @@ app.post('/api/update-pin', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const user = await User.findById(decoded.userId);
         const { currentPin, newPin } = req.body;
         const valid = await bcrypt.compare(currentPin, user.transactionPin);
@@ -1016,7 +760,7 @@ app.post('/api/update-pin', async (req, res) => {
 app.get('/api/admin/users', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -1032,7 +776,7 @@ app.get('/api/admin/users', async (req, res) => {
 app.post('/api/admin/generate-bbc', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -1052,7 +796,7 @@ app.post('/api/admin/generate-bbc', async (req, res) => {
 app.get('/api/admin/bbc/:userId', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -1063,7 +807,7 @@ app.get('/api/admin/bbc/:userId', async (req, res) => {
 app.post('/api/admin/send', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
     const admin = await User.findById(decoded.userId);
     if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
     
@@ -1090,7 +834,7 @@ app.post('/api/admin/toggle-status', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'globalbank_super_secret_key_2025');
         const admin = await User.findById(decoded.userId);
         if (!admin.isAdmin) return res.status(403).json({ error: 'Admin only' });
         
@@ -1143,7 +887,7 @@ createAdmin();
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`👑 Prime Heritage Bank running on http://localhost:${PORT}`);
-    console.log(`📧 Email: Brevo SMTP - ACTIVE`);
+    console.log(`📧 Email: Resend - ACTIVE`);
     console.log(`💳 BBC Security System: ACTIVE`);
 });
 
