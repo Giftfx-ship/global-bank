@@ -14,6 +14,9 @@ const compression = require('compression');
 
 const app = express();
 
+// ========== THIS FIXES THE RATE LIMITER ERROR ON RENDER ==========
+app.set('trust proxy', 1);  // <-- ADD THIS ONE LINE!
+
 // ========== SECURITY MIDDLEWARE ==========
 app.use(helmet({
     contentSecurityPolicy: false,
@@ -23,22 +26,25 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://prime-heritage-bank.onrender.com'],
     credentials: true
 }));
 app.use(express.static('public'));
 
-// Rate limiting
+// Rate limiting - FIXED for proxy
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 100,
-    message: 'Too many requests from this IP'
+    message: 'Too many requests from this IP',
+    trustProxy: true,  // Also add this
+    standardHeaders: true,
+    legacyHeaders: false
 });
 app.use('/api/', limiter);
 
 // Session config
 app.use(session({
-    secret: process.env.SESSION_SECRET,
+    secret: process.env.SESSION_SECRET || 'banking_session_secret_demo',
     resave: false,
     saveUninitialized: false,
     cookie: {
@@ -58,7 +64,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS.replace(/\s/g, '') // Remove spaces from app password
+        pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s/g, '') : ''
     }
 });
 
@@ -692,6 +698,7 @@ async function useBBCode(userId, code, requiredStep) {
 
 // Register
 app.post('/api/register', async (req, res) => {
+    console.log('📝 Registration attempt for:', req.body.email);
     try {
         const { firstName, lastName, email, phone, password, transactionPin, currency } = req.body;
         
@@ -711,6 +718,7 @@ app.post('/api/register', async (req, res) => {
             isEmailVerified: false
         });
         await user.save();
+        console.log('✅ User saved:', user._id);
 
         const account = new Account({
             userId: user._id, currency, accountNumber, iban, balance: 0
@@ -735,11 +743,12 @@ app.post('/api/register', async (req, res) => {
         });
         await verification.save();
 
-        await sendEmail(
+        const emailSent = await sendEmail(
             email,
             'Verify Your Email - Prime Heritage Bank',
             emailTemplates.verification(`${firstName} ${lastName}`, verificationCode)
         );
+        console.log('📧 Email sent:', emailSent);
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -762,7 +771,7 @@ app.post('/api/register', async (req, res) => {
         });
     } catch (error) {
         console.error('Registration error:', error);
-        res.status(500).json({ error: 'Registration failed' });
+        res.status(500).json({ error: 'Registration failed: ' + error.message });
     }
 });
 
@@ -1117,12 +1126,8 @@ app.post('/api/send/step4', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// ========== OTHER ROUTES (Airtime, Data, Bills, Loans, etc.) ==========
-// [Keeping all your existing routes for airtime, data, bills, loans, cards, support, admin]
-
-// Simplified version - add your existing routes here
+// ========== OTHER ROUTES ==========
 app.post('/api/airtime/step1', async (req, res) => {
-    // Similar structure as send money
     res.json({ success: true });
 });
 
