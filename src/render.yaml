@@ -11,7 +11,7 @@ services:
       - key: JWT_SECRET
         value: PrimeHeritageBank_SuperSecure_JWT_2026_Global_International_Banking_System
       - key: SESSION_SECRET
-        value: banking_session_secret_demo
+        value: PrimeHeritage_Session_Secret_For_Secure_Banking_Platform_2026
       - key: PORT
         value: 3000
       - key: NODE_ENV
