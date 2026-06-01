@@ -3,261 +3,490 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Admin Portal - Prime Heritage Bank</title>
+    <title>Admin Portal | Prime Heritage Bank</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Inter', sans-serif;
-            background: #0A0E1A;
-            overflow-x: auto;
-        }
+        
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
-            --bg-card: #111827;
-            --border: #1F2937;
-            --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
+            --gold-light: #D4B85A;
             --success: #10B981;
             --error: #EF4444;
             --warning: #F59E0B;
+            --info: #3B82F6;
         }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        
+        [data-theme="dark"] {
+            --bg-body: #0A0E1A;
+            --bg-card: rgba(17, 24, 39, 0.95);
+            --border: rgba(31, 41, 55, 0.5);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --input-bg: #0F1622;
+            --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            --glass-bg: rgba(17, 24, 39, 0.8);
+            --table-hover: rgba(198,164,63,0.05);
+        }
+        
+        [data-theme="light"] {
+            --bg-body: #F3F4F6;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --border: rgba(229, 231, 235, 0.5);
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --input-bg: #F9FAFB;
+            --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
+            --glass-bg: rgba(255, 255, 255, 0.8);
+            --table-hover: rgba(198,164,63,0.08);
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            overflow-x: auto;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
         
         .admin-header {
-            background: var(--bg-card);
-            padding: 16px 24px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            padding: 16px 32px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
             border-bottom: 1px solid var(--border);
         }
-        .admin-header h1 { color: var(--gold); font-size: 22px; }
-        .admin-header h1 i { margin-right: 10px; }
-        .logout-btn {
+        
+        .admin-header h1 {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .admin-header h1 i {
+            -webkit-text-fill-color: var(--gold);
+            margin-right: 10px;
+        }
+        
+        .theme-toggle {
             background: rgba(198,164,63,0.1);
-            border: 1px solid var(--gold);
-            padding: 8px 20px;
-            border-radius: 30px;
-            color: var(--gold);
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .logout-btn:hover { background: var(--gold); color: #0A0E1A; }
-        
-        .container { max-width: 1400px; margin: 0 auto; padding: 24px; }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            margin-bottom: 32px;
-        }
-        .stat-card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 24px;
             border: 1px solid var(--border);
-            text-align: center;
-        }
-        .stat-card .value { font-size: 32px; font-weight: 700; color: var(--gold); }
-        .stat-card .label { color: var(--text-secondary); margin-top: 8px; font-size: 13px; }
-        
-        .section-card {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 24px;
-            border: 1px solid var(--border);
-            margin-bottom: 24px;
-        }
-        .section-header {
+            border-radius: 50px;
+            padding: 5px;
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border);
-            flex-wrap: wrap;
-            gap: 12px;
+            cursor: pointer;
+            margin-right: 15px;
         }
-        .section-header h3 { color: var(--text-primary); font-size: 18px; }
-        .btn-gold {
+        
+        .theme-option {
+            padding: 8px 18px;
+            border-radius: 40px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .theme-option.active {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border: none;
-            padding: 10px 20px;
-            border-radius: 30px;
             color: #0A0E1A;
+        }
+        
+        .theme-option i { margin-right: 8px; }
+        
+        .logout-btn {
+            background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.1));
+            border: 1px solid var(--gold);
+            padding: 10px 24px;
+            border-radius: 40px;
+            color: var(--gold);
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
         }
-        .btn-gold:hover { transform: translateY(-1px); filter: brightness(1.05); }
+        
+        .logout-btn:hover {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+            transform: translateY(-2px);
+        }
+        
+        .container { max-width: 1400px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 24px;
+            margin-bottom: 32px;
+            animation: fadeIn 0.6s ease;
+        }
+        
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            text-align: center;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(198,164,63,0.1), transparent);
+            transition: left 0.5s;
+        }
+        
+        .stat-card:hover::before { left: 100%; }
+        .stat-card:hover { transform: translateY(-5px); border-color: var(--gold); }
+        
+        .stat-card i { font-size: 40px; color: var(--gold); margin-bottom: 12px; display: block; }
+        .stat-card .value { font-size: 36px; font-weight: 800; color: var(--gold); }
+        .stat-card .label { color: var(--text-secondary); margin-top: 8px; font-size: 13px; font-weight: 500; }
+        
+        .section-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 24px;
+            padding: 28px;
+            border: 1px solid var(--border);
+            margin-bottom: 28px;
+            animation: fadeIn 0.6s ease 0.2s backwards;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        
+        .section-header h3 {
+            color: var(--text-primary);
+            font-size: 20px;
+            font-weight: 600;
+        }
+        
+        .section-header h3 i {
+            color: var(--gold);
+            margin-right: 10px;
+        }
+        
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border: none;
+            padding: 12px 24px;
+            border-radius: 40px;
+            color: #0A0E1A;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn-gold:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(198,164,63,0.3);
+        }
+        
+        .btn-gold i { font-size: 14px; }
         
         .search-bar {
             display: flex;
             gap: 12px;
-            margin-bottom: 20px;
-        }
-        .search-bar input {
-            flex: 1;
-            padding: 12px 16px;
-            background: #0F1622;
-            border: 1px solid var(--border);
-            border-radius: 30px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
+            margin-bottom: 24px;
         }
         
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid var(--border); color: var(--text-primary); }
-        th { color: var(--gold); font-weight: 600; }
+        .search-bar input {
+            flex: 1;
+            padding: 14px 20px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+        
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        th, td {
+            padding: 16px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        th {
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:hover {
+            background: var(--table-hover);
+            transition: background 0.3s;
+        }
+        
         .btn-sm {
-            background: rgba(198,164,63,0.1);
+            background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.1));
             border: 1px solid var(--gold);
-            padding: 6px 12px;
-            border-radius: 20px;
+            padding: 8px 16px;
+            border-radius: 30px;
             color: var(--gold);
             cursor: pointer;
             margin: 2px;
             font-size: 12px;
+            font-weight: 600;
             transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
         }
-        .btn-sm:hover { background: var(--gold); color: #0A0E1A; }
+        
+        .btn-sm:hover {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+            transform: scale(1.05);
+        }
+        
         .btn-danger { border-color: var(--error); color: var(--error); }
         .btn-danger:hover { background: var(--error); color: white; }
         
-        .status-active { color: var(--success); }
-        .status-inactive { color: var(--error); }
+        .status-active { color: var(--success); font-weight: 600; }
+        .status-inactive { color: var(--error); font-weight: 600; }
         
-        /* BBC Codes Grid */
         .bbc-grid {
             display: flex;
             flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 15px;
-            max-height: 400px;
+            gap: 12px;
+            margin-top: 20px;
+            max-height: 500px;
             overflow-y: auto;
+            padding: 5px;
         }
+        
         .bbc-code-item {
-            background: #0F1622;
+            background: var(--input-bg);
             border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 10px 15px;
+            border-radius: 16px;
+            padding: 14px 18px;
             display: flex;
             align-items: center;
-            gap: 10px;
-            cursor: pointer;
+            gap: 12px;
             transition: all 0.3s;
+            width: calc(33.33% - 12px);
+            min-width: 280px;
         }
-        .bbc-code-item:hover { border-color: var(--gold); transform: translateY(-2px); }
+        
+        .bbc-code-item:hover {
+            border-color: var(--gold);
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(198,164,63,0.1);
+        }
+        
         .bbc-code-number {
             font-family: monospace;
-            font-size: 18px;
-            font-weight: 700;
+            font-size: 20px;
+            font-weight: 800;
             color: var(--gold);
-            letter-spacing: 2px;
+            letter-spacing: 3px;
         }
+        
         .bbc-step {
             font-size: 10px;
-            background: rgba(198,164,63,0.2);
-            padding: 2px 8px;
+            background: linear-gradient(135deg, rgba(198,164,63,0.2), rgba(158,128,50,0.1));
+            padding: 4px 10px;
             border-radius: 20px;
             color: var(--gold);
+            font-weight: 600;
         }
+        
         .bbc-expiry {
             font-size: 10px;
             color: var(--text-secondary);
         }
+        
         .bbc-status {
             font-size: 10px;
-            padding: 2px 6px;
+            padding: 4px 10px;
             border-radius: 20px;
+            font-weight: 600;
         }
+        
         .status-used { background: rgba(239,68,68,0.2); color: var(--error); }
         .status-unused { background: rgba(16,185,129,0.2); color: var(--success); }
+        
         .bbc-actions {
             display: flex;
-            gap: 5px;
+            gap: 6px;
             margin-left: auto;
         }
+        
         .bbc-action-btn {
             background: none;
             border: none;
             cursor: pointer;
-            padding: 4px 8px;
-            border-radius: 8px;
+            padding: 6px 10px;
+            border-radius: 10px;
             font-size: 12px;
             transition: all 0.3s;
         }
+        
         .bbc-action-btn.edit { color: var(--warning); }
         .bbc-action-btn.delete { color: var(--error); }
         .bbc-action-btn.copy { color: var(--success); }
-        .bbc-action-btn:hover { background: rgba(255,255,255,0.1); }
+        .bbc-action-btn:hover { background: rgba(255,255,255,0.1); transform: scale(1.1); }
         
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.8);
-            backdrop-filter: blur(4px);
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
+        
         .modal-content {
             background: var(--bg-card);
-            border-radius: 24px;
+            border-radius: 28px;
             padding: 32px;
-            max-width: 500px;
+            max-width: 550px;
             width: 90%;
             border: 1px solid var(--border);
             max-height: 85vh;
             overflow-y: auto;
+            animation: fadeIn 0.3s ease;
         }
+        
         .modal-header {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 20px;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
         }
-        .modal-header h3 { color: var(--gold); font-size: 20px; }
+        
+        .modal-header h3 {
+            color: var(--gold);
+            font-size: 24px;
+            font-weight: 700;
+        }
+        
         .close-modal {
             background: none;
             border: none;
-            font-size: 24px;
+            font-size: 28px;
             color: var(--text-secondary);
             cursor: pointer;
+            transition: all 0.3s;
         }
-        .form-group { margin-bottom: 16px; }
+        
+        .close-modal:hover {
+            color: var(--error);
+            transform: rotate(90deg);
+        }
+        
+        .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
-            font-size: 13px;
+            font-size: 12px;
+            font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
+        
         .form-group input, .form-group select {
             width: 100%;
-            padding: 12px;
-            background: #0F1622;
-            border: 1px solid var(--border);
-            border-radius: 12px;
+            padding: 14px 16px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 16px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
         }
+        
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
+        }
+        
         .btn {
             width: 100%;
-            padding: 14px;
+            padding: 16px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             border: none;
-            border-radius: 12px;
+            border-radius: 16px;
             color: #0A0E1A;
             font-weight: 700;
+            font-size: 15px;
             cursor: pointer;
+            transition: all 0.3s;
             margin-top: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
         
         .loading-overlay {
@@ -265,30 +494,64 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(10,14,26,0.95);
+            background: rgba(10,14,26,0.98);
+            backdrop-filter: blur(10px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
+            flex-direction: column;
         }
+        
         .loader {
-            width: 48px; height: 48px;
+            width: 60px; height: 60px;
             border: 3px solid rgba(198,164,63,0.2);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
+            margin-bottom: 20px;
+        }
+        
+        .badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #0A0E1A;
+            margin-left: 8px;
+        }
+        
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2,1fr); }
+            .bbc-code-item { width: calc(50% - 12px); }
         }
         
         @media (max-width: 768px) {
-            .stats-grid { grid-template-columns: repeat(2,1fr); }
+            .stats-grid { grid-template-columns: 1fr; }
+            .bbc-code-item { width: 100%; }
             table { font-size: 12px; }
-            .bbc-code-number { font-size: 14px; }
+            th, td { padding: 10px 8px; }
+            .btn-sm { padding: 4px 8px; font-size: 10px; }
+            .theme-option span { display: none; }
+            .theme-option i { margin-right: 0; }
+            .section-header h3 { font-size: 16px; }
         }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
     </style>
 </head>
-<body>
+<body data-theme="dark">
     <div class="admin-header">
-        <h1><i class="fas fa-crown"></i> Prime Heritage Bank - Admin Portal</h1>
-        <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        <h1><i class="fas fa-crown"></i> Prime Heritage Bank | Admin Portal</h1>
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div class="theme-toggle" onclick="toggleTheme()">
+                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></div>
+                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></div>
+            </div>
+            <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
     </div>
     
     <div class="container">
@@ -300,12 +563,18 @@
                 <button class="btn-gold" onclick="openGenerateBBCModal()"><i class="fas fa-key"></i> Generate BBC Codes</button>
             </div>
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="🔍 Search by name, email, or account number..." onkeyup="filterUsers()">
+                <input type="text" id="searchInput" placeholder="🔍 Search by name, email, account number, or IBAN..." onkeyup="filterUsers()">
             </div>
             <div style="overflow-x: auto;">
                 <table id="usersTable">
                     <thead>
-                        <tr><th>Name</th><th>Account</th><th>Currency</th><th>Balance</th><th>Status</th><th>Actions</th><th>BBC Codes</th>
+                        <tr>
+                            <th>User</th>
+                            <th>Account Details</th>
+                            <th>Balance</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                            <th>BBC Codes</th>
                         </tr>
                     </thead>
                     <tbody id="usersBody"></tbody>
@@ -317,40 +586,60 @@
     <!-- Send Money Modal -->
     <div id="sendModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>Send Money to User</h3><button class="close-modal" onclick="closeModal('sendModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fas fa-paper-plane"></i> Send Money to User</h3>
+                <button class="close-modal" onclick="closeModal('sendModal')">&times;</button>
+            </div>
             <input type="hidden" id="sendUserId">
-            <div class="form-group"><label>User</label><input type="text" id="sendUserDisplay" readonly></div>
-            <div class="form-group"><label>Sender Name (What user sees)</label><input type="text" id="senderName" placeholder="e.g., Michael Thompson"></div>
-            <div class="form-group"><label>Amount</label><input type="number" id="sendAmount"></div>
-            <div class="form-group"><label>Currency</label><select id="sendCurrency"><option>USD</option><option>EUR</option><option>GBP</option></select></div>
-            <div class="form-group"><label>Note</label><input type="text" id="sendNote" placeholder="Optional"></div>
-            <button class="btn" onclick="sendMoney()">Send Money</button>
-            <button class="btn" style="margin-top:10px; background:#333;" onclick="closeModal('sendModal')">Cancel</button>
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Recipient</label>
+                <input type="text" id="sendUserDisplay" readonly>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-user-tie"></i> Sender Name</label>
+                <input type="text" id="senderName" placeholder="e.g., Admin - Prime Heritage Bank">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-dollar-sign"></i> Amount</label>
+                <input type="number" id="sendAmount" placeholder="0.00">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-globe"></i> Currency</label>
+                <select id="sendCurrency">
+                    <option value="USD">💵 USD - US Dollar</option>
+                    <option value="EUR">💶 EUR - Euro</option>
+                    <option value="GBP">💷 GBP - British Pound</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-pen"></i> Note (Optional)</label>
+                <input type="text" id="sendNote" placeholder="Payment for...">
+            </div>
+            <button class="btn" onclick="sendMoney()"><i class="fas fa-paper-plane"></i> Send Money</button>
+            <button class="btn" style="margin-top: 12px; background: rgba(100,100,100,0.3);" onclick="closeModal('sendModal')">Cancel</button>
         </div>
     </div>
 
     <!-- View BBC Modal -->
     <div id="bbcModal" class="modal">
-        <div class="modal-content" style="max-width: 750px;">
+        <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
                 <h3><i class="fas fa-key"></i> BBC Codes Management - <span id="bbcUserName">User</span></h3>
                 <button class="close-modal" onclick="closeModal('bbcModal')">&times;</button>
             </div>
-            <div style="margin-bottom: 20px;">
-                <div class="form-group">
-                    <label>Filter by Step:</label>
-                    <select id="bbcStepFilter" onchange="filterBBCodes()" style="width: 100%; padding: 10px; background: #0F1622; border: 1px solid var(--border); border-radius: 12px; color: white;">
-                        <option value="all">All Steps (1, 2, 3)</option>
-                        <option value="1">Step 1 - Currency Exchange / Initial Verification</option>
-                        <option value="2">Step 2 - Transfer Authorization / Second Check</option>
-                        <option value="3">Step 3 - Final Security / Completion Code</option>
-                    </select>
-                </div>
+            <div class="form-group">
+                <label><i class="fas fa-filter"></i> Filter by Step:</label>
+                <select id="bbcStepFilter" onchange="filterBBCodes()" style="width: 100%;">
+                    <option value="all">📋 All Steps (1, 2, 3)</option>
+                    <option value="1">🔑 Step 1 - Currency Exchange / Initial Verification</option>
+                    <option value="2">🔒 Step 2 - Transfer Authorization / Second Check</option>
+                    <option value="3">🛡️ Step 3 - Final Security / Completion Code</option>
+                </select>
             </div>
             <div id="bbcCodesList" class="bbc-grid"></div>
-            <div style="margin-top: 20px; display: flex; gap: 10px;">
+            <div style="margin-top: 24px; display: flex; gap: 12px;">
                 <button class="btn-gold" style="flex:1;" onclick="openGenerateForUser()"><i class="fas fa-plus"></i> Generate New Codes</button>
-                <button class="btn" style="flex:1; background:#333;" onclick="closeModal('bbcModal')">Close</button>
+                <button class="btn" style="flex:1; background: rgba(100,100,100,0.3);" onclick="closeModal('bbcModal')">Close</button>
             </div>
         </div>
     </div>
@@ -358,45 +647,92 @@
     <!-- Generate BBC Modal -->
     <div id="generateBBCModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>Generate BBC Codes</h3><button class="close-modal" onclick="closeModal('generateBBCModal')">&times;</button></div>
-            <div class="form-group"><label>Select User</label><select id="bbcUserId" style="width:100%; padding:12px;"></select></div>
-            <div class="form-group"><label>BBC Step</label><select id="bbcStep">
-                <option value="1">Step 1 - Currency Exchange / Initial</option>
-                <option value="2">Step 2 - Transfer Authorization</option>
-                <option value="3">Step 3 - Final Security</option>
-            </select></div>
-            <div class="form-group"><label>Quantity</label><input type="number" id="bbcQuantity" value="10" min="1" max="100"></div>
-            <div class="form-group"><label>Expiry (days)</label><input type="number" id="bbcExpiryDays" value="30" min="1" max="365"></div>
-            <button class="btn" onclick="generateBBCodes()">Generate Codes</button>
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> Generate BBC Codes</h3>
+                <button class="close-modal" onclick="closeModal('generateBBCModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-user"></i> Select User</label>
+                <select id="bbcUserId" style="width:100%;"></select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-layer-group"></i> BBC Step</label>
+                <select id="bbcStep">
+                    <option value="1">🔑 Step 1 - Currency Exchange / Initial</option>
+                    <option value="2">🔒 Step 2 - Transfer Authorization</option>
+                    <option value="3">🛡️ Step 3 - Final Security</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-hashtag"></i> Quantity</label>
+                <input type="number" id="bbcQuantity" value="10" min="1" max="100">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-calendar"></i> Expiry (days)</label>
+                <input type="number" id="bbcExpiryDays" value="30" min="1" max="365">
+            </div>
+            <button class="btn" onclick="generateBBCodes()"><i class="fas fa-dice-d6"></i> Generate Codes</button>
         </div>
     </div>
 
     <!-- Edit BBC Modal -->
     <div id="editBBCModal" class="modal">
         <div class="modal-content">
-            <div class="modal-header"><h3>Edit BBC Code</h3><button class="close-modal" onclick="closeModal('editBBCModal')">&times;</button></div>
+            <div class="modal-header">
+                <h3><i class="fas fa-edit"></i> Edit BBC Code</h3>
+                <button class="close-modal" onclick="closeModal('editBBCModal')">&times;</button>
+            </div>
             <input type="hidden" id="editBbcId">
-            <div class="form-group"><label>BBC Code</label><input type="text" id="editBbcCode" placeholder="6-digit code" maxlength="6"></div>
-            <div class="form-group"><label>Step</label><select id="editBbcStep">
-                <option value="1">Step 1 - Currency Exchange</option>
-                <option value="2">Step 2 - Transfer Authorization</option>
-                <option value="3">Step 3 - Final Security</option>
-            </select></div>
-            <div class="form-group"><label>Status</label><select id="editBbcStatus">
-                <option value="false">Active (Unused)</option>
-                <option value="true">Used (Inactive)</option>
-            </select></div>
-            <button class="btn" onclick="updateBBCode()">Update Code</button>
+            <div class="form-group">
+                <label><i class="fas fa-code"></i> BBC Code</label>
+                <input type="text" id="editBbcCode" placeholder="6-digit code" maxlength="6">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-layer-group"></i> Step</label>
+                <select id="editBbcStep">
+                    <option value="1">Step 1 - Currency Exchange</option>
+                    <option value="2">Step 2 - Transfer Authorization</option>
+                    <option value="3">Step 3 - Final Security</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-toggle-on"></i> Status</label>
+                <select id="editBbcStatus">
+                    <option value="false">✅ Active (Unused)</option>
+                    <option value="true">❌ Used (Inactive)</option>
+                </select>
+            </div>
+            <button class="btn" onclick="updateBBCode()"><i class="fas fa-save"></i> Update Code</button>
         </div>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div></div>
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loader"></div>
+        <div style="color: var(--gold); margin-top: 20px;">Processing...</div>
+    </div>
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
         let users = [];
         let currentBbcUserId = null;
         let allBbcCodes = [];
+        
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('adminTheme', theme);
+            document.getElementById('darkOption').classList.remove('active');
+            document.getElementById('lightOption').classList.remove('active');
+            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
+            else document.getElementById('lightOption').classList.add('active');
+        }
+        
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+        
+        const savedTheme = localStorage.getItem('adminTheme') || 'dark';
+        setTheme(savedTheme);
         
         function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
@@ -405,9 +741,10 @@
         function filterUsers() {
             const search = document.getElementById('searchInput').value.toLowerCase();
             const filtered = users.filter(u => 
-                u.fullName.toLowerCase().includes(search) || 
-                u.email.toLowerCase().includes(search) || 
-                u.accountNumber.toLowerCase().includes(search)
+                u.fullName?.toLowerCase().includes(search) || 
+                u.email?.toLowerCase().includes(search) || 
+                u.accountNumber?.toLowerCase().includes(search) ||
+                u.iban?.toLowerCase().includes(search)
             );
             renderUsers(filtered);
         }
@@ -418,31 +755,61 @@
             for (let u of userList) {
                 tbody.innerHTML += `
                     <tr>
-                        <td>${u.firstName} ${u.lastName}<br><small style="color:var(--text-secondary)">${u.email}</small></td>
-                        <td>${u.accountNumber}</td>
-                        <td>${u.currency}</td>
-                        <td>${u.currency} ${(u.totalBalance || 0).toLocaleString()}</td>
-                        <td class="${u.isActive ? 'status-active' : 'status-inactive'}">${u.isActive ? 'Active' : 'Frozen'}</td>
                         <td>
-                            <button class="btn-sm" onclick="openSendModal('${u._id}', '${u.fullName}', '${u.accountNumber}')">Send $</button>
-                            <button class="btn-sm ${u.isActive ? 'btn-danger' : ''}" onclick="toggleUserStatus('${u._id}')">${u.isActive ? 'Freeze' : 'Activate'}</button>
-                         </td>
+                            <strong>${u.firstName} ${u.lastName}</strong><br>
+                            <small style="color:var(--text-secondary)">${u.email}</small>
+                        </td>
                         <td>
-                            <button class="btn-sm" onclick="viewBBCodes('${u._id}', '${u.fullName}')"><i class="fas fa-key"></i> Manage (${u.bbcCount || 0})</button>
-                         </td>
-                     </tr>
+                            <small><i class="fas fa-hashtag" style="color:var(--gold);"></i> ${u.accountNumber}</small><br>
+                            <small><i class="fas fa-globe" style="color:var(--gold);"></i> ${u.currency}</small>
+                        </td>
+                        <td><strong style="color:var(--gold);">${u.currency} ${(u.totalBalance || 0).toLocaleString()}</strong></td>
+                        <td class="${u.isActive ? 'status-active' : 'status-inactive'}">
+                            <i class="fas ${u.isActive ? 'fa-check-circle' : 'fa-ban'}"></i> ${u.isActive ? 'Active' : 'Frozen'}
+                        </td>
+                        <td>
+                            <button class="btn-sm" onclick="openSendModal('${u._id}', '${u.fullName}', '${u.accountNumber}')">
+                                <i class="fas fa-paper-plane"></i> Send
+                            </button>
+                            <button class="btn-sm ${u.isActive ? 'btn-danger' : ''}" onclick="toggleUserStatus('${u._id}')">
+                                <i class="fas ${u.isActive ? 'fa-snowflake' : 'fa-play'}"></i> ${u.isActive ? 'Freeze' : 'Activate'}
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn-sm" onclick="viewBBCodes('${u._id}', '${u.fullName}')">
+                                <i class="fas fa-key"></i> Manage (${u.bbcCount || 0})
+                            </button>
+                        </td>
+                    </tr>
                 `;
             }
         }
         
         function updateStats() {
-            const total = users.reduce((s,u) => s + (u.totalBalance || 0), 0);
+            const totalBalance = users.reduce((s,u) => s + (u.totalBalance || 0), 0);
             const totalBbc = users.reduce((s,u) => s + (u.bbcCount || 0), 0);
+            const activeUsers = users.filter(u => u.isActive).length;
             document.getElementById('statsGrid').innerHTML = `
-                <div class="stat-card"><div class="value">${users.length}</div><div class="label">Total Users</div></div>
-                <div class="stat-card"><div class="value">$${total.toLocaleString()}</div><div class="label">Total Balance</div></div>
-                <div class="stat-card"><div class="value">${totalBbc}</div><div class="label">Total BBC Codes</div></div>
-                <div class="stat-card"><div class="value">24/7</div><div class="label">Active Support</div></div>
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <div class="value">${users.length}</div>
+                    <div class="label">Total Users</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-wallet"></i>
+                    <div class="value">${totalBalance.toLocaleString()}</div>
+                    <div class="label">Total Balance (USD)</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-key"></i>
+                    <div class="value">${totalBbc}</div>
+                    <div class="label">BBC Codes Generated</div>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-user-check"></i>
+                    <div class="value">${activeUsers}</div>
+                    <div class="label">Active Users</div>
+                </div>
             `;
         }
         
@@ -450,7 +817,7 @@
             const select = document.getElementById('bbcUserId');
             select.innerHTML = '';
             for (let u of users) {
-                select.innerHTML += `<option value="${u._id}">${u.fullName} (${u.accountNumber})</option>`;
+                select.innerHTML += `<option value="${u._id}">${u.fullName} (${u.accountNumber}) - ${u.currency}</option>`;
             }
         }
         
@@ -467,30 +834,75 @@
             const currency = document.getElementById('sendCurrency').value;
             const note = document.getElementById('sendNote').value;
             const user = users.find(u => u._id === userId);
-            if (!senderName || !amount) { Swal.fire('Error', 'Fill all fields', 'error'); return; }
+            
+            if (!senderName || !amount || amount <= 0) { 
+                Swal.fire('Error', 'Please fill all required fields correctly', 'error'); 
+                return; 
+            }
+            
             showLoading(true);
             try {
                 const res = await fetch(`${apiUrl}/api/admin/send`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ toAccountNumber: user.accountNumber, amount, currency, senderName, note })
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                    },
+                    body: JSON.stringify({ 
+                        toAccountNumber: user.accountNumber, 
+                        amount, 
+                        currency, 
+                        senderName, 
+                        note 
+                    })
                 });
                 const data = await res.json();
-                if (data.success) { Swal.fire('Success', data.message, 'success'); closeModal('sendModal'); loadUsers(); }
-                else { Swal.fire('Error', data.error, 'error'); }
-            } catch(e) { Swal.fire('Error', 'Failed', 'error'); } finally { showLoading(false); }
+                if (data.success) { 
+                    Swal.fire('Success!', data.message, 'success'); 
+                    closeModal('sendModal'); 
+                    loadUsers(); 
+                } else { 
+                    Swal.fire('Error', data.error, 'error'); 
+                }
+            } catch(e) { 
+                Swal.fire('Error', 'Failed to send money', 'error'); 
+            } finally { 
+                showLoading(false); 
+            }
         }
         
         async function toggleUserStatus(userId) {
             const user = users.find(u => u._id === userId);
-            if (!confirm(`Toggle status for ${user.fullName}?`)) return;
-            showLoading(true);
-            try {
-                const res = await fetch(`${apiUrl}/api/admin/toggle-status`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ userId })
-                });
-                if (res.ok) loadUsers();
-            } catch(e) { Swal.fire('Error', 'Failed', 'error'); } finally { showLoading(false); }
+            Swal.fire({
+                title: `${user.isActive ? 'Freeze' : 'Activate'} ${user.fullName}?`,
+                text: user.isActive ? 'User will not be able to login or transact.' : 'User will regain full access.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: user.isActive ? '#EF4444' : '#10B981',
+                confirmButtonText: user.isActive ? 'Yes, Freeze' : 'Yes, Activate'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        const res = await fetch(`${apiUrl}/api/admin/toggle-status`, {
+                            method: 'POST', 
+                            headers: { 
+                                'Content-Type': 'application/json', 
+                                'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                            },
+                            body: JSON.stringify({ userId })
+                        });
+                        if (res.ok) {
+                            Swal.fire('Success', `User ${user.isActive ? 'frozen' : 'activated'}`, 'success');
+                            loadUsers();
+                        }
+                    } catch(e) { 
+                        Swal.fire('Error', 'Failed', 'error'); 
+                    } finally { 
+                        showLoading(false); 
+                    }
+                }
+            });
         }
         
         async function viewBBCodes(userId, userName) {
@@ -503,7 +915,9 @@
         async function loadBBCodes(userId) {
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/admin/bbc/${userId}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+                const res = await fetch(`${apiUrl}/api/admin/bbc/${userId}`, { 
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+                });
                 allBbcCodes = await res.json();
                 filterBBCodes();
             } catch(e) { console.error(e); } finally { showLoading(false); }
@@ -516,21 +930,25 @@
             
             const container = document.getElementById('bbcCodesList');
             if (filtered.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);">No BBC codes found. Generate some.</div>';
+                container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);"><i class="fas fa-key" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No BBC codes found. Generate some codes for this user.</div>';
                 return;
             }
+            
             container.innerHTML = '';
             for (let code of filtered) {
                 const expiryDate = code.expiresAt ? new Date(code.expiresAt).toLocaleDateString() : 'No expiry';
                 const stepName = code.step == 1 ? 'Currency Exchange' : code.step == 2 ? 'Transfer Auth' : 'Final Security';
+                const stepIcon = code.step == 1 ? '🔑' : code.step == 2 ? '🔒' : '🛡️';
                 const statusClass = code.isUsed ? 'status-used' : 'status-unused';
                 const statusText = code.isUsed ? 'USED' : 'ACTIVE';
+                const statusIcon = code.isUsed ? '❌' : '✅';
+                
                 container.innerHTML += `
                     <div class="bbc-code-item">
                         <div class="bbc-code-number">${code.code}</div>
-                        <div class="bbc-step">Step ${code.step} - ${stepName}</div>
-                        <div class="bbc-expiry">Exp: ${expiryDate}</div>
-                        <div class="bbc-status ${statusClass}">${statusText}</div>
+                        <div class="bbc-step">${stepIcon} Step ${code.step} - ${stepName}</div>
+                        <div class="bbc-expiry"><i class="fas fa-calendar"></i> ${expiryDate}</div>
+                        <div class="bbc-status ${statusClass}">${statusIcon} ${statusText}</div>
                         <div class="bbc-actions">
                             <button class="bbc-action-btn copy" onclick="copyCode('${code.code}')" title="Copy"><i class="fas fa-copy"></i></button>
                             <button class="bbc-action-btn edit" onclick="editBBCode('${code._id}', '${code.code}', ${code.step}, ${code.isUsed})" title="Edit"><i class="fas fa-edit"></i></button>
@@ -543,7 +961,15 @@
         
         function copyCode(code) {
             navigator.clipboard.writeText(code);
-            Swal.fire('Copied!', `BBC Code ${code} copied to clipboard`, 'success');
+            Swal.fire({
+                icon: 'success',
+                title: 'Copied!',
+                text: `BBC Code ${code} copied to clipboard`,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 2000
+            });
         }
         
         function editBBCode(id, code, step, isUsed) {
@@ -561,7 +987,7 @@
             const step = document.getElementById('editBbcStep').value;
             const isUsed = document.getElementById('editBbcStatus').value === 'true';
             
-            if (!newCode || newCode.length !== 6) {
+            if (!newCode || newCode.length !== 6 || !/^\d+$/.test(newCode)) {
                 Swal.fire('Error', 'BBC code must be 6 digits', 'error');
                 return;
             }
@@ -579,8 +1005,14 @@
                     closeModal('editBBCModal');
                     await loadBBCodes(currentBbcUserId);
                     openModal('bbcModal');
-                } else { Swal.fire('Error', data.error, 'error'); }
-            } catch(e) { Swal.fire('Error', 'Update failed', 'error'); } finally { showLoading(false); }
+                } else { 
+                    Swal.fire('Error', data.error, 'error'); 
+                }
+            } catch(e) { 
+                Swal.fire('Error', 'Update failed', 'error'); 
+            } finally { 
+                showLoading(false); 
+            }
         }
         
         async function deleteBBCode(id) {
@@ -590,7 +1022,7 @@
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#EF4444',
-                confirmButtonText: 'Delete'
+                confirmButtonText: 'Yes, Delete'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     showLoading(true);
@@ -604,8 +1036,14 @@
                         if (data.success) {
                             Swal.fire('Deleted!', 'BBC code removed', 'success');
                             await loadBBCodes(currentBbcUserId);
-                        } else { Swal.fire('Error', data.error, 'error'); }
-                    } catch(e) { Swal.fire('Error', 'Delete failed', 'error'); } finally { showLoading(false); }
+                        } else { 
+                            Swal.fire('Error', data.error, 'error'); 
+                        }
+                    } catch(e) { 
+                        Swal.fire('Error', 'Delete failed', 'error'); 
+                    } finally { 
+                        showLoading(false); 
+                    }
                 }
             });
         }
@@ -628,44 +1066,81 @@
             const quantity = parseInt(document.getElementById('bbcQuantity').value);
             const expiryDays = parseInt(document.getElementById('bbcExpiryDays').value);
             
-            if (!userId) { Swal.fire('Error', 'Select a user', 'error'); return; }
+            if (!userId) { 
+                Swal.fire('Error', 'Select a user', 'error'); 
+                return; 
+            }
+            
             showLoading(true);
             try {
                 const res = await fetch(`${apiUrl}/api/admin/generate-bbc`, {
-                    method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                    method: 'POST', 
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                    },
                     body: JSON.stringify({ userId, step, quantity, expiryDays })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire('Success', `${data.codes.length} BBC codes generated for Step ${step}`, 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Generated!',
+                        html: `${data.codes.length} BBC codes generated for Step ${step}<br><small>Expires in ${expiryDays} days</small>`,
+                        confirmButtonColor: '#C6A43F'
+                    });
                     closeModal('generateBBCModal');
                     if (currentBbcUserId === userId) await loadBBCodes(userId);
                     loadUsers();
-                } else { Swal.fire('Error', data.error, 'error'); }
-            } catch(e) { Swal.fire('Error', 'Failed', 'error'); } finally { showLoading(false); }
+                } else { 
+                    Swal.fire('Error', data.error, 'error'); 
+                }
+            } catch(e) { 
+                Swal.fire('Error', 'Failed', 'error'); 
+            } finally { 
+                showLoading(false); 
+            }
         }
         
         async function loadUsers() {
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/admin/users`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
-                if (res.status === 403) { Swal.fire('Error', 'Admin only', 'error'); logout(); return; }
+                const res = await fetch(`${apiUrl}/api/admin/users`, { 
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+                });
+                if (res.status === 403) { 
+                    Swal.fire('Error', 'Admin access only', 'error'); 
+                    logout(); 
+                    return; 
+                }
                 users = await res.json();
-                // Get BBC counts for each user
+                
                 for (let u of users) {
                     try {
-                        const bbcRes = await fetch(`${apiUrl}/api/admin/bbc/${u._id}`, { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } });
+                        const bbcRes = await fetch(`${apiUrl}/api/admin/bbc/${u._id}`, { 
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+                        });
                         const bbcCodes = await bbcRes.json();
                         u.bbcCount = bbcCodes.length;
-                    } catch(e) { u.bbcCount = 0; }
+                    } catch(e) { 
+                        u.bbcCount = 0; 
+                    }
                 }
                 renderUsers();
                 updateStats();
                 populateUserSelect();
-            } catch(e) { console.error(e); } finally { showLoading(false); }
+            } catch(e) { 
+                console.error(e); 
+            } finally { 
+                showLoading(false); 
+            }
         }
         
-        function logout() { localStorage.removeItem('token'); localStorage.removeItem('user'); window.location.href = '/'; }
+        function logout() { 
+            localStorage.removeItem('token'); 
+            localStorage.removeItem('user'); 
+            window.location.href = '/'; 
+        }
         
         loadUsers();
     </script>
