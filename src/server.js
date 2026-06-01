@@ -14,516 +14,443 @@ const compression = require('compression');
 
 const app = express();
 
-// ========== THIS FIXES THE RATE LIMITER ERROR ON RENDER ==========
-app.set('trust proxy', 1);  // <-- ADD THIS ONE LINE!
+// ========== FIX FOR RENDER PROXY ==========
+app.set('trust proxy', 1);
 
-// ========== SECURITY MIDDLEWARE ==========
-app.use(helmet({
-    contentSecurityPolicy: false,
-    crossOriginEmbedderPolicy: false
-}));
+// ========== MIDDLEWARE ==========
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors({
-    origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://prime-heritage-bank.onrender.com'],
-    credentials: true
-}));
+app.use(cors());
 app.use(express.static('public'));
 
-// Rate limiting - FIXED for proxy
-const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
-    max: 100,
-    message: 'Too many requests from this IP',
-    trustProxy: true,  // Also add this
-    standardHeaders: true,
-    legacyHeaders: false
-});
+// Rate limiting
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, trustProxy: true });
 app.use('/api/', limiter);
 
-// Session config
+// Session
 app.use(session({
-    secret: process.env.SESSION_SECRET || 'banking_session_secret_demo',
+    secret: process.env.SESSION_SECRET || 'prime_heritage_secret',
     resave: false,
     saveUninitialized: false,
-    cookie: {
-        secure: false,
-        httpOnly: true,
-        maxAge: 24 * 60 * 60 * 1000
-    }
+    cookie: { secure: false, maxAge: 24 * 60 * 60 * 1000 }
 }));
 
-// ========== MONGODB CONNECTION ==========
+// ========== MONGODB ==========
 mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('✅ MongoDB Connected Successfully'))
-    .catch(err => console.log('❌ MongoDB Connection Error:', err));
+    .then(() => console.log('✅ MongoDB Connected'))
+    .catch(err => console.log('❌ MongoDB Error:', err));
 
-// ========== EMAIL CONFIGURATION ==========
+// ========== EMAIL CONFIGURATION - WORKING ==========
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s/g, '') : ''
+        pass: process.env.EMAIL_PASS
     }
 });
 
-// Verify email connection
-transporter.verify((error, success) => {
-    if (error) {
-        console.log('❌ Email configuration error:', error);
-    } else {
-        console.log('✅ Email server ready to send messages');
+// ========== BEAUTIFUL HTML EMAIL TEMPLATES ==========
+
+const getVerificationEmailHTML = (name, code) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .email-container {
+            max-width: 520px;
+            margin: 0 auto;
+            background: #111827;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(198,164,63,0.3);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
+            padding: 35px 30px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #0A0E1A;
+            font-size: 26px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin: 0;
+        }
+        .email-header p {
+            color: rgba(10,14,26,0.8);
+            font-size: 13px;
+            margin-top: 8px;
+        }
+        .email-content {
+            padding: 40px 35px;
+        }
+        .greeting {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #C6A43F;
+        }
+        .message {
+            color: #9CA3AF;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .code-box {
+            background: linear-gradient(135deg, #0F1622, #0A0E1A);
+            border: 2px solid #C6A43F;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .code {
+            font-size: 44px;
+            font-weight: 800;
+            color: #C6A43F;
+            letter-spacing: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .expiry {
+            color: #6B7280;
+            font-size: 12px;
+            margin-top: 12px;
+        }
+        .footer {
+            background: #0A0E1A;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #1F2937;
+        }
+        .footer p {
+            color: #6B7280;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
+            color: #0A0E1A;
+            padding: 12px 28px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🏦 PRIME HERITAGE BANK</h1>
+            <p>Global Excellence Since 2026</p>
+        </div>
+        <div class="email-content">
+            <div class="greeting">Welcome, ${name}! 👋</div>
+            <div class="message">
+                Thank you for choosing Prime Heritage Bank. To complete your registration and secure your account, please verify your email address using the code below.
+            </div>
+            <div class="code-box">
+                <div class="code">${code}</div>
+                <div class="expiry">⏰ This verification code expires in 10 minutes</div>
+            </div>
+            <div class="message">
+                If you didn't create an account with Prime Heritage Bank, please ignore this email.
+            </div>
+            <div style="text-align: center;">
+                <a href="#" class="button">Secure Dashboard →</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2026 Prime Heritage Bank - International Division</p>
+            <p>This is an automated message, please do not reply</p>
+            <p>Need help? support@primeheritage.com</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+const getWelcomeEmailHTML = (name, accountNumber, iban, swiftCode, currency) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to Prime Heritage Bank</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .email-container {
+            max-width: 520px;
+            margin: 0 auto;
+            background: #111827;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+            border: 1px solid rgba(198,164,63,0.3);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
+            padding: 35px 30px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #0A0E1A;
+            font-size: 26px;
+            font-weight: 800;
+        }
+        .email-content {
+            padding: 40px 35px;
+        }
+        .welcome {
+            font-size: 28px;
+            font-weight: 800;
+            margin-bottom: 20px;
+            color: #C6A43F;
+        }
+        .message {
+            color: #9CA3AF;
+            line-height: 1.6;
+            margin-bottom: 25px;
+        }
+        .info-card {
+            background: #0F1622;
+            border-radius: 16px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #C6A43F;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #1F2937;
+        }
+        .info-label {
+            color: #C6A43F;
+            font-weight: 600;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        .info-value {
+            font-weight: 600;
+            font-size: 14px;
+            color: #FFFFFF;
+            word-break: break-all;
+            text-align: right;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 25px 0;
+        }
+        .feature {
+            background: #0A0E1A;
+            padding: 15px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #1F2937;
+        }
+        .feature-icon {
+            font-size: 28px;
+            display: block;
+            margin-bottom: 6px;
+        }
+        .feature-text {
+            font-size: 11px;
+            color: #9CA3AF;
+        }
+        .footer {
+            background: #0A0E1A;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #1F2937;
+        }
+        .footer p {
+            color: #6B7280;
+            font-size: 12px;
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🏦 PRIME HERITAGE BANK</h1>
+        </div>
+        <div class="email-content">
+            <div class="welcome">Welcome, ${name}! 🎉</div>
+            <div class="message">
+                Your account has been successfully verified and activated. You now have access to premium international banking services.
+            </div>
+            <div class="info-card">
+                <div class="info-row">
+                    <span class="info-label">Account Number</span>
+                    <span class="info-value">${accountNumber}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">IBAN</span>
+                    <span class="info-value">${iban}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">SWIFT/BIC</span>
+                    <span class="info-value">${swiftCode}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Currency</span>
+                    <span class="info-value">${currency}</span>
+                </div>
+            </div>
+            <div class="features">
+                <div class="feature"><span class="feature-icon">💳</span><div class="feature-text">Virtual Cards</div></div>
+                <div class="feature"><span class="feature-icon">🌍</span><div class="feature-text">Global Transfers</div></div>
+                <div class="feature"><span class="feature-icon">📱</span><div class="feature-text">Mobile Banking</div></div>
+                <div class="feature"><span class="feature-icon">🔒</span><div class="feature-text">Bank Security</div></div>
+            </div>
+            <div style="text-align: center;">
+                <a href="#" class="button">Access Dashboard →</a>
+            </div>
+        </div>
+        <div class="footer">
+            <p>© 2026 Prime Heritage Bank - International Division</p>
+            <p>24/7 Support: support@primeheritage.com</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+const getPasswordResetEmailHTML = (name, code) => `
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Password Reset</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
+            margin: 0;
+            padding: 40px 20px;
+        }
+        .email-container {
+            max-width: 520px;
+            margin: 0 auto;
+            background: #111827;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(198,164,63,0.3);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
+            padding: 35px 30px;
+            text-align: center;
+        }
+        .email-header h1 {
+            color: #0A0E1A;
+            font-size: 26px;
+            font-weight: 800;
+        }
+        .email-content {
+            padding: 40px 35px;
+        }
+        .code-box {
+            background: #0F1622;
+            border: 2px solid #C6A43F;
+            border-radius: 16px;
+            padding: 25px;
+            text-align: center;
+            margin: 30px 0;
+        }
+        .code {
+            font-size: 44px;
+            font-weight: 800;
+            color: #C6A43F;
+            letter-spacing: 8px;
+            font-family: monospace;
+        }
+        .warning {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid #EF4444;
+            border-radius: 12px;
+            padding: 15px;
+            margin: 20px 0;
+            color: #EF4444;
+            font-size: 13px;
+        }
+        .footer {
+            background: #0A0E1A;
+            padding: 25px;
+            text-align: center;
+            border-top: 1px solid #1F2937;
+        }
+        .footer p {
+            color: #6B7280;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🔐 Password Reset Request</h1>
+        </div>
+        <div class="email-content">
+            <h2 style="color: #C6A43F; margin-bottom: 20px;">Hello ${name},</h2>
+            <p style="color: #9CA3AF;">We received a request to reset your password. Use the code below:</p>
+            <div class="code-box">
+                <div class="code">${code}</div>
+            </div>
+            <div class="warning">
+                ⚠️ This code expires in 10 minutes. Never share this code with anyone.
+            </div>
+            <p style="color: #9CA3AF; font-size: 13px;">If you didn't request this, please ignore this email.</p>
+        </div>
+        <div class="footer">
+            <p>Prime Heritage Bank - Security Department</p>
+        </div>
+    </div>
+</body>
+</html>
+`;
+
+// ========== EMAIL SENDING FUNCTION ==========
+async function sendEmail(to, subject, html) {
+    try {
+        const mailOptions = {
+            from: `"Prime Heritage Bank" <${process.env.EMAIL_USER}>`,
+            to: to,
+            subject: subject,
+            html: html
+        };
+        const info = await transporter.sendMail(mailOptions);
+        console.log('✅ Email sent to:', to);
+        return true;
+    } catch (error) {
+        console.error('❌ Email error:', error.message);
+        return false;
     }
-});
-
-// ========== EMAIL TEMPLATES ==========
-const emailTemplates = {
-    verification: (name, code) => `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Verify Your Email - Prime Heritage Bank</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-                    background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
-                    margin: 0;
-                    padding: 40px 20px;
-                }
-                .container {
-                    max-width: 560px;
-                    margin: 0 auto;
-                    background: #111827;
-                    border-radius: 24px;
-                    overflow: hidden;
-                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-                    border: 1px solid rgba(198,164,63,0.2);
-                }
-                .header {
-                    background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
-                    padding: 40px 30px;
-                    text-align: center;
-                    position: relative;
-                    overflow: hidden;
-                }
-                .header::before {
-                    content: '';
-                    position: absolute;
-                    top: -50%;
-                    right: -50%;
-                    width: 200%;
-                    height: 200%;
-                    background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 70%);
-                    animation: shine 3s infinite;
-                }
-                @keyframes shine {
-                    0% { transform: translateX(-100%) translateY(-100%); }
-                    100% { transform: translateX(100%) translateY(100%); }
-                }
-                .header h1 {
-                    color: #0A0E1A;
-                    font-size: 28px;
-                    font-weight: 800;
-                    letter-spacing: -0.5px;
-                    margin-bottom: 8px;
-                }
-                .header p {
-                    color: rgba(10,14,26,0.8);
-                    font-size: 14px;
-                }
-                .content {
-                    padding: 40px 35px;
-                    color: #FFFFFF;
-                }
-                .greeting {
-                    font-size: 24px;
-                    font-weight: 700;
-                    margin-bottom: 20px;
-                    background: linear-gradient(135deg, #C6A43F, #E8D5A4);
-                    -webkit-background-clip: text;
-                    -webkit-text-fill-color: transparent;
-                }
-                .message {
-                    color: #9CA3AF;
-                    line-height: 1.6;
-                    margin-bottom: 30px;
-                }
-                .code-box {
-                    background: linear-gradient(135deg, #0F1622, #0A0E1A);
-                    border: 2px solid #C6A43F;
-                    border-radius: 16px;
-                    padding: 30px;
-                    text-align: center;
-                    margin: 30px 0;
-                }
-                .code {
-                    font-size: 48px;
-                    font-weight: 800;
-                    color: #C6A43F;
-                    letter-spacing: 10px;
-                    font-family: 'Courier New', monospace;
-                }
-                .expiry {
-                    color: #6B7280;
-                    font-size: 12px;
-                    margin-top: 15px;
-                }
-                .footer {
-                    background: #0A0E1A;
-                    padding: 25px;
-                    text-align: center;
-                    color: #6B7280;
-                    font-size: 12px;
-                    border-top: 1px solid #1F2937;
-                }
-                .button {
-                    display: inline-block;
-                    background: linear-gradient(135deg, #C6A43F, #9E8032);
-                    color: #0A0E1A;
-                    padding: 12px 30px;
-                    text-decoration: none;
-                    border-radius: 50px;
-                    font-weight: 600;
-                    margin-top: 20px;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>🏦 PRIME HERITAGE BANK</h1>
-                    <p>Global Excellence Since 2026</p>
-                </div>
-                <div class="content">
-                    <div class="greeting">Welcome, ${name}! 👋</div>
-                    <div class="message">
-                        Thank you for choosing Prime Heritage Bank. To complete your registration and secure your account, please verify your email address using the code below.
-                    </div>
-                    <div class="code-box">
-                        <div class="code">${code}</div>
-                        <div class="expiry">⏰ This verification code expires in 10 minutes</div>
-                    </div>
-                    <div class="message">
-                        If you didn't create an account with Prime Heritage Bank, please ignore this email or contact our support team immediately.
-                    </div>
-                    <div style="text-align: center;">
-                        <a href="#" class="button">Secure Dashboard →</a>
-                    </div>
-                </div>
-                <div class="footer">
-                    <p>© 2026 Prime Heritage Bank - International Division</p>
-                    <p>This is an automated message, please do not reply</p>
-                    <p>Need help? Contact us at support@primeheritage.com</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `,
-    
-    welcome: (name, accountNumber, iban, swiftCode, currency) => `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Welcome to Prime Heritage Bank</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
-                    margin: 0;
-                    padding: 40px 20px;
-                }
-                .container {
-                    max-width: 560px;
-                    margin: 0 auto;
-                    background: #111827;
-                    border-radius: 24px;
-                    overflow: hidden;
-                    box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-                    border: 1px solid rgba(198,164,63,0.2);
-                }
-                .header {
-                    background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
-                    padding: 40px 30px;
-                    text-align: center;
-                }
-                .header h1 {
-                    color: #0A0E1A;
-                    font-size: 28px;
-                    font-weight: 800;
-                }
-                .content {
-                    padding: 40px 35px;
-                    color: #FFFFFF;
-                }
-                .welcome {
-                    font-size: 28px;
-                    font-weight: 800;
-                    margin-bottom: 20px;
-                    color: #C6A43F;
-                }
-                .info-card {
-                    background: #0F1622;
-                    border-radius: 16px;
-                    padding: 25px;
-                    margin: 25px 0;
-                    border-left: 4px solid #C6A43F;
-                }
-                .info-row {
-                    display: flex;
-                    justify-content: space-between;
-                    margin-bottom: 15px;
-                    padding-bottom: 15px;
-                    border-bottom: 1px solid #1F2937;
-                }
-                .info-label {
-                    color: #C6A43F;
-                    font-weight: 600;
-                    font-size: 12px;
-                    text-transform: uppercase;
-                }
-                .info-value {
-                    font-weight: 600;
-                    font-size: 14px;
-                    word-break: break-all;
-                    text-align: right;
-                }
-                .features {
-                    display: grid;
-                    grid-template-columns: 1fr 1fr;
-                    gap: 15px;
-                    margin: 25px 0;
-                }
-                .feature {
-                    background: #0A0E1A;
-                    padding: 15px;
-                    border-radius: 12px;
-                    text-align: center;
-                    border: 1px solid #1F2937;
-                }
-                .feature-icon {
-                    font-size: 28px;
-                    display: block;
-                    margin-bottom: 8px;
-                }
-                .feature-text {
-                    font-size: 12px;
-                    color: #9CA3AF;
-                }
-                .button {
-                    display: inline-block;
-                    background: linear-gradient(135deg, #C6A43F, #9E8032);
-                    color: #0A0E1A;
-                    padding: 12px 30px;
-                    text-decoration: none;
-                    border-radius: 50px;
-                    font-weight: 600;
-                    margin-top: 20px;
-                }
-                .footer {
-                    background: #0A0E1A;
-                    padding: 25px;
-                    text-align: center;
-                    color: #6B7280;
-                    font-size: 12px;
-                    border-top: 1px solid #1F2937;
-                }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>🏦 PRIME HERITAGE BANK</h1>
-                </div>
-                <div class="content">
-                    <div class="welcome">Welcome, ${name}! 🎉</div>
-                    <p style="color: #9CA3AF; line-height: 1.6;">Your account has been successfully verified and activated. You now have access to premium international banking services.</p>
-                    
-                    <div class="info-card">
-                        <div class="info-row">
-                            <span class="info-label">Account Number</span>
-                            <span class="info-value">${accountNumber}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">IBAN</span>
-                            <span class="info-value">${iban}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">SWIFT/BIC</span>
-                            <span class="info-value">${swiftCode}</span>
-                        </div>
-                        <div class="info-row">
-                            <span class="info-label">Primary Currency</span>
-                            <span class="info-value">${currency}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="features">
-                        <div class="feature">
-                            <span class="feature-icon">💳</span>
-                            <div class="feature-text">Virtual Cards</div>
-                        </div>
-                        <div class="feature">
-                            <span class="feature-icon">🌍</span>
-                            <div class="feature-text">Global Transfers</div>
-                        </div>
-                        <div class="feature">
-                            <span class="feature-icon">📱</span>
-                            <div class="feature-text">Mobile Banking</div>
-                        </div>
-                        <div class="feature">
-                            <span class="feature-icon">🔒</span>
-                            <div class="feature-text">Bank-Level Security</div>
-                        </div>
-                    </div>
-                    
-                    <div style="text-align: center;">
-                        <a href="#" class="button">Access Your Dashboard →</a>
-                    </div>
-                </div>
-                <div class="footer">
-                    <p>© 2026 Prime Heritage Bank - International Division</p>
-                    <p>24/7 Support: support@primeheritage.com</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `,
-    
-    passwordReset: (name, code) => `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Password Reset - Prime Heritage Bank</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
-                    margin: 0;
-                    padding: 40px 20px;
-                }
-                .container {
-                    max-width: 560px;
-                    margin: 0 auto;
-                    background: #111827;
-                    border-radius: 24px;
-                    overflow: hidden;
-                    border: 1px solid rgba(198,164,63,0.2);
-                }
-                .header {
-                    background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
-                    padding: 40px 30px;
-                    text-align: center;
-                }
-                .header h1 { color: #0A0E1A; font-size: 28px; }
-                .content { padding: 40px 35px; color: #FFFFFF; }
-                .code-box {
-                    background: #0F1622;
-                    border: 2px solid #C6A43F;
-                    border-radius: 16px;
-                    padding: 30px;
-                    text-align: center;
-                    margin: 30px 0;
-                }
-                .code { font-size: 48px; font-weight: 800; color: #C6A43F; letter-spacing: 10px; font-family: monospace; }
-                .warning {
-                    background: rgba(239,68,68,0.1);
-                    border: 1px solid #EF4444;
-                    border-radius: 12px;
-                    padding: 15px;
-                    margin: 20px 0;
-                    font-size: 13px;
-                    color: #EF4444;
-                }
-                .footer { background: #0A0E1A; padding: 25px; text-align: center; color: #6B7280; font-size: 12px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h1>🔐 Password Reset Request</h1>
-                </div>
-                <div class="content">
-                    <h2 style="color: #C6A43F; margin-bottom: 20px;">Hello ${name},</h2>
-                    <p style="color: #9CA3AF;">We received a request to reset your password. Use the verification code below to proceed:</p>
-                    <div class="code-box">
-                        <div class="code">${code}</div>
-                    </div>
-                    <div class="warning">
-                        ⚠️ This code expires in 10 minutes. If you didn't request this, please ignore this email.
-                    </div>
-                    <p style="color: #9CA3AF; font-size: 13px;">For security, never share this code with anyone. Prime Heritage Bank will never ask for your verification code.</p>
-                </div>
-                <div class="footer">
-                    <p>© 2026 Prime Heritage Bank - Security Department</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `,
-
-    transactionAlert: (name, type, amount, currency, reference, balance) => `
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset="UTF-8">
-            <title>Transaction Alert - Prime Heritage Bank</title>
-            <style>
-                * { margin: 0; padding: 0; box-sizing: border-box; }
-                body {
-                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
-                    margin: 0;
-                    padding: 40px 20px;
-                }
-                .container {
-                    max-width: 560px;
-                    margin: 0 auto;
-                    background: #111827;
-                    border-radius: 24px;
-                    overflow: hidden;
-                    border: 1px solid rgba(198,164,63,0.2);
-                }
-                .header { background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%); padding: 30px; text-align: center; }
-                .content { padding: 35px; color: #FFFFFF; }
-                .amount { font-size: 48px; font-weight: 800; text-align: center; margin: 20px 0; }
-                .details { background: #0F1622; border-radius: 16px; padding: 20px; margin: 20px 0; }
-                .footer { background: #0A0E1A; padding: 20px; text-align: center; color: #6B7280; font-size: 12px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h2 style="color: #0A0E1A;">💰 Transaction Alert</h2>
-                </div>
-                <div class="content">
-                    <p>Dear ${name},</p>
-                    <p>A ${type} transaction has been processed on your account:</p>
-                    <div class="amount" style="color: ${type === 'credit' ? '#10B981' : '#EF4444'}">
-                        ${type === 'credit' ? '+' : '-'} ${currency} ${amount.toLocaleString()}
-                    </div>
-                    <div class="details">
-                        <p><strong>Reference:</strong> ${reference}</p>
-                        <p><strong>Date:</strong> ${new Date().toLocaleString()}</p>
-                        <p><strong>New Balance:</strong> ${currency} ${balance.toLocaleString()}</p>
-                    </div>
-                    <p style="color: #EF4444; font-size: 13px;">If you did not authorize this transaction, please contact our support immediately.</p>
-                </div>
-                <div class="footer">
-                    <p>Prime Heritage Bank - Real-time Transaction Alerts</p>
-                </div>
-            </div>
-        </body>
-        </html>
-    `
-};
+}
 
 // ========== DATABASE SCHEMAS ==========
 const UserSchema = new mongoose.Schema({
@@ -558,9 +485,6 @@ const TransactionSchema = new mongoose.Schema({
     status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
     reference: { type: String, unique: true },
     note: String,
-    phoneNumber: String, network: String, dataPlan: String, dataSize: String,
-    billType: String, provider: String, billAccountNumber: String,
-    bankName: String, bankAccountNumber: String, routingNumber: String,
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -619,25 +543,18 @@ const SupportMessage = mongoose.model('SupportMessage', SupportMessageSchema);
 // ========== HELPER FUNCTIONS ==========
 function generateAccountNumber(currency) {
     const prefix = currency === 'USD' ? 'PHB-USA' : currency === 'EUR' ? 'PHB-EU' : 'PHB-UK';
-    const part1 = Math.floor(Math.random() * 9000 + 1000);
-    const part2 = Math.floor(Math.random() * 9000 + 1000);
-    const part3 = Math.floor(Math.random() * 9000 + 1000);
-    return `${prefix}-${part1}-${part2}-${part3}`;
+    return `${prefix}-${Math.floor(Math.random()*9000+1000)}-${Math.floor(Math.random()*9000+1000)}-${Math.floor(Math.random()*9000+1000)}`;
 }
 
 function generateIBAN(currency, accountNumber) {
-    const countryCode = currency === 'USD' ? 'US' : currency === 'EUR' ? 'DE' : 'GB';
-    const checkDigits = Math.floor(Math.random() * 90 + 10);
-    const cleanAccount = accountNumber.replace(/[^0-9]/g, '');
-    return `${countryCode}${checkDigits}${cleanAccount}`;
+    const country = currency === 'USD' ? 'US' : currency === 'EUR' ? 'DE' : 'GB';
+    const clean = accountNumber.replace(/[^0-9]/g, '');
+    return `${country}${Math.floor(Math.random()*90+10)}${clean}`;
 }
 
 function generateSWIFTCode(currency) {
-    const bankCode = 'PHBG';
-    const countryCode = currency === 'USD' ? 'US' : currency === 'EUR' ? 'DE' : 'GB';
-    const location = '33';
-    const branch = Math.random().toString(36).substring(2, 5).toUpperCase();
-    return `${bankCode}${countryCode}${location}${branch}`;
+    const country = currency === 'USD' ? 'US' : currency === 'EUR' ? 'DE' : 'GB';
+    return `PHBG${country}33${Math.random().toString(36).substring(2,5).toUpperCase()}`;
 }
 
 function generateCardNumber() {
@@ -658,47 +575,24 @@ function generateVerificationCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function sendEmail(to, subject, html) {
-    try {
-        const mailOptions = {
-            from: `"Prime Heritage Bank" <${process.env.EMAIL_USER}>`,
-            to: to,
-            subject: subject,
-            html: html
-        };
-        const info = await transporter.sendMail(mailOptions);
-        console.log('✅ Email sent:', info.messageId);
-        return true;
-    } catch (error) {
-        console.error('❌ Email error:', error);
-        return false;
-    }
-}
-
 async function hasBBCodes(userId, step) {
     const count = await BBC.countDocuments({ userId, step, isUsed: false, expiresAt: { $gt: new Date() } });
     return count > 0;
 }
 
 async function useBBCode(userId, code, requiredStep) {
-    const bbc = await BBC.findOne({
-        code: code,
-        userId: userId,
-        step: requiredStep,
-        isUsed: false,
-        expiresAt: { $gt: new Date() }
-    });
+    const bbc = await BBC.findOne({ code, userId, step: requiredStep, isUsed: false, expiresAt: { $gt: new Date() } });
     if (!bbc) return null;
     bbc.isUsed = true;
     await bbc.save();
     return bbc;
 }
 
-// ========== AUTHENTICATION ROUTES ==========
+// ========== AUTH ROUTES ==========
 
-// Register
+// REGISTER
 app.post('/api/register', async (req, res) => {
-    console.log('📝 Registration attempt for:', req.body.email);
+    console.log('📝 Registration:', req.body.email);
     try {
         const { firstName, lastName, email, phone, password, transactionPin, currency } = req.body;
         
@@ -718,11 +612,8 @@ app.post('/api/register', async (req, res) => {
             isEmailVerified: false
         });
         await user.save();
-        console.log('✅ User saved:', user._id);
 
-        const account = new Account({
-            userId: user._id, currency, accountNumber, iban, balance: 0
-        });
+        const account = new Account({ userId: user._id, currency, accountNumber, iban, balance: 0 });
         await account.save();
 
         const cardNum = generateCardNumber();
@@ -732,42 +623,21 @@ app.post('/api/register', async (req, res) => {
         });
         await card.save();
 
-        // Generate and send verification code
         const verificationCode = generateVerificationCode();
-        const verification = new VerificationCode({
-            userId: user._id,
-            email: email,
-            code: verificationCode,
-            type: 'verification',
+        await new VerificationCode({
+            userId: user._id, email, code: verificationCode, type: 'verification',
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-        });
-        await verification.save();
+        }).save();
 
-        const emailSent = await sendEmail(
-            email,
-            'Verify Your Email - Prime Heritage Bank',
-            emailTemplates.verification(`${firstName} ${lastName}`, verificationCode)
-        );
+        const emailSent = await sendEmail(email, 'Verify Your Email - Prime Heritage Bank', getVerificationEmailHTML(`${firstName} ${lastName}`, verificationCode));
         console.log('📧 Email sent:', emailSent);
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
-        res.json({ 
-            success: true, 
-            token, 
-            requiresVerification: true,
+        res.json({
+            success: true, token, requiresVerification: true,
             message: 'Verification code sent to your email',
-            user: { 
-                id: user._id, 
-                fullName: user.fullName, 
-                email, 
-                accountNumber, 
-                iban, 
-                swiftCode, 
-                currency, 
-                isAdmin: false,
-                isEmailVerified: false
-            }
+            user: { id: user._id, fullName: user.fullName, email, accountNumber, iban, swiftCode, currency, isAdmin: false, isEmailVerified: false }
         });
     } catch (error) {
         console.error('Registration error:', error);
@@ -775,150 +645,89 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Verify Email
+// VERIFY EMAIL
 app.post('/api/verify-email', async (req, res) => {
     try {
         const { email, code } = req.body;
         
-        const verification = await VerificationCode.findOne({ 
-            email: email, 
-            code: code, 
-            isUsed: false,
-            expiresAt: { $gt: new Date() }
-        });
-        
-        if (!verification) {
-            return res.status(400).json({ error: 'Invalid or expired verification code' });
-        }
+        const verification = await VerificationCode.findOne({ email, code, isUsed: false, expiresAt: { $gt: new Date() } });
+        if (!verification) return res.status(400).json({ error: 'Invalid or expired verification code' });
         
         verification.isUsed = true;
         await verification.save();
         
         const user = await User.findById(verification.userId);
-        if (!user) return res.status(404).json({ error: 'User not found' });
-        
         user.isEmailVerified = true;
         await user.save();
-        
-        await sendEmail(
-            email,
-            'Welcome to Prime Heritage Bank!',
-            emailTemplates.welcome(user.fullName, user.accountNumber, user.iban, user.swiftCode, user.currency)
-        );
-        
+
+        await sendEmail(email, 'Welcome to Prime Heritage Bank! 🎉', getWelcomeEmailHTML(user.fullName, user.accountNumber, user.iban, user.swiftCode, user.currency));
+
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        
-        res.json({ 
-            success: true, 
-            token,
-            message: 'Email verified successfully! Welcome to Prime Heritage Bank.',
-            user: {
-                id: user._id,
-                fullName: user.fullName,
-                email: user.email,
-                accountNumber: user.accountNumber,
-                iban: user.iban,
-                swiftCode: user.swiftCode,
-                currency: user.currency,
-                isAdmin: user.isAdmin,
-                isEmailVerified: true
-            }
+
+        res.json({
+            success: true, token,
+            message: 'Email verified successfully!',
+            user: { id: user._id, fullName: user.fullName, email, accountNumber: user.accountNumber, iban: user.iban, swiftCode: user.swiftCode, currency: user.currency, isAdmin: user.isAdmin, isEmailVerified: true }
         });
     } catch (error) {
-        console.error('Verification error:', error);
         res.status(500).json({ error: 'Verification failed' });
     }
 });
 
-// Resend Verification Code
+// RESEND VERIFICATION
 app.post('/api/resend-verification', async (req, res) => {
     try {
         const { email } = req.body;
-        
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ error: 'User not found' });
         if (user.isEmailVerified) return res.status(400).json({ error: 'Email already verified' });
         
-        await VerificationCode.updateMany(
-            { email: email, type: 'verification', isUsed: false },
-            { isUsed: true }
-        );
+        await VerificationCode.updateMany({ email, type: 'verification', isUsed: false }, { isUsed: true });
         
         const verificationCode = generateVerificationCode();
-        const verification = new VerificationCode({
-            userId: user._id,
-            email: email,
-            code: verificationCode,
-            type: 'verification',
+        await new VerificationCode({
+            userId: user._id, email, code: verificationCode, type: 'verification',
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-        });
-        await verification.save();
+        }).save();
+
+        await sendEmail(email, 'New Verification Code', getVerificationEmailHTML(user.fullName, verificationCode));
         
-        await sendEmail(
-            email,
-            'Verify Your Email - Prime Heritage Bank',
-            emailTemplates.verification(user.fullName, verificationCode)
-        );
-        
-        res.json({ success: true, message: 'Verification code resent to your email' });
+        res.json({ success: true, message: 'New verification code sent' });
     } catch (error) {
-        console.error('Resend error:', error);
-        res.status(500).json({ error: 'Failed to resend verification code' });
+        res.status(500).json({ error: 'Failed to resend' });
     }
 });
 
-// Forgot Password
+// FORGOT PASSWORD
 app.post('/api/forgot-password', async (req, res) => {
     try {
         const { email } = req.body;
-        
         const user = await User.findOne({ email });
         if (!user) return res.status(404).json({ error: 'Email not found' });
         
-        await VerificationCode.updateMany(
-            { email: email, type: 'password_reset', isUsed: false },
-            { isUsed: true }
-        );
+        await VerificationCode.updateMany({ email, type: 'password_reset', isUsed: false }, { isUsed: true });
         
         const resetCode = generateVerificationCode();
-        const verification = new VerificationCode({
-            userId: user._id,
-            email: email,
-            code: resetCode,
-            type: 'password_reset',
+        await new VerificationCode({
+            userId: user._id, email, code: resetCode, type: 'password_reset',
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
-        });
-        await verification.save();
+        }).save();
+
+        await sendEmail(email, 'Password Reset Code', getPasswordResetEmailHTML(user.fullName, resetCode));
         
-        await sendEmail(
-            email,
-            'Password Reset - Prime Heritage Bank',
-            emailTemplates.passwordReset(user.fullName, resetCode)
-        );
-        
-        res.json({ success: true, message: 'Password reset code sent to your email' });
+        res.json({ success: true, message: 'Reset code sent to your email' });
     } catch (error) {
-        console.error('Forgot password error:', error);
-        res.status(500).json({ error: 'Failed to process request' });
+        res.status(500).json({ error: 'Failed to send reset code' });
     }
 });
 
-// Reset Password
+// RESET PASSWORD
 app.post('/api/reset-password', async (req, res) => {
     try {
         const { email, code, newPassword } = req.body;
         
-        const verification = await VerificationCode.findOne({ 
-            email: email, 
-            code: code, 
-            type: 'password_reset',
-            isUsed: false,
-            expiresAt: { $gt: new Date() }
-        });
-        
-        if (!verification) {
-            return res.status(400).json({ error: 'Invalid or expired reset code' });
-        }
+        const verification = await VerificationCode.findOne({ email, code, type: 'password_reset', isUsed: false, expiresAt: { $gt: new Date() } });
+        if (!verification) return res.status(400).json({ error: 'Invalid or expired reset code' });
         
         verification.isUsed = true;
         await verification.save();
@@ -929,12 +738,11 @@ app.post('/api/reset-password', async (req, res) => {
         
         res.json({ success: true, message: 'Password reset successfully' });
     } catch (error) {
-        console.error('Reset password error:', error);
         res.status(500).json({ error: 'Failed to reset password' });
     }
 });
 
-// Login
+// LOGIN
 app.post('/api/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
@@ -945,42 +753,20 @@ app.post('/api/login', async (req, res) => {
         if (!valid) return res.status(401).json({ error: 'Invalid credentials' });
         
         if (!user.isEmailVerified && !user.isAdmin) {
-            return res.status(403).json({ 
-                error: 'Email not verified', 
-                requiresVerification: true,
-                email: user.email
-            });
-        }
-        
-        if (!user.isActive) {
-            return res.status(403).json({ error: 'Account is deactivated. Contact support.' });
+            return res.status(403).json({ error: 'Email not verified', requiresVerification: true, email: user.email });
         }
         
         user.lastLogin = new Date();
         await user.save();
         
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-        res.json({ 
-            success: true, 
-            token, 
-            user: { 
-                id: user._id, 
-                fullName: user.fullName, 
-                email: user.email,
-                accountNumber: user.accountNumber, 
-                iban: user.iban, 
-                swiftCode: user.swiftCode, 
-                currency: user.currency, 
-                isAdmin: user.isAdmin,
-                isEmailVerified: user.isEmailVerified
-            } 
-        });
+        res.json({ success: true, token, user: { id: user._id, fullName: user.fullName, email: user.email, accountNumber: user.accountNumber, iban: user.iban, swiftCode: user.swiftCode, currency: user.currency, isAdmin: user.isAdmin, isEmailVerified: user.isEmailVerified } });
     } catch (error) {
         res.status(500).json({ error: 'Login failed' });
     }
 });
 
-// Get Current User
+// GET CURRENT USER
 app.get('/api/me', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -991,25 +777,20 @@ app.get('/api/me', async (req, res) => {
         const cards = await Card.find({ userId: user._id });
         const transactions = await Transaction.find({ $or: [{ fromUserId: user._id }, { toUserId: user._id }] }).sort({ createdAt: -1 }).limit(30);
         const loans = await Loan.find({ userId: user._id });
-        const tickets = await SupportMessage.find({ userId: user._id }).sort({ createdAt: -1 });
+        const tickets = await SupportMessage.find({ userId: user._id });
         const totalBalance = accounts.reduce((s, a) => s + a.balance, 0);
         
         const hasBbc1 = await hasBBCodes(user._id, 1);
         const hasBbc2 = await hasBBCodes(user._id, 2);
         const hasBbc3 = await hasBBCodes(user._id, 3);
         
-        res.json({ 
-            user, accounts, cards, transactions, loans, tickets, totalBalance,
-            bbcStatus: { step1: hasBbc1, step2: hasBbc2, step3: hasBbc3 }
-        });
+        res.json({ user, accounts, cards, transactions, loans, tickets, totalBalance, bbcStatus: { step1: hasBbc1, step2: hasBbc2, step3: hasBbc3 } });
     } catch (error) {
         res.status(401).json({ error: 'Invalid token' });
     }
 });
 
-// ========== TRANSACTION ROUTES WITH BBC ==========
-
-// Send Money Step 1
+// ========== SEND MONEY ROUTES ==========
 app.post('/api/send/step1', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1028,9 +809,7 @@ app.post('/api/send/step1', async (req, res) => {
         if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
         
         const hasBbc1 = await hasBBCodes(user._id, 1);
-        if (!hasBbc1) {
-            return res.status(403).json({ error: 'No BBC Code 1 available. Contact admin.' });
-        }
+        if (!hasBbc1) return res.status(403).json({ error: 'No BBC Code 1 available' });
         
         const reference = generateReference();
         const transaction = new Transaction({
@@ -1044,7 +823,6 @@ app.post('/api/send/step1', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// Send Money Step 2
 app.post('/api/send/step2', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1063,7 +841,6 @@ app.post('/api/send/step2', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// Send Money Step 3
 app.post('/api/send/step3', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1082,7 +859,6 @@ app.post('/api/send/step3', async (req, res) => {
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
-// Send Money Step 4 (Complete)
 app.post('/api/send/step4', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1108,37 +884,11 @@ app.post('/api/send/step4', async (req, res) => {
         transaction.status = 'completed';
         await transaction.save();
         
-        // Send email notifications
-        await sendEmail(
-            user.email,
-            'Transaction Alert - Money Sent',
-            emailTemplates.transactionAlert(user.fullName, 'debit', transaction.amount, transaction.currency, transaction.reference, userAccount.balance)
-        );
-        
-        const recipient = await User.findById(transaction.toUserId);
-        await sendEmail(
-            recipient.email,
-            'Transaction Alert - Money Received',
-            emailTemplates.transactionAlert(recipient.fullName, 'credit', transaction.amount, transaction.currency, transaction.reference, recipientAccount.balance)
-        );
-        
         res.json({ success: true, step: 4, reference, amount: transaction.amount, newBalance: userAccount.balance });
     } catch (error) { res.status(500).json({ error: 'Failed' }); }
 });
 
 // ========== OTHER ROUTES ==========
-app.post('/api/airtime/step1', async (req, res) => {
-    res.json({ success: true });
-});
-
-app.post('/api/data/step1', async (req, res) => {
-    res.json({ success: true });
-});
-
-app.post('/api/bills/step1', async (req, res) => {
-    res.json({ success: true });
-});
-
 app.post('/api/loans/apply', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1309,12 +1059,6 @@ app.post('/api/admin/send', async (req, res) => {
     const transaction = new Transaction({ toUserId: recipient._id, toAccountNumber: recipientAccount.accountNumber, toName: recipient.fullName, fromName: senderName, amount, currency, reference, note, type: 'deposit' });
     await transaction.save();
     
-    await sendEmail(
-        recipient.email,
-        'Deposit Confirmation - Prime Heritage Bank',
-        emailTemplates.transactionAlert(recipient.fullName, 'credit', amount, currency, reference, recipientAccount.balance)
-    );
-    
     res.json({ success: true, message: `Sent ${currency} ${amount} to ${recipient.fullName}` });
 });
 
@@ -1360,7 +1104,7 @@ async function createAdmin() {
                 isEmailVerified: true
             });
             await admin.save();
-            console.log('✅ Admin created successfully!');
+            console.log('✅ Admin created!');
             console.log('📧 Email: admin@primeheritage.com');
             console.log('🔑 Password: Prime@Admin2026');
         }
