@@ -24,5 +24,18 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  }
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "keywords": [
+    "banking",
+    "finance",
+    "international-banking",
+    "payment-gateway",
+    "fintech"
+  ],
+  "author": "Prime Heritage Bank",
+  "license": "MIT"
 }
