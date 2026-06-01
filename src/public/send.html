@@ -105,7 +105,7 @@
     <div id="loadingOverlay" class="loading-overlay"><div class="loader"></div><div class="loader-text">Processing</div></div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://global-bank-n6c3.onrender.com';
+        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
         let currentRef = null;
         
         function setTheme(t){document.body.setAttribute('data-theme',t);localStorage.setItem('theme',t);document.getElementById('darkOption').classList.remove('active');document.getElementById('lightOption').classList.remove('active');if(t==='dark')document.getElementById('darkOption').classList.add('active');else document.getElementById('lightOption').classList.add('active');}
