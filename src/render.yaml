@@ -4,6 +4,7 @@ services:
     env: node
     buildCommand: npm install
     startCommand: node server.js
+    plan: free
     envVars:
       - key: MONGODB_URI
         value: mongodb+srv://mrdev:dev091339@cluster0.grjlq7v.mongodb.net/globalbank?retryWrites=true&w=majority
@@ -13,3 +14,19 @@ services:
         value: banking_session_secret_demo
       - key: PORT
         value: 3000
+      - key: NODE_ENV
+        value: production
+      - key: EMAIL_USER
+        value: primeheritageinternationalbank@gmail.com
+      - key: EMAIL_PASS
+        value: lhjb tgjo jwik gssq
+      - key: ADMIN_EMAIL
+        value: devgift@gmail.com
+      - key: ADMIN_PASSWORD
+        value: devgift
+      - key: BANK_NAME
+        value: Prime Heritage Bank
+      - key: BANK_SWIFT
+        value: PHBKGLOBAL
+      - key: SUPPORT_EMAIL
+        value: primeheritageinternationalbank@gmail.com
