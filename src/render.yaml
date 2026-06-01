@@ -16,14 +16,21 @@ services:
         value: 3000
       - key: NODE_ENV
         value: production
+      # BREVO SMTP EMAIL (WORKING)
       - key: EMAIL_USER
-        value: primeheritageinternationalbank@gmail.com
+        value: ad3d98001@smtp-brevo.com
       - key: EMAIL_PASS
-        value: lhjb tgjo jwik gssq
+        value: bskq8uTe5pfqQdj
+      - key: SMTP_HOST
+        value: smtp-relay.brevo.com
+      - key: SMTP_PORT
+        value: 587
+      # ADMIN CREDENTIALS
       - key: ADMIN_EMAIL
         value: devgift@gmail.com
       - key: ADMIN_PASSWORD
         value: devgift
+      # BANK SETTINGS
       - key: BANK_NAME
         value: Prime Heritage Bank
       - key: BANK_SWIFT
