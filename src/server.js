@@ -17,7 +17,7 @@ const app = express();
 // ========== FIX FOR RENDER PROXY ==========
 app.set('trust proxy', 1);
 
-// ========== MIDDLEWARE ==========
+// ========== SECURITY MIDDLEWARE ==========
 app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
 app.use(compression());
 app.use(express.json());
@@ -42,49 +42,81 @@ mongoose.connect(process.env.MONGODB_URI)
     .then(() => console.log('✅ MongoDB Connected'))
     .catch(err => console.log('❌ MongoDB Error:', err));
 
-// ========== EMAIL CONFIGURATION - WORKING ==========
+// ========== BREVO EMAIL CONFIGURATION ==========
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: process.env.SMTP_HOST || 'smtp-relay.brevo.com',
+    port: parseInt(process.env.SMTP_PORT) || 587,
+    secure: false,
     auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.EMAIL_USER || 'ad3d98001@smtp-brevo.com',
+        pass: process.env.EMAIL_PASS || 'bskq8uTe5pfqQdj'
+    },
+    tls: { rejectUnauthorized: false }
+});
+
+transporter.verify((error, success) => {
+    if (error) {
+        console.log('❌ Email error:', error.message);
+    } else {
+        console.log('✅ Brevo SMTP ready!');
     }
 });
 
-// ========== BEAUTIFUL HTML EMAIL TEMPLATES ==========
+// ========== PROFESSIONAL EMAIL TEMPLATES ==========
 
-const getVerificationEmailHTML = (name, code) => `
+const getVerificationEmail = (name, code) => `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Your Email</title>
+    <title>Verify Your Email | Prime Heritage Bank</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
             margin: 0;
             padding: 40px 20px;
         }
         .email-container {
-            max-width: 520px;
+            max-width: 560px;
             margin: 0 auto;
             background: #111827;
-            border-radius: 24px;
+            border-radius: 28px;
             overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            border: 1px solid rgba(198,164,63,0.3);
+            border: 1px solid rgba(198, 164, 63, 0.2);
         }
         .email-header {
             background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
             padding: 35px 30px;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        .email-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+            animation: shine 3s infinite;
+        }
+        @keyframes shine {
+            0% { transform: translateX(-100%) translateY(-100%); }
+            100% { transform: translateX(100%) translateY(100%); }
         }
         .email-header h1 {
             color: #0A0E1A;
-            font-size: 26px;
+            font-size: 28px;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin: 0;
@@ -98,10 +130,12 @@ const getVerificationEmailHTML = (name, code) => `
             padding: 40px 35px;
         }
         .greeting {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 700;
             margin-bottom: 16px;
-            color: #C6A43F;
+            background: linear-gradient(135deg, #C6A43F, #E8D5A4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .message {
             color: #9CA3AF;
@@ -111,22 +145,52 @@ const getVerificationEmailHTML = (name, code) => `
         .code-box {
             background: linear-gradient(135deg, #0F1622, #0A0E1A);
             border: 2px solid #C6A43F;
-            border-radius: 16px;
-            padding: 25px;
+            border-radius: 20px;
+            padding: 28px;
             text-align: center;
             margin: 30px 0;
+            position: relative;
+        }
+        .code-box::after {
+            content: '🔐';
+            position: absolute;
+            top: -15px;
+            right: 20px;
+            background: #111827;
+            padding: 0 10px;
+            font-size: 20px;
         }
         .code {
-            font-size: 44px;
+            font-size: 48px;
             font-weight: 800;
             color: #C6A43F;
-            letter-spacing: 8px;
+            letter-spacing: 12px;
             font-family: 'Courier New', monospace;
         }
         .expiry {
             color: #6B7280;
             font-size: 12px;
-            margin-top: 12px;
+            margin-top: 15px;
+        }
+        .security-note {
+            background: rgba(16, 185, 129, 0.1);
+            border-left: 3px solid #10B981;
+            padding: 15px;
+            border-radius: 12px;
+            margin: 20px 0;
+            font-size: 13px;
+            color: #10B981;
+        }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
+            color: #0A0E1A;
+            padding: 14px 32px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 20px;
+            transition: transform 0.3s;
         }
         .footer {
             background: #0A0E1A;
@@ -139,15 +203,14 @@ const getVerificationEmailHTML = (name, code) => `
             font-size: 12px;
             margin: 5px 0;
         }
-        .button {
-            display: inline-block;
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            color: #0A0E1A;
-            padding: 12px 28px;
+        .social-icons {
+            margin-top: 15px;
+        }
+        .social-icons a {
+            color: #6B7280;
+            margin: 0 8px;
             text-decoration: none;
-            border-radius: 50px;
-            font-weight: 600;
-            margin-top: 20px;
+            font-size: 18px;
         }
     </style>
 </head>
@@ -160,14 +223,17 @@ const getVerificationEmailHTML = (name, code) => `
         <div class="email-content">
             <div class="greeting">Welcome, ${name}! 👋</div>
             <div class="message">
-                Thank you for choosing Prime Heritage Bank. To complete your registration and secure your account, please verify your email address using the code below.
+                Thank you for choosing <strong>Prime Heritage Bank</strong>. To complete your registration and secure your account, please verify your email address using the code below.
             </div>
             <div class="code-box">
                 <div class="code">${code}</div>
-                <div class="expiry">⏰ This verification code expires in 10 minutes</div>
+                <div class="expiry">⏰ This verification code expires in <strong>10 minutes</strong></div>
+            </div>
+            <div class="security-note">
+                🔒 <strong>Security Tip:</strong> Never share this code with anyone. Prime Heritage Bank will never ask for your verification code.
             </div>
             <div class="message">
-                If you didn't create an account with Prime Heritage Bank, please ignore this email.
+                If you didn't create an account with Prime Heritage Bank, please ignore this email or contact our support team immediately.
             </div>
             <div style="text-align: center;">
                 <a href="#" class="button">Secure Dashboard →</a>
@@ -176,108 +242,93 @@ const getVerificationEmailHTML = (name, code) => `
         <div class="footer">
             <p>© 2026 Prime Heritage Bank - International Division</p>
             <p>This is an automated message, please do not reply</p>
-            <p>Need help? support@primeheritage.com</p>
+            <div class="social-icons">
+                <a href="#"><i class="fab fa-facebook"></i></a>
+                <a href="#"><i class="fab fa-twitter"></i></a>
+                <a href="#"><i class="fab fa-linkedin"></i></a>
+                <a href="#"><i class="fab fa-instagram"></i></a>
+            </div>
+            <p style="margin-top: 15px;">Need help? <a href="#" style="color: #C6A43F;">Contact Support</a></p>
         </div>
     </div>
 </body>
 </html>
 `;
 
-const getWelcomeEmailHTML = (name, accountNumber, iban, swiftCode, currency) => `
+const getWelcomeEmail = (name, accountNumber, iban, swiftCode, currency) => `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Welcome to Prime Heritage Bank</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
             margin: 0;
             padding: 40px 20px;
         }
         .email-container {
-            max-width: 520px;
+            max-width: 560px;
             margin: 0 auto;
             background: #111827;
-            border-radius: 24px;
+            border-radius: 28px;
             overflow: hidden;
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
-            border: 1px solid rgba(198,164,63,0.3);
+            border: 1px solid rgba(198, 164, 63, 0.2);
         }
-        .email-header {
+        .header {
             background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
             padding: 35px 30px;
             text-align: center;
         }
-        .email-header h1 {
-            color: #0A0E1A;
-            font-size: 26px;
-            font-weight: 800;
-        }
-        .email-content {
-            padding: 40px 35px;
-        }
-        .welcome {
-            font-size: 28px;
-            font-weight: 800;
-            margin-bottom: 20px;
-            color: #C6A43F;
-        }
-        .message {
-            color: #9CA3AF;
-            line-height: 1.6;
-            margin-bottom: 25px;
-        }
+        .header h1 { color: #0A0E1A; font-size: 28px; font-weight: 800; }
+        .content { padding: 40px 35px; }
+        .welcome { font-size: 28px; font-weight: 800; margin-bottom: 20px; color: #C6A43F; }
+        .message { color: #9CA3AF; line-height: 1.6; margin-bottom: 25px; }
         .info-card {
-            background: #0F1622;
-            border-radius: 16px;
+            background: linear-gradient(135deg, #0F1622, #0A0E1A);
+            border-radius: 20px;
             padding: 25px;
             margin: 25px 0;
-            border-left: 4px solid #C6A43F;
+            border: 1px solid rgba(198, 164, 63, 0.2);
         }
         .info-row {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
             border-bottom: 1px solid #1F2937;
         }
-        .info-label {
-            color: #C6A43F;
-            font-weight: 600;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
-        .info-value {
-            font-weight: 600;
-            font-size: 14px;
-            color: #FFFFFF;
-            word-break: break-all;
-            text-align: right;
-        }
+        .info-label { color: #C6A43F; font-weight: 600; font-size: 12px; text-transform: uppercase; }
+        .info-value { font-weight: 600; font-size: 14px; color: #FFFFFF; word-break: break-all; text-align: right; }
         .features {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 12px;
+            gap: 15px;
             margin: 25px 0;
         }
         .feature {
-            background: #0A0E1A;
+            background: #0F1622;
             padding: 15px;
-            border-radius: 12px;
+            border-radius: 16px;
             text-align: center;
             border: 1px solid #1F2937;
         }
-        .feature-icon {
-            font-size: 28px;
-            display: block;
-            margin-bottom: 6px;
-        }
-        .feature-text {
-            font-size: 11px;
-            color: #9CA3AF;
+        .feature-icon { font-size: 28px; display: block; margin-bottom: 8px; }
+        .feature-text { font-size: 12px; color: #9CA3AF; }
+        .button {
+            display: inline-block;
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
+            color: #0A0E1A;
+            padding: 14px 32px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-top: 20px;
         }
         .footer {
             background: #0A0E1A;
@@ -285,19 +336,15 @@ const getWelcomeEmailHTML = (name, accountNumber, iban, swiftCode, currency) => 
             text-align: center;
             border-top: 1px solid #1F2937;
         }
-        .footer p {
-            color: #6B7280;
-            font-size: 12px;
-            margin: 5px 0;
-        }
+        .footer p { color: #6B7280; font-size: 12px; margin: 5px 0; }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <div class="email-header">
+        <div class="header">
             <h1>🏦 PRIME HERITAGE BANK</h1>
         </div>
-        <div class="email-content">
+        <div class="content">
             <div class="welcome">Welcome, ${name}! 🎉</div>
             <div class="message">
                 Your account has been successfully verified and activated. You now have access to premium international banking services.
@@ -316,7 +363,7 @@ const getWelcomeEmailHTML = (name, accountNumber, iban, swiftCode, currency) => 
                     <span class="info-value">${swiftCode}</span>
                 </div>
                 <div class="info-row">
-                    <span class="info-label">Currency</span>
+                    <span class="info-label">Primary Currency</span>
                     <span class="info-value">${currency}</span>
                 </div>
             </div>
@@ -339,58 +386,47 @@ const getWelcomeEmailHTML = (name, accountNumber, iban, swiftCode, currency) => 
 </html>
 `;
 
-const getPasswordResetEmailHTML = (name, code) => `
+const getPasswordResetEmail = (name, code) => `
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Password Reset</title>
+    <title>Password Reset | Prime Heritage Bank</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            font-family: 'Inter', sans-serif;
             background: linear-gradient(135deg, #0A0E1A 0%, #0F1622 100%);
             margin: 0;
             padding: 40px 20px;
         }
         .email-container {
-            max-width: 520px;
+            max-width: 560px;
             margin: 0 auto;
             background: #111827;
-            border-radius: 24px;
+            border-radius: 28px;
             overflow: hidden;
-            border: 1px solid rgba(198,164,63,0.3);
+            border: 1px solid rgba(198, 164, 63, 0.2);
         }
-        .email-header {
+        .header {
             background: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
             padding: 35px 30px;
             text-align: center;
         }
-        .email-header h1 {
-            color: #0A0E1A;
-            font-size: 26px;
-            font-weight: 800;
-        }
-        .email-content {
-            padding: 40px 35px;
-        }
+        .header h1 { color: #0A0E1A; font-size: 28px; }
+        .content { padding: 40px 35px; }
         .code-box {
             background: #0F1622;
             border: 2px solid #C6A43F;
-            border-radius: 16px;
-            padding: 25px;
+            border-radius: 20px;
+            padding: 28px;
             text-align: center;
             margin: 30px 0;
         }
-        .code {
-            font-size: 44px;
-            font-weight: 800;
-            color: #C6A43F;
-            letter-spacing: 8px;
-            font-family: monospace;
-        }
+        .code { font-size: 48px; font-weight: 800; color: #C6A43F; letter-spacing: 12px; font-family: monospace; }
         .warning {
-            background: rgba(239,68,68,0.1);
+            background: rgba(239, 68, 68, 0.1);
             border: 1px solid #EF4444;
             border-radius: 12px;
             padding: 15px;
@@ -404,27 +440,24 @@ const getPasswordResetEmailHTML = (name, code) => `
             text-align: center;
             border-top: 1px solid #1F2937;
         }
-        .footer p {
-            color: #6B7280;
-            font-size: 12px;
-        }
+        .footer p { color: #6B7280; font-size: 12px; }
     </style>
 </head>
 <body>
     <div class="email-container">
-        <div class="email-header">
+        <div class="header">
             <h1>🔐 Password Reset Request</h1>
         </div>
-        <div class="email-content">
+        <div class="content">
             <h2 style="color: #C6A43F; margin-bottom: 20px;">Hello ${name},</h2>
-            <p style="color: #9CA3AF;">We received a request to reset your password. Use the code below:</p>
+            <p style="color: #9CA3AF;">We received a request to reset your password. Use the verification code below:</p>
             <div class="code-box">
                 <div class="code">${code}</div>
             </div>
             <div class="warning">
                 ⚠️ This code expires in 10 minutes. Never share this code with anyone.
             </div>
-            <p style="color: #9CA3AF; font-size: 13px;">If you didn't request this, please ignore this email.</p>
+            <p style="color: #9CA3AF;">If you didn't request this, please ignore this email.</p>
         </div>
         <div class="footer">
             <p>Prime Heritage Bank - Security Department</p>
@@ -434,16 +467,15 @@ const getPasswordResetEmailHTML = (name, code) => `
 </html>
 `;
 
-// ========== EMAIL SENDING FUNCTION ==========
+// ========== SEND EMAIL FUNCTION ==========
 async function sendEmail(to, subject, html) {
     try {
-        const mailOptions = {
-            from: `"Prime Heritage Bank" <${process.env.EMAIL_USER}>`,
+        const info = await transporter.sendMail({
+            from: `"Prime Heritage Bank" <${process.env.EMAIL_USER || 'ad3d98001@smtp-brevo.com'}>`,
             to: to,
             subject: subject,
             html: html
-        };
-        const info = await transporter.sendMail(mailOptions);
+        });
         console.log('✅ Email sent to:', to);
         return true;
     } catch (error) {
@@ -471,8 +503,7 @@ const UserSchema = new mongoose.Schema({
 const AccountSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     currency: String, accountNumber: String, iban: String,
-    balance: { type: Number, default: 0 },
-    accountType: { type: String, default: 'checking' }
+    balance: { type: Number, default: 0 }
 });
 
 const TransactionSchema = new mongoose.Schema({
@@ -481,8 +512,8 @@ const TransactionSchema = new mongoose.Schema({
     toUserId: mongoose.Schema.Types.ObjectId,
     toAccountNumber: String, toName: String,
     amount: Number, currency: String,
-    type: { type: String, enum: ['transfer', 'deposit', 'withdrawal', 'airtime', 'data', 'bill', 'loan'], default: 'transfer' },
-    status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
+    type: { type: String, default: 'transfer' },
+    status: { type: String, default: 'completed' },
     reference: { type: String, unique: true },
     note: String,
     createdAt: { type: Date, default: Date.now }
@@ -492,8 +523,7 @@ const CardSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     cardNumber: String, last4: String,
     expiryMonth: Number, expiryYear: Number,
-    cvv: String, type: String, status: { type: String, default: 'active' },
-    dailyLimit: { type: Number, default: 5000 }
+    cvv: String, status: { type: String, default: 'active' }
 });
 
 const LoanSchema = new mongoose.Schema({
@@ -501,7 +531,7 @@ const LoanSchema = new mongoose.Schema({
     amount: Number, purpose: String,
     interestRate: Number, tenureMonths: Number,
     monthlyPayment: Number, totalPayable: Number,
-    status: { type: String, enum: ['pending', 'approved', 'rejected', 'active', 'completed'], default: 'pending' },
+    status: { type: String, default: 'pending' },
     createdAt: { type: Date, default: Date.now }
 });
 
@@ -520,8 +550,7 @@ const VerificationCodeSchema = new mongoose.Schema({
     code: { type: String, required: true },
     type: { type: String, enum: ['verification', 'password_reset'], default: 'verification' },
     expiresAt: { type: Date, required: true },
-    isUsed: { type: Boolean, default: false },
-    createdAt: { type: Date, default: Date.now }
+    isUsed: { type: Boolean, default: false }
 });
 
 const SupportMessageSchema = new mongoose.Schema({
@@ -565,10 +594,6 @@ function generateCardNumber() {
 
 function generateReference() {
     return 'PHB-' + Date.now() + '-' + Math.random().toString(36).substr(2, 8).toUpperCase();
-}
-
-function generateBBCode() {
-    return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
 function generateVerificationCode() {
@@ -629,8 +654,7 @@ app.post('/api/register', async (req, res) => {
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
         }).save();
 
-        const emailSent = await sendEmail(email, 'Verify Your Email - Prime Heritage Bank', getVerificationEmailHTML(`${firstName} ${lastName}`, verificationCode));
-        console.log('📧 Email sent:', emailSent);
+        await sendEmail(email, 'Verify Your Email - Prime Heritage Bank', getVerificationEmail(`${firstName} ${lastName}`, verificationCode));
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -660,7 +684,7 @@ app.post('/api/verify-email', async (req, res) => {
         user.isEmailVerified = true;
         await user.save();
 
-        await sendEmail(email, 'Welcome to Prime Heritage Bank! 🎉', getWelcomeEmailHTML(user.fullName, user.accountNumber, user.iban, user.swiftCode, user.currency));
+        await sendEmail(email, 'Welcome to Prime Heritage Bank! 🎉', getWelcomeEmail(user.fullName, user.accountNumber, user.iban, user.swiftCode, user.currency));
 
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
 
@@ -690,7 +714,7 @@ app.post('/api/resend-verification', async (req, res) => {
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
         }).save();
 
-        await sendEmail(email, 'New Verification Code', getVerificationEmailHTML(user.fullName, verificationCode));
+        await sendEmail(email, 'Verify Your Email - Prime Heritage Bank', getVerificationEmail(user.fullName, verificationCode));
         
         res.json({ success: true, message: 'New verification code sent' });
     } catch (error) {
@@ -713,7 +737,7 @@ app.post('/api/forgot-password', async (req, res) => {
             expiresAt: new Date(Date.now() + 10 * 60 * 1000)
         }).save();
 
-        await sendEmail(email, 'Password Reset Code', getPasswordResetEmailHTML(user.fullName, resetCode));
+        await sendEmail(email, 'Password Reset - Prime Heritage Bank', getPasswordResetEmail(user.fullName, resetCode));
         
         res.json({ success: true, message: 'Reset code sent to your email' });
     } catch (error) {
@@ -1015,7 +1039,7 @@ app.post('/api/admin/generate-bbc', async (req, res) => {
     const { userId, step = 1, quantity = 20, expiryDays = 30 } = req.body;
     const codes = [];
     for (let i = 0; i < quantity; i++) {
-        const code = generateBBCode();
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
         await new BBC({
             code, userId, step,
             expiresAt: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
@@ -1119,7 +1143,7 @@ createAdmin();
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`👑 Prime Heritage Bank running on http://localhost:${PORT}`);
-    console.log(`📧 Email notifications: ENABLED`);
+    console.log(`📧 Email: Brevo SMTP - ACTIVE`);
     console.log(`💳 BBC Security System: ACTIVE`);
 });
 
