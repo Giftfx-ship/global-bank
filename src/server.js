@@ -76,7 +76,13 @@ console.log(`${colors.reset}\n`);
 // ========== CONFIGURATION ==========
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure';
+
+// ========== FIXED MONGODB CONNECTION ==========
+// Use URL encoded password - the password is: fZ8W6OUOFYV6KxTU
 const MONGODB_URI = 'mongodb+srv://devvgift_db_user:fZ8W6OUOFYV6KxTU@cluster0.lcshvgf.mongodb.net/primeheritage?retryWrites=true&w=majority&appName=Cluster0';
+
+// Alternative if the above doesn't work, try this format:
+// const MONGODB_URI = 'mongodb+srv://devvgift_db_user:fZ8W6OUOFYV6KxTU@cluster0.lcshvgf.mongodb.net/primeheritage?retryWrites=true&w=majority';
 
 // ========== GMAIL EMAIL CONFIGURATION ==========
 const EMAIL_CONFIG = {
@@ -505,8 +511,6 @@ function getWelcomeEmail(user) {
 </html>`;
 }
 
-// ========== API ROUTES ==========
-
 // ========== REGISTER ==========
 app.post('/api/register', async (req, res) => {
     log('AUTH', `📝 Registration: ${req.body.email}`);
@@ -555,7 +559,6 @@ app.post('/api/register', async (req, res) => {
 
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
 
-        // Send welcome email
         try {
             await sendEmail(
                 email,
@@ -619,7 +622,6 @@ app.post('/api/login', async (req, res) => {
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
         log('SUCCESS', `✅ Login successful: ${user.email}`);
         
-        // Get BBC status
         const hasBbc1 = await hasBBCodes(user._id, 1);
         const hasBbc2 = await hasBBCodes(user._id, 2);
         const hasBbc3 = await hasBBCodes(user._id, 3);
@@ -664,7 +666,6 @@ app.get('/api/me', async (req, res) => {
         const loans = await Loan.find({ userId: user._id });
         const tickets = await SupportTicket.find({ userId: user._id });
         
-        // Get BBC status
         const hasBbc1 = await hasBBCodes(user._id, 1);
         const hasBbc2 = await hasBBCodes(user._id, 2);
         const hasBbc3 = await hasBBCodes(user._id, 3);
@@ -685,8 +686,6 @@ app.get('/api/me', async (req, res) => {
 });
 
 // ========== BBC 3-STEP SECURITY ==========
-
-// Step 1: Initiate transfer
 app.post('/api/send/step1', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -741,7 +740,6 @@ app.post('/api/send/step1', async (req, res) => {
     }
 });
 
-// Step 2: Verify BBC Code 1
 app.post('/api/send/step2', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -770,7 +768,6 @@ app.post('/api/send/step2', async (req, res) => {
     }
 });
 
-// Step 3: Verify BBC Code 2
 app.post('/api/send/step3', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -799,7 +796,6 @@ app.post('/api/send/step3', async (req, res) => {
     }
 });
 
-// Step 4: Finalize with BBC Code 3
 app.post('/api/send/step4', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -819,7 +815,6 @@ app.post('/api/send/step4', async (req, res) => {
         const bbc = await useBBCode(user._id, bbcCode, 3);
         if (!bbc) return res.status(403).json({ error: 'Invalid BBC Code 3' });
         
-        // Process transfer
         const senderAccount = await Account.findOne({ userId: user._id });
         const recipientAccount = await Account.findOne({ userId: transaction.toUserId });
         
@@ -953,8 +948,6 @@ app.get('/api/support', async (req, res) => {
 });
 
 // ========== ADMIN ROUTES ==========
-
-// Get all users
 app.get('/api/admin/users', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -976,7 +969,6 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
-// Toggle user status
 app.post('/api/admin/toggle-status', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1001,7 +993,6 @@ app.post('/api/admin/toggle-status', async (req, res) => {
     }
 });
 
-// Admin send money
 app.post('/api/admin/send-money', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1049,7 +1040,6 @@ app.post('/api/admin/send-money', async (req, res) => {
     }
 });
 
-// Generate BBC Codes (Admin only)
 app.post('/api/admin/generate-bbc', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1082,7 +1072,6 @@ app.post('/api/admin/generate-bbc', async (req, res) => {
     }
 });
 
-// Get BBC codes for user (Admin only)
 app.get('/api/admin/bbc/:userId', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -1153,7 +1142,10 @@ async function createAdmin() {
 // ========== CONNECT TO MONGODB ==========
 async function connectDB() {
     try {
-        await mongoose.connect(MONGODB_URI);
+        await mongoose.connect(MONGODB_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
         log('SUCCESS', '✅ MongoDB connected successfully!');
         log('INFO', `📊 Database: ${mongoose.connection.name}`);
         log('INFO', `🌐 Host: ${mongoose.connection.host}`);
@@ -1174,7 +1166,6 @@ async function startServer() {
     
     await createAdmin();
     
-    // Middleware
     app.use(helmet({
         contentSecurityPolicy: false,
         crossOriginEmbedderPolicy: false
@@ -1186,7 +1177,6 @@ async function startServer() {
     app.use(limiter);
     app.use(express.static('public'));
     
-    // Health check
     app.get('/api/health', (req, res) => {
         res.json({
             status: 'online',
@@ -1196,7 +1186,6 @@ async function startServer() {
         });
     });
     
-    // Serve frontend
     app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     });
@@ -1221,7 +1210,6 @@ async function startServer() {
     });
 }
 
-// ========== ERROR HANDLING ==========
 process.on('uncaughtException', (error) => {
     log('ERROR', 'Uncaught Exception:', error.message);
     console.error(error.stack);
