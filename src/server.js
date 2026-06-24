@@ -21,7 +21,7 @@ const supabase = createClient(
 );
 console.log('✅ Supabase initialized');
 
-// ========== EMAIL CONFIG (Using Your Method) ==========
+// ========== EMAIL CONFIG ==========
 console.log('📧 Initializing Email...');
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -141,11 +141,8 @@ function generateBBCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-// ========== EMAIL FUNCTIONS (YOUR METHOD - NON-BLOCKING) ==========
-
-// This sends email in background WITHOUT blocking the response
+// ========== EMAIL FUNCTIONS ==========
 function sendWelcomeEmailBackground(user) {
-    // Don't await - fire and forget
     sendEmail(
         user.email,
         '👑 Welcome to Prime Heritage Bank!',
@@ -161,7 +158,6 @@ function sendWelcomeEmailBackground(user) {
     });
 }
 
-// Email function using YOUR method (service: 'gmail')
 async function sendEmail(to, subject, html) {
     try {
         const mailOptions = {
@@ -182,7 +178,6 @@ async function sendEmail(to, subject, html) {
     }
 }
 
-// ========== WELCOME EMAIL TEMPLATE ==========
 function getWelcomeEmail(user) {
     return `
 <!DOCTYPE html>
@@ -396,14 +391,12 @@ app.post('/api/register', async (req, res) => {
     try {
         const { firstName, lastName, email, phone, password, transactionPin, currency } = req.body;
         
-        // Check if user exists
         const { data: existing, error: checkError } = await supabase
             .from('users')
             .select('email')
             .eq('email', email);
         
         if (existing && existing.length > 0) {
-            log('WARN', `Email already registered: ${email}`);
             return res.status(400).json({ error: 'Email already registered' });
         }
 
@@ -413,7 +406,6 @@ app.post('/api/register', async (req, res) => {
         const iban = generateIBAN(currency, accountNumber);
         const swiftCode = generateSWIFTCode(currency);
 
-        // Insert user
         const { data: user, error: insertError } = await supabase
             .from('users')
             .insert([{
@@ -441,7 +433,6 @@ app.post('/api/register', async (req, res) => {
 
         const newUser = user[0];
 
-        // Create account
         await supabase
             .from('accounts')
             .insert([{
@@ -452,15 +443,11 @@ app.post('/api/register', async (req, res) => {
                 balance: 0
             }]);
 
-        // Generate token
         const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure', { expiresIn: '7d' });
 
-        // ========== SEND EMAIL IN BACKGROUND (NON-BLOCKING) ==========
-        // This runs in the background - user gets response immediately
-        log('INFO', `📧 Queueing welcome email for ${email} (will send in background)`);
+        // Send email in background - NON-BLOCKING
         sendWelcomeEmailBackground(newUser);
 
-        // ========== IMMEDIATE RESPONSE - NO DELAY ==========
         log('SUCCESS', `✅ User registered: ${email}`);
         res.json({
             success: true,
@@ -498,7 +485,6 @@ app.post('/api/login', async (req, res) => {
             .or(`email.eq.${identifier},account_number.eq.${identifier},iban.eq.${identifier}`);
         
         if (!users || users.length === 0) {
-            log('WARN', `Login failed: User not found - ${identifier}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
@@ -506,16 +492,13 @@ app.post('/api/login', async (req, res) => {
         const valid = await bcrypt.compare(password, user.password);
         
         if (!valid) {
-            log('WARN', `Login failed: Invalid password - ${identifier}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         if (!user.is_active) {
-            log('WARN', `Login blocked: Account disabled - ${identifier}`);
             return res.status(403).json({ error: 'Account is disabled' });
         }
 
-        // Update last login
         await supabase
             .from('users')
             .update({ 
@@ -551,7 +534,7 @@ app.post('/api/login', async (req, res) => {
 
 // ========== GET USER PROFILE ==========
 app.get('/api/me', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) {
         log('WARN', 'No token provided for /api/me');
         return res.status(401).json({ error: 'No token' });
@@ -561,7 +544,6 @@ app.get('/api/me', async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         log('DEBUG', `🔍 Fetching user profile: ${decoded.userId}`);
         
-        // Get user
         const { data: user, error: userError } = await supabase
             .from('users')
             .select('*')
@@ -573,20 +555,17 @@ app.get('/api/me', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
         
-        // Get account
         const { data: account } = await supabase
             .from('accounts')
             .select('*')
             .eq('user_id', user.id)
             .single();
         
-        // Get cards
         const { data: cards } = await supabase
             .from('cards')
             .select('*')
             .eq('user_id', user.id);
         
-        // Get transactions
         const { data: transactions } = await supabase
             .from('transactions')
             .select('*')
@@ -594,19 +573,16 @@ app.get('/api/me', async (req, res) => {
             .order('created_at', { ascending: false })
             .limit(50);
         
-        // Get loans
         const { data: loans } = await supabase
             .from('loans')
             .select('*')
             .eq('user_id', user.id);
         
-        // Get tickets
         const { data: tickets } = await supabase
             .from('support_tickets')
             .select('*')
             .eq('user_id', user.id);
         
-        // Get BBC status
         const { data: bbc1 } = await supabase
             .from('bbc_codes')
             .select('code')
@@ -668,7 +644,7 @@ app.get('/api/me', async (req, res) => {
 
 // ========== UPDATE PASSWORD ==========
 app.post('/api/update-password', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -702,7 +678,7 @@ app.post('/api/update-password', async (req, res) => {
 
 // ========== UPDATE PIN ==========
 app.post('/api/update-pin', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -736,7 +712,7 @@ app.post('/api/update-pin', async (req, res) => {
 
 // ========== SEND MONEY - STEP 1 ==========
 app.post('/api/send/step1', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -745,7 +721,6 @@ app.post('/api/send/step1', async (req, res) => {
         
         log('BBC', `🔐 Send Money Step 1: User ${decoded.userId}, Amount: ${amount}`);
         
-        // Get user
         const { data: user, error: userError } = await supabase
             .from('users')
             .select('*')
@@ -757,14 +732,12 @@ app.post('/api/send/step1', async (req, res) => {
             return res.status(404).json({ error: 'User not found' });
         }
         
-        // Verify PIN
         const validPin = await bcrypt.compare(transactionPin, user.transaction_pin);
         if (!validPin) {
             log('WARN', `Invalid PIN for user: ${decoded.userId}`);
             return res.status(401).json({ error: 'Invalid PIN' });
         }
         
-        // Get sender account
         const { data: senderAccount } = await supabase
             .from('accounts')
             .select('*')
@@ -776,7 +749,6 @@ app.post('/api/send/step1', async (req, res) => {
             return res.status(400).json({ error: 'Insufficient funds' });
         }
         
-        // Find recipient
         const { data: recipient, error: recipientError } = await supabase
             .from('users')
             .select('*')
@@ -792,7 +764,6 @@ app.post('/api/send/step1', async (req, res) => {
             return res.status(400).json({ error: 'Cannot transfer to yourself' });
         }
         
-        // Get recipient account
         const { data: recipientAccount } = await supabase
             .from('accounts')
             .select('*')
@@ -804,7 +775,6 @@ app.post('/api/send/step1', async (req, res) => {
             return res.status(404).json({ error: 'Recipient account not found' });
         }
         
-        // Check BBC Code 1 exists
         const { data: bbc1, error: bbcError } = await supabase
             .from('bbc_codes')
             .select('code')
@@ -821,7 +791,6 @@ app.post('/api/send/step1', async (req, res) => {
         
         const reference = generateReference();
         
-        // Create pending transaction
         const { data: transaction, error: txError } = await supabase
             .from('transactions')
             .insert([{
@@ -857,7 +826,7 @@ app.post('/api/send/step1', async (req, res) => {
 
 // ========== SEND MONEY - STEP 2 ==========
 app.post('/api/send/step2', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -866,7 +835,6 @@ app.post('/api/send/step2', async (req, res) => {
         
         log('BBC', `🔐 Send Money Step 2: ${reference}`);
         
-        // Get transaction
         const { data: transaction, error: txError } = await supabase
             .from('transactions')
             .select('*')
@@ -880,7 +848,6 @@ app.post('/api/send/step2', async (req, res) => {
             return res.status(404).json({ error: 'Transaction not found' });
         }
         
-        // Verify BBC Code 1
         const { data: bbc, error: bbcError } = await supabase
             .from('bbc_codes')
             .update({ is_used: true, used_at: new Date().toISOString() })
@@ -908,7 +875,7 @@ app.post('/api/send/step2', async (req, res) => {
 
 // ========== SEND MONEY - STEP 3 ==========
 app.post('/api/send/step3', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -917,7 +884,6 @@ app.post('/api/send/step3', async (req, res) => {
         
         log('BBC', `🔐 Send Money Step 3: ${reference}`);
         
-        // Get transaction
         const { data: transaction, error: txError } = await supabase
             .from('transactions')
             .select('*')
@@ -931,7 +897,6 @@ app.post('/api/send/step3', async (req, res) => {
             return res.status(404).json({ error: 'Transaction not found' });
         }
         
-        // Verify BBC Code 2
         const { data: bbc, error: bbcError } = await supabase
             .from('bbc_codes')
             .update({ is_used: true, used_at: new Date().toISOString() })
@@ -959,7 +924,7 @@ app.post('/api/send/step3', async (req, res) => {
 
 // ========== SEND MONEY - STEP 4 ==========
 app.post('/api/send/step4', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -968,7 +933,6 @@ app.post('/api/send/step4', async (req, res) => {
         
         log('BBC', `🔐 Send Money Step 4: ${reference}`);
         
-        // Get transaction
         const { data: transaction, error: txError } = await supabase
             .from('transactions')
             .select('*')
@@ -982,7 +946,6 @@ app.post('/api/send/step4', async (req, res) => {
             return res.status(404).json({ error: 'Transaction not found' });
         }
         
-        // Verify BBC Code 3
         const { data: bbc, error: bbcError } = await supabase
             .from('bbc_codes')
             .update({ is_used: true, used_at: new Date().toISOString() })
@@ -998,21 +961,18 @@ app.post('/api/send/step4', async (req, res) => {
             return res.status(403).json({ error: 'Invalid BBC Code 3' });
         }
         
-        // Get sender account
         const { data: senderAccount } = await supabase
             .from('accounts')
             .select('*')
             .eq('user_id', decoded.userId)
             .single();
         
-        // Get recipient account
         const { data: recipientAccount } = await supabase
             .from('accounts')
             .select('*')
             .eq('user_id', transaction.to_user_id)
             .single();
         
-        // Update balances
         await supabase
             .from('accounts')
             .update({ balance: senderAccount.balance - transaction.amount })
@@ -1023,7 +983,6 @@ app.post('/api/send/step4', async (req, res) => {
             .update({ balance: recipientAccount.balance + transaction.amount })
             .eq('id', recipientAccount.id);
         
-        // Complete transaction
         await supabase
             .from('transactions')
             .update({ 
@@ -1035,7 +994,6 @@ app.post('/api/send/step4', async (req, res) => {
         log('BBC', `🔐 Step 4: Transfer completed - ${reference}`);
         log('BANK', `💸 Transfer: ${transaction.amount} ${transaction.currency} completed`);
         
-        // Get updated balance
         const { data: updatedAccount } = await supabase
             .from('accounts')
             .select('balance')
@@ -1058,7 +1016,7 @@ app.post('/api/send/step4', async (req, res) => {
 
 // ========== GET TRANSACTIONS ==========
 app.get('/api/transactions', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -1080,7 +1038,7 @@ app.get('/api/transactions', async (req, res) => {
 
 // ========== APPLY FOR LOAN ==========
 app.post('/api/loans/apply', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -1121,7 +1079,7 @@ app.post('/api/loans/apply', async (req, res) => {
 
 // ========== GET LOANS ==========
 app.get('/api/loans', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -1142,7 +1100,7 @@ app.get('/api/loans', async (req, res) => {
 
 // ========== CREATE SUPPORT TICKET ==========
 app.post('/api/support', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -1184,7 +1142,7 @@ app.post('/api/support', async (req, res) => {
 
 // ========== GET SUPPORT TICKETS ==========
 app.get('/api/support/tickets', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -1207,13 +1165,12 @@ app.get('/api/support/tickets', async (req, res) => {
 
 // Get all users
 app.get('/api/admin/users', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        // Check if admin
         const { data: admin, error: adminError } = await supabase
             .from('users')
             .select('is_admin')
@@ -1230,7 +1187,6 @@ app.get('/api/admin/users', async (req, res) => {
             .select('*')
             .order('created_at', { ascending: false });
         
-        // Get balances for each user
         const usersWithBalance = await Promise.all(users.map(async (u) => {
             const { data: account } = await supabase
                 .from('accounts')
@@ -1238,7 +1194,6 @@ app.get('/api/admin/users', async (req, res) => {
                 .eq('user_id', u.id)
                 .single();
             
-            // Get BBC count
             const { data: bbcCodes } = await supabase
                 .from('bbc_codes')
                 .select('id')
@@ -1260,13 +1215,12 @@ app.get('/api/admin/users', async (req, res) => {
 
 // Toggle user status
 app.post('/api/admin/toggle-status', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        // Check if admin
         const { data: admin, error: adminError } = await supabase
             .from('users')
             .select('is_admin')
@@ -1279,7 +1233,6 @@ app.post('/api/admin/toggle-status', async (req, res) => {
         
         const { userId } = req.body;
         
-        // Get current user
         const { data: user, error: userError } = await supabase
             .from('users')
             .select('is_active')
@@ -1288,7 +1241,6 @@ app.post('/api/admin/toggle-status', async (req, res) => {
         
         if (!user) return res.status(404).json({ error: 'User not found' });
         
-        // Toggle status
         await supabase
             .from('users')
             .update({ is_active: !user.is_active })
@@ -1305,13 +1257,12 @@ app.post('/api/admin/toggle-status', async (req, res) => {
 
 // Admin send money
 app.post('/api/admin/send', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        // Check if admin
         const { data: admin, error: adminError } = await supabase
             .from('users')
             .select('is_admin')
@@ -1324,7 +1275,6 @@ app.post('/api/admin/send', async (req, res) => {
         
         const { toAccountNumber, amount, currency, senderName, note } = req.body;
         
-        // Find recipient
         const { data: recipient, error: recipientError } = await supabase
             .from('users')
             .select('*')
@@ -1333,7 +1283,6 @@ app.post('/api/admin/send', async (req, res) => {
         
         if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
         
-        // Get recipient account
         const { data: recipientAccount, error: accError } = await supabase
             .from('accounts')
             .select('*')
@@ -1341,7 +1290,6 @@ app.post('/api/admin/send', async (req, res) => {
             .single();
         
         if (!recipientAccount) {
-            // Create account if doesn't exist
             const { data: newAccount, error: createError } = await supabase
                 .from('accounts')
                 .insert([{
@@ -1358,14 +1306,12 @@ app.post('/api/admin/send', async (req, res) => {
                 return res.status(500).json({ error: 'Failed to create account' });
             }
         } else {
-            // Update existing account
             await supabase
                 .from('accounts')
                 .update({ balance: recipientAccount.balance + amount })
                 .eq('id', recipientAccount.id);
         }
         
-        // Create transaction
         const reference = generateReference();
         await supabase
             .from('transactions')
@@ -1397,13 +1343,12 @@ app.post('/api/admin/send', async (req, res) => {
 
 // Generate BBC codes
 app.post('/api/admin/generate-bbc', async (req, res) => {
-    const token = req.headers.authorization?.split(' '')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        // Check if admin
         const { data: admin, error: adminError } = await supabase
             .from('users')
             .select('is_admin')
@@ -1449,13 +1394,12 @@ app.post('/api/admin/generate-bbc', async (req, res) => {
 
 // Get BBC codes for user
 app.get('/api/admin/bbc/:userId', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization ? req.headers.authorization.split(' ')[1] : null;
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        // Check if admin
         const { data: admin, error: adminError } = await supabase
             .from('users')
             .select('is_admin')
@@ -1482,7 +1426,6 @@ app.get('/api/admin/bbc/:userId', async (req, res) => {
 // ========== CREATE ADMIN ==========
 async function createAdmin() {
     try {
-        // Check if admin exists
         const { data: existing, error } = await supabase
             .from('users')
             .select('id')
@@ -1554,7 +1497,6 @@ app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// ========== CORS ==========
 app.use(cors({
     origin: '*',
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -1584,7 +1526,6 @@ app.get('*', (req, res) => {
 const PORT = process.env.PORT || 3000;
 
 async function startServer() {
-    // Create admin on startup
     await createAdmin();
     
     app.listen(PORT, () => {
