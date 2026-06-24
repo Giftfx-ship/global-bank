@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Loans | Prime Heritage Bank</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
@@ -19,7 +19,7 @@
             --warning: #F59E0B;
             --info: #3B82F6;
         }
-        
+
         [data-theme="dark"] {
             --bg-body: #0A0E1A;
             --bg-card: rgba(17, 24, 39, 0.95);
@@ -27,10 +27,9 @@
             --text-primary: #FFFFFF;
             --text-secondary: #9CA3AF;
             --input-bg: #0F1622;
-            --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             --glass-bg: rgba(17, 24, 39, 0.8);
         }
-        
+
         [data-theme="light"] {
             --bg-body: #F3F4F6;
             --bg-card: rgba(255, 255, 255, 0.95);
@@ -38,10 +37,9 @@
             --text-primary: #111827;
             --text-secondary: #6B7280;
             --input-bg: #F9FAFB;
-            --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
             --glass-bg: rgba(255, 255, 255, 0.8);
         }
-        
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-body);
@@ -49,7 +47,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
-        
+
         body::before {
             content: '';
             position: fixed;
@@ -62,18 +60,15 @@
             pointer-events: none;
             z-index: 0;
         }
-        
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px); } 
-            to { opacity: 1; transform: translateY(0); } 
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeIn { 
-            from { opacity: 0; } 
-            to { opacity: 1; } 
-        }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        
+
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -86,7 +81,7 @@
             z-index: 100;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo-icon {
             width: 44px; height: 44px;
@@ -105,9 +100,9 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .user-section { display: flex; align-items: center; gap: 20px; }
-        
+
         .balance-pill {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.1));
             padding: 10px 24px;
@@ -117,7 +112,7 @@
         }
         .balance-pill i { color: var(--gold); margin-right: 10px; }
         .balance-pill span { color: var(--gold); font-weight: 700; font-size: 18px; }
-        
+
         .theme-toggle {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--border);
@@ -138,7 +133,7 @@
             color: #0A0E1A;
         }
         .theme-option i { margin-right: 8px; }
-        
+
         .avatar {
             width: 46px; height: 46px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
@@ -151,13 +146,10 @@
         }
         .avatar:hover { transform: scale(1.1) rotate(5deg); }
         .avatar i { color: #0A0E1A; font-size: 20px; }
-        
+
         .container { max-width: 1200px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
-        
-        .page-header {
-            margin-bottom: 32px;
-            animation: slideUp 0.6s ease;
-        }
+
+        .page-header { margin-bottom: 32px; animation: slideUp 0.6s ease; }
         .page-header h1 {
             font-size: 32px;
             font-weight: 700;
@@ -166,7 +158,7 @@
             -webkit-text-fill-color: transparent;
         }
         .page-header p { color: var(--text-secondary); margin-top: 8px; }
-        
+
         .stats-row {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -186,14 +178,14 @@
         .stat-mini i { font-size: 32px; color: var(--gold); margin-bottom: 10px; }
         .stat-mini .stat-number { font-size: 28px; font-weight: 800; color: var(--text-primary); }
         .stat-mini .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 5px; }
-        
+
         .two-column {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
             margin-bottom: 32px;
         }
-        
+
         .loan-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -203,9 +195,8 @@
             transition: all 0.3s;
             animation: slideUp 0.6s ease;
         }
-        
         .loan-card:hover { border-color: var(--gold); }
-        
+
         .section-title {
             font-size: 20px;
             font-weight: 700;
@@ -215,12 +206,8 @@
             align-items: center;
             gap: 10px;
         }
-        
-        .section-title i {
-            color: var(--gold);
-            font-size: 24px;
-        }
-        
+        .section-title i { color: var(--gold); font-size: 24px; }
+
         .loan-product {
             background: linear-gradient(135deg, rgba(198,164,63,0.1), rgba(158,128,50,0.05));
             border-radius: 20px;
@@ -230,38 +217,13 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
-        .loan-product:hover {
-            transform: translateX(8px);
-            border-color: var(--gold);
-        }
-        
-        .loan-product-icon {
-            font-size: 36px;
-            margin-bottom: 12px;
-        }
-        
-        .loan-product-name {
-            font-size: 18px;
-            font-weight: 700;
-            color: var(--text-primary);
-            margin-bottom: 8px;
-        }
-        
-        .loan-product-desc {
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin-bottom: 12px;
-        }
-        
-        .loan-product-rate {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--success);
-        }
-        
+        .loan-product:hover { transform: translateX(8px); border-color: var(--gold); }
+        .loan-product-icon { font-size: 36px; margin-bottom: 12px; }
+        .loan-product-name { font-size: 18px; font-weight: 700; color: var(--text-primary); margin-bottom: 8px; }
+        .loan-product-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 12px; }
+        .loan-product-rate { font-size: 14px; font-weight: 600; color: var(--success); }
+
         .form-group { margin-bottom: 24px; }
-        
         .form-group label {
             display: block;
             font-size: 12px;
@@ -271,12 +233,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
-        .form-group label i {
-            margin-right: 8px;
-            color: var(--gold);
-        }
-        
+        .form-group label i { margin-right: 8px; color: var(--gold); }
         .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 14px 18px;
@@ -288,14 +245,13 @@
             font-size: 15px;
             transition: all 0.3s;
         }
-        
         .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
             transform: translateY(-2px);
         }
-        
+
         .calculator {
             background: linear-gradient(135deg, var(--input-bg), rgba(198,164,63,0.05));
             border-radius: 20px;
@@ -303,27 +259,16 @@
             margin: 24px 0;
             border: 1px solid var(--border);
         }
-        
         .calc-row {
             display: flex;
             justify-content: space-between;
             padding: 14px 0;
             border-bottom: 1px solid var(--border);
         }
-        
         .calc-row:last-child { border-bottom: none; }
-        
-        .calc-label {
-            color: var(--text-secondary);
-            font-size: 13px;
-        }
-        
-        .calc-value {
-            color: var(--gold);
-            font-weight: 700;
-            font-size: 18px;
-        }
-        
+        .calc-label { color: var(--text-secondary); font-size: 13px; }
+        .calc-value { color: var(--gold); font-weight: 700; font-size: 18px; }
+
         .btn {
             width: 100%;
             padding: 16px;
@@ -340,12 +285,11 @@
             justify-content: center;
             gap: 10px;
         }
-        
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
-        
+
         .loan-item {
             background: var(--input-bg);
             border-radius: 20px;
@@ -354,15 +298,8 @@
             border: 1px solid var(--border);
             transition: all 0.3s;
         }
-        
         .loan-item:hover { transform: translateX(5px); border-color: var(--gold); }
-        
-        .loan-amount {
-            font-size: 22px;
-            font-weight: 800;
-            color: var(--gold);
-        }
-        
+        .loan-amount { font-size: 22px; font-weight: 800; color: var(--gold); }
         .loan-status {
             display: inline-block;
             padding: 6px 14px;
@@ -371,23 +308,17 @@
             font-weight: 700;
             margin-top: 12px;
         }
-        
         .status-approved { background: rgba(16,185,129,0.15); color: var(--success); }
         .status-pending { background: rgba(198,164,63,0.15); color: var(--gold); }
         .status-rejected { background: rgba(239,68,68,0.15); color: var(--error); }
-        
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
             color: var(--text-secondary);
         }
-        
-        .empty-state i {
-            font-size: 64px;
-            margin-bottom: 16px;
-            opacity: 0.5;
-        }
-        
+        .empty-state i { font-size: 64px; margin-bottom: 16px; opacity: 0.5; }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -401,7 +332,6 @@
             border-top: 1px solid var(--border);
             z-index: 99;
         }
-        
         .nav-item {
             text-align: center;
             cursor: pointer;
@@ -409,27 +339,23 @@
             border-radius: 14px;
             transition: all 0.3s;
         }
-        
         .nav-item i {
             font-size: 22px;
             color: var(--text-secondary);
             display: block;
             margin-bottom: 6px;
         }
-        
         .nav-item span {
             font-size: 11px;
             color: var(--text-secondary);
             font-weight: 500;
         }
-        
         .nav-item.active {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
         }
-        
         .nav-item.active i, .nav-item.active span { color: var(--gold); }
         .nav-item:hover { transform: translateY(-3px); }
-        
+
         .loading-overlay {
             display: none;
             position: fixed;
@@ -442,7 +368,6 @@
             justify-content: center;
             flex-direction: column;
         }
-        
         .loader {
             width: 60px; height: 60px;
             border: 3px solid rgba(198,164,63,0.2);
@@ -451,7 +376,7 @@
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
-        
+
         @media (max-width: 768px) {
             .container { padding: 16px; }
             .two-column { grid-template-columns: 1fr; gap: 20px; }
@@ -462,7 +387,7 @@
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
         }
-        
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
@@ -479,13 +404,8 @@
                 <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></div>
                 <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></div>
             </div>
-            <div class="balance-pill">
-                <i class="fas fa-wallet"></i>
-                <span id="headerBalance">$0.00</span>
-            </div>
-            <div class="avatar" onclick="location.href='/profile.html'">
-                <i class="fas fa-user"></i>
-            </div>
+            <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
+            <div class="avatar" onclick="location.href='/profile.html'"><i class="fas fa-user"></i></div>
         </div>
     </div>
 
@@ -496,57 +416,33 @@
         </div>
 
         <div class="stats-row">
-            <div class="stat-mini">
-                <i class="fas fa-chart-line"></i>
-                <div class="stat-number" id="totalBorrowed">$0</div>
-                <div class="stat-label">Total Borrowed</div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-check-circle"></i>
-                <div class="stat-number" id="activeLoans">0</div>
-                <div class="stat-label">Active Loans</div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-percent"></i>
-                <div class="stat-number">From 5.5%</div>
-                <div class="stat-label">Interest Rate</div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-clock"></i>
-                <div class="stat-number">24/7</div>
-                <div class="stat-label">Approval</div>
-            </div>
+            <div class="stat-mini"><i class="fas fa-chart-line"></i><div class="stat-number" id="totalBorrowed">$0</div><div class="stat-label">Total Borrowed</div></div>
+            <div class="stat-mini"><i class="fas fa-check-circle"></i><div class="stat-number" id="activeLoans">0</div><div class="stat-label">Active Loans</div></div>
+            <div class="stat-mini"><i class="fas fa-percent"></i><div class="stat-number">From 5.5%</div><div class="stat-label">Interest Rate</div></div>
+            <div class="stat-mini"><i class="fas fa-clock"></i><div class="stat-number">24/7</div><div class="stat-label">Approval</div></div>
         </div>
 
         <div class="two-column">
-            <!-- Loan Products -->
             <div class="loan-card">
-                <div class="section-title">
-                    <i class="fas fa-gem"></i>
-                    Loan Products
-                </div>
-                
+                <div class="section-title"><i class="fas fa-gem"></i> Loan Products</div>
                 <div class="loan-product" onclick="quickFillLoan(5000, 'Personal Loan - Quick Cash')">
                     <div class="loan-product-icon">💼</div>
                     <div class="loan-product-name">Personal Loan</div>
                     <div class="loan-product-desc">Up to $50,000 | 12-60 months | No collateral</div>
                     <div class="loan-product-rate">✨ From 9.9% APR</div>
                 </div>
-                
                 <div class="loan-product" onclick="quickFillLoan(250000, 'Home Loan - Property Purchase')">
                     <div class="loan-product-icon">🏠</div>
                     <div class="loan-product-name">Home Loan</div>
                     <div class="loan-product-desc">Up to $500,000 | 5-30 years | Low interest</div>
                     <div class="loan-product-rate">✨ From 5.5% APR</div>
                 </div>
-                
                 <div class="loan-product" onclick="quickFillLoan(50000, 'Business Loan - Expansion')">
                     <div class="loan-product-icon">📈</div>
                     <div class="loan-product-name">Business Loan</div>
                     <div class="loan-product-desc">Up to $250,000 | 12-84 months | Flexible terms</div>
                     <div class="loan-product-rate">✨ From 8.5% APR</div>
                 </div>
-                
                 <div class="loan-product" onclick="quickFillLoan(20000, 'Education Loan - Tuition Fees')">
                     <div class="loan-product-icon">🎓</div>
                     <div class="loan-product-name">Education Loan</div>
@@ -555,23 +451,16 @@
                 </div>
             </div>
 
-            <!-- Apply for Loan -->
             <div class="loan-card">
-                <div class="section-title">
-                    <i class="fas fa-calculator"></i>
-                    Apply for Loan
-                </div>
-                
+                <div class="section-title"><i class="fas fa-calculator"></i> Apply for Loan</div>
                 <div class="form-group">
                     <label><i class="fas fa-dollar-sign"></i> Loan Amount ($)</label>
                     <input type="number" id="loanAmount" placeholder="Enter amount" onkeyup="calculateLoan()" value="10000">
                 </div>
-                
                 <div class="form-group">
                     <label><i class="fas fa-pen-alt"></i> Purpose of Loan</label>
                     <textarea id="loanPurpose" rows="3" placeholder="What will you use this loan for?"></textarea>
                 </div>
-                
                 <div class="form-group">
                     <label><i class="fas fa-calendar-alt"></i> Repayment Period</label>
                     <select id="loanTenure" onchange="calculateLoan()">
@@ -587,44 +476,21 @@
                         <option value="360">360 months (30 years)</option>
                     </select>
                 </div>
-                
+
                 <div class="calculator">
-                    <div class="calc-row">
-                        <span class="calc-label"><i class="fas fa-chart-simple"></i> Interest Rate</span>
-                        <span class="calc-value">12% APR</span>
-                    </div>
-                    <div class="calc-row">
-                        <span class="calc-label"><i class="fas fa-calendar-week"></i> Monthly Payment</span>
-                        <span class="calc-value" id="monthlyPayment">$0.00</span>
-                    </div>
-                    <div class="calc-row">
-                        <span class="calc-label"><i class="fas fa-coins"></i> Total Payable</span>
-                        <span class="calc-value" id="totalPayable">$0.00</span>
-                    </div>
-                    <div class="calc-row">
-                        <span class="calc-label"><i class="fas fa-percent"></i> Total Interest</span>
-                        <span class="calc-value" id="totalInterest">$0.00</span>
-                    </div>
+                    <div class="calc-row"><span class="calc-label"><i class="fas fa-chart-simple"></i> Interest Rate</span><span class="calc-value">12% APR</span></div>
+                    <div class="calc-row"><span class="calc-label"><i class="fas fa-calendar-week"></i> Monthly Payment</span><span class="calc-value" id="monthlyPayment">$0.00</span></div>
+                    <div class="calc-row"><span class="calc-label"><i class="fas fa-coins"></i> Total Payable</span><span class="calc-value" id="totalPayable">$0.00</span></div>
+                    <div class="calc-row"><span class="calc-label"><i class="fas fa-percent"></i> Total Interest</span><span class="calc-value" id="totalInterest">$0.00</span></div>
                 </div>
-                
-                <button class="btn" onclick="applyForLoan()">
-                    <i class="fas fa-paper-plane"></i> Submit Application
-                </button>
+
+                <button class="btn" onclick="applyForLoan()"><i class="fas fa-paper-plane"></i> Submit Application</button>
             </div>
         </div>
 
-        <!-- My Loan Applications -->
         <div class="loan-card">
-            <div class="section-title">
-                <i class="fas fa-history"></i>
-                My Loan Applications
-            </div>
-            <div id="myLoans">
-                <div class="empty-state">
-                    <i class="fas fa-spinner fa-pulse"></i>
-                    <p>Loading your applications...</p>
-                </div>
-            </div>
+            <div class="section-title"><i class="fas fa-history"></i> My Loan Applications</div>
+            <div id="myLoans"><div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading your applications...</p></div></div>
         </div>
     </div>
 
@@ -643,7 +509,7 @@
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
-        
+
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
@@ -652,19 +518,17 @@
             if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
             else document.getElementById('lightOption').classList.add('active');
         }
-        
+
         function toggleTheme() {
             const current = document.body.getAttribute('data-theme');
             setTheme(current === 'dark' ? 'light' : 'dark');
         }
-        
+
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
-        
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
-        
+
+        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+
         function quickFillLoan(amount, purpose) {
             document.getElementById('loanAmount').value = amount;
             document.getElementById('loanPurpose').value = purpose;
@@ -676,59 +540,43 @@
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
-                timer: 2500,
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#111827' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#1e293b'
+                timer: 2500
             });
         }
-        
+
         function calculateLoan() {
             const amount = parseFloat(document.getElementById('loanAmount').value);
             const tenure = parseInt(document.getElementById('loanTenure').value);
-            
             if (!amount || amount <= 0) {
                 document.getElementById('monthlyPayment').innerHTML = '$0.00';
                 document.getElementById('totalPayable').innerHTML = '$0.00';
                 document.getElementById('totalInterest').innerHTML = '$0.00';
                 return;
             }
-            
-            const interestRate = 0.12; // 12% APR
+            const interestRate = 0.12;
             const totalInterestAmount = amount * interestRate;
             const totalPayableAmount = amount + totalInterestAmount;
             const monthlyPaymentAmount = totalPayableAmount / tenure;
-            
             document.getElementById('monthlyPayment').innerHTML = `$${monthlyPaymentAmount.toFixed(2)}`;
             document.getElementById('totalPayable').innerHTML = `$${totalPayableAmount.toFixed(2)}`;
             document.getElementById('totalInterest').innerHTML = `$${totalInterestAmount.toFixed(2)}`;
         }
-        
+
         async function applyForLoan() {
             const amount = parseFloat(document.getElementById('loanAmount').value);
             const purpose = document.getElementById('loanPurpose').value.trim();
             const tenure = parseInt(document.getElementById('loanTenure').value);
-            
-            if (!amount || amount <= 0) {
-                Swal.fire('Error', 'Please enter a valid loan amount', 'error');
-                return;
-            }
-            if (!purpose) {
-                Swal.fire('Error', 'Please enter the purpose of your loan', 'error');
-                return;
-            }
-            
+            if (!amount || amount <= 0) { Swal.fire('Error', 'Please enter a valid loan amount', 'error'); return; }
+            if (!purpose) { Swal.fire('Error', 'Please enter the purpose of your loan', 'error'); return; }
+
             showLoading(true);
             try {
                 const res = await fetch(`${apiUrl}/api/loans/apply`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                     body: JSON.stringify({ amount, purpose, tenureMonths: tenure })
                 });
                 const data = await res.json();
-                
                 if (data.success) {
                     Swal.fire({
                         icon: 'success',
@@ -736,7 +584,7 @@
                         html: `
                             <div style="text-align: left;">
                                 <p><strong>Loan Amount:</strong> $${amount.toLocaleString()}</p>
-                                <p><strong>Monthly Payment:</strong> $${data.loan?.monthlyPayment || (amount * 1.12 / tenure).toFixed(2)}</p>
+                                <p><strong>Monthly Payment:</strong> $${data.loan?.monthly_payment || (amount * 1.12 / tenure).toFixed(2)}</p>
                                 <p><strong>Status:</strong> Pending Review</p>
                                 <p><strong>Estimated Approval:</strong> 24-48 hours</p>
                             </div>
@@ -746,66 +594,34 @@
                     document.getElementById('loanAmount').value = '';
                     document.getElementById('loanPurpose').value = '';
                     loadLoans();
-                } else {
-                    Swal.fire('Error', data.error || 'Application failed', 'error');
-                }
-            } catch(e) {
-                Swal.fire('Error', 'Network error. Please try again.', 'error');
-            } finally {
-                showLoading(false);
-            }
+                } else { Swal.fire('Error', data.error || 'Application failed', 'error'); }
+            } catch(e) { Swal.fire('Error', 'Network error. Please try again.', 'error'); } finally { showLoading(false); }
         }
-        
+
         async function loadLoans() {
             try {
                 const res = await fetch(`${apiUrl}/api/loans`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-                if (res.status === 401) {
-                    window.location.href = '/';
-                    return;
-                }
+                if (res.status === 401) { window.location.href = '/'; return; }
                 const loans = await res.json();
                 const container = document.getElementById('myLoans');
-                
-                let totalBorrowed = 0;
-                let activeLoans = 0;
-                
+                let totalBorrowed = 0, activeLoans = 0;
+
                 if (!loans || loans.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-folder-open"></i>
-                            <p>No loan applications yet</p>
-                            <small>Apply for your first loan above</small>
-                        </div>
-                    `;
+                    container.innerHTML = `<div class="empty-state"><i class="fas fa-folder-open"></i><p>No loan applications yet</p><small>Apply for your first loan above</small></div>`;
                     document.getElementById('totalBorrowed').innerHTML = '$0';
                     document.getElementById('activeLoans').innerHTML = '0';
                     return;
                 }
-                
+
                 container.innerHTML = '';
                 for (let loan of loans) {
-                    let statusClass = '';
-                    let statusText = '';
-                    let statusIcon = '';
-                    
-                    if (loan.status === 'approved') {
-                        statusClass = 'status-approved';
-                        statusText = 'APPROVED';
-                        statusIcon = '✅';
-                        activeLoans++;
-                        totalBorrowed += loan.amount;
-                    } else if (loan.status === 'rejected') {
-                        statusClass = 'status-rejected';
-                        statusText = 'REJECTED';
-                        statusIcon = '❌';
-                    } else {
-                        statusClass = 'status-pending';
-                        statusText = 'PENDING';
-                        statusIcon = '⏳';
-                    }
-                    
+                    let statusClass = '', statusText = '', statusIcon = '';
+                    if (loan.status === 'approved') { statusClass = 'status-approved'; statusText = 'APPROVED'; statusIcon = '✅'; activeLoans++; totalBorrowed += loan.amount; }
+                    else if (loan.status === 'rejected') { statusClass = 'status-rejected'; statusText = 'REJECTED'; statusIcon = '❌'; }
+                    else { statusClass = 'status-pending'; statusText = 'PENDING'; statusIcon = '⏳'; }
+
                     container.innerHTML += `
                         <div class="loan-item">
                             <div class="loan-amount">$${parseFloat(loan.amount).toLocaleString()}</div>
@@ -813,64 +629,40 @@
                                 <i class="fas fa-tag"></i> ${escapeHtml(loan.purpose || 'No purpose provided')}
                             </div>
                             <div style="margin-top: 8px; display: flex; gap: 20px; flex-wrap: wrap;">
-                                <span><i class="fas fa-calendar-alt"></i> ${loan.tenureMonths} months</span>
-                                <span><i class="fas fa-chart-line"></i> ${loan.interestRate}% APR</span>
-                                <span><i class="fas fa-coins"></i> Monthly: $${loan.monthlyPayment}</span>
+                                <span><i class="fas fa-calendar-alt"></i> ${loan.tenure_months} months</span>
+                                <span><i class="fas fa-chart-line"></i> ${loan.interest_rate}% APR</span>
+                                <span><i class="fas fa-coins"></i> Monthly: $${loan.monthly_payment}</span>
                             </div>
-                            <div>
-                                <span class="loan-status ${statusClass}">${statusIcon} ${statusText}</span>
-                            </div>
+                            <div><span class="loan-status ${statusClass}">${statusIcon} ${statusText}</span></div>
                             <div style="margin-top: 10px; font-size: 11px; color: var(--text-secondary);">
-                                <i class="far fa-calendar-alt"></i> Applied: ${new Date(loan.createdAt).toLocaleDateString()}
+                                <i class="far fa-calendar-alt"></i> Applied: ${new Date(loan.created_at).toLocaleDateString()}
                             </div>
                         </div>
                     `;
                 }
-                
                 document.getElementById('totalBorrowed').innerHTML = `$${totalBorrowed.toLocaleString()}`;
                 document.getElementById('activeLoans').innerHTML = activeLoans;
-                
             } catch(e) {
                 console.error(e);
-                document.getElementById('myLoans').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Could not load loans</p>
-                        <small>Please refresh the page</small>
-                    </div>
-                `;
+                document.getElementById('myLoans').innerHTML = `<div class="empty-state"><i class="fas fa-exclamation-triangle"></i><p>Could not load loans</p><small>Please refresh the page</small></div>`;
             }
         }
-        
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>]/g, function(m) {
-                if (m === '&') return '&amp;';
-                if (m === '<') return '&lt;';
-                if (m === '>') return '&gt;';
-                return m;
-            });
-        }
-        
+
+        function escapeHtml(str) { if (!str) return ''; return str.replace(/[&<>]/g, function(m) { if (m === '&') return '&amp;'; if (m === '<') return '&lt;'; if (m === '>') return '&gt;'; return m; }); }
+
         async function loadBalance() {
             try {
                 const res = await fetch(`${apiUrl}/api/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-                if (res.status === 401) {
-                    window.location.href = '/';
-                    return;
-                }
+                if (res.status === 401) { window.location.href = '/'; return; }
                 const data = await res.json();
                 const balance = data.totalBalance || 0;
                 const currency = data.user.currency || 'USD';
                 document.getElementById('headerBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
-            } catch(e) {
-                console.error(e);
-            }
+            } catch(e) { console.error(e); }
         }
-        
-        // Initialize
+
         calculateLoan();
         loadLoans();
         loadBalance();
