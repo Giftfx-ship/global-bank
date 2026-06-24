@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Cards | Prime Heritage Bank</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
@@ -19,7 +19,7 @@
             --warning: #F59E0B;
             --info: #3B82F6;
         }
-        
+
         [data-theme="dark"] {
             --bg-body: #0A0E1A;
             --bg-card: rgba(17, 24, 39, 0.95);
@@ -27,10 +27,9 @@
             --text-primary: #FFFFFF;
             --text-secondary: #9CA3AF;
             --input-bg: #0F1622;
-            --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             --glass-bg: rgba(17, 24, 39, 0.8);
         }
-        
+
         [data-theme="light"] {
             --bg-body: #F3F4F6;
             --bg-card: rgba(255, 255, 255, 0.95);
@@ -38,10 +37,9 @@
             --text-primary: #111827;
             --text-secondary: #6B7280;
             --input-bg: #F9FAFB;
-            --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
             --glass-bg: rgba(255, 255, 255, 0.8);
         }
-        
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-body);
@@ -49,7 +47,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
-        
+
         body::before {
             content: '';
             position: fixed;
@@ -62,25 +60,20 @@
             pointer-events: none;
             z-index: 0;
         }
-        
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px); } 
-            to { opacity: 1; transform: translateY(0); } 
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes slideInLeft { 
-            from { opacity: 0; transform: translateX(-30px); } 
-            to { opacity: 1; transform: translateX(0); } 
-        }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
+
         @keyframes cardFloat {
             0%, 100% { transform: translateY(0px); }
             50% { transform: translateY(-5px); }
         }
-        
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -93,7 +86,7 @@
             z-index: 100;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo-icon {
             width: 44px; height: 44px;
@@ -112,9 +105,9 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .user-section { display: flex; align-items: center; gap: 20px; }
-        
+
         .balance-pill {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.1));
             padding: 10px 24px;
@@ -124,7 +117,7 @@
         }
         .balance-pill i { color: var(--gold); margin-right: 10px; }
         .balance-pill span { color: var(--gold); font-weight: 700; font-size: 18px; }
-        
+
         .theme-toggle {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--border);
@@ -145,7 +138,7 @@
             color: #0A0E1A;
         }
         .theme-option i { margin-right: 8px; }
-        
+
         .avatar {
             width: 46px; height: 46px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
@@ -158,13 +151,10 @@
         }
         .avatar:hover { transform: scale(1.1) rotate(5deg); }
         .avatar i { color: #0A0E1A; font-size: 20px; }
-        
+
         .container { max-width: 1200px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
-        
-        .page-header {
-            margin-bottom: 32px;
-            animation: slideUp 0.6s ease;
-        }
+
+        .page-header { margin-bottom: 32px; animation: slideUp 0.6s ease; }
         .page-header h1 {
             font-size: 32px;
             font-weight: 700;
@@ -173,7 +163,7 @@
             -webkit-text-fill-color: transparent;
         }
         .page-header p { color: var(--text-secondary); margin-top: 8px; }
-        
+
         .stats-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -188,18 +178,18 @@
             border: 1px solid var(--border);
             text-align: center;
         }
+        .stat-mini:hover { transform: translateY(-3px); border-color: var(--gold); transition: all 0.3s; }
         .stat-mini i { font-size: 32px; color: var(--gold); margin-bottom: 10px; }
         .stat-mini .stat-number { font-size: 28px; font-weight: 800; color: var(--text-primary); }
         .stat-mini .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 5px; }
-        
+
         .cards-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
             gap: 24px;
             margin-bottom: 32px;
         }
-        
-        /* Premium Card Styles */
+
         .card-preview {
             background: linear-gradient(135deg, #1a1a2e, #16213e);
             border-radius: 24px;
@@ -211,12 +201,10 @@
             animation: cardFloat 3s ease-in-out infinite;
             border: 1px solid rgba(198,164,63,0.3);
         }
-        
         .card-preview:hover {
             transform: translateY(-8px) scale(1.02);
             box-shadow: 0 20px 40px rgba(198,164,63,0.3);
         }
-        
         .card-preview::before {
             content: '';
             position: absolute;
@@ -228,12 +216,9 @@
             opacity: 0;
             transition: opacity 0.5s;
         }
-        
         .card-preview:hover::before { opacity: 1; }
-        
         .card-chip { margin-bottom: 30px; }
         .card-chip i { font-size: 45px; color: var(--gold); }
-        
         .card-number {
             font-size: 22px;
             letter-spacing: 3px;
@@ -242,19 +227,13 @@
             margin: 20px 0;
             font-weight: 600;
         }
-        
-        .card-details {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
+        .card-details { display: flex; justify-content: space-between; margin-bottom: 20px; }
         .card-expiry, .card-name {
             color: rgba(255,255,255,0.6);
             font-size: 11px;
             text-transform: uppercase;
         }
         .card-name { font-weight: 600; }
-        
         .card-network {
             position: absolute;
             bottom: 20px;
@@ -262,7 +241,6 @@
             font-size: 50px;
             color: rgba(255,255,255,0.1);
         }
-        
         .card-actions {
             display: flex;
             gap: 12px;
@@ -270,7 +248,7 @@
             padding-top: 20px;
             border-top: 1px solid rgba(255,255,255,0.1);
         }
-        
+
         .card-status {
             display: inline-block;
             padding: 6px 14px;
@@ -281,7 +259,7 @@
         .status-active { background: rgba(16,185,129,0.2); color: var(--success); }
         .status-pending { background: rgba(245,158,11,0.2); color: var(--warning); }
         .status-frozen { background: rgba(239,68,68,0.2); color: var(--error); }
-        
+
         .card-btn {
             background: rgba(198,164,63,0.15);
             border: 1px solid var(--gold);
@@ -298,14 +276,12 @@
             color: #0A0E1A;
             transform: scale(1.05);
         }
-        
-        /* Pending Card */
+
         .card-preview.pending {
             background: linear-gradient(135deg, #2d2d3a, #1a1a2e);
             opacity: 0.85;
         }
-        
-        /* Add Card Button */
+
         .add-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -325,8 +301,7 @@
         .add-card i { font-size: 48px; color: var(--gold); margin-bottom: 16px; }
         .add-card p { color: var(--text-secondary); font-size: 16px; font-weight: 500; }
         .add-card small { color: var(--text-secondary); font-size: 12px; }
-        
-        /* Modal */
+
         .modal {
             display: none;
             position: fixed;
@@ -355,11 +330,7 @@
             padding-bottom: 16px;
             border-bottom: 1px solid var(--border);
         }
-        .modal-header h3 {
-            color: var(--gold);
-            font-size: 24px;
-            font-weight: 700;
-        }
+        .modal-header h3 { color: var(--gold); font-size: 24px; font-weight: 700; }
         .close-modal {
             background: none;
             border: none;
@@ -369,7 +340,7 @@
             transition: all 0.3s;
         }
         .close-modal:hover { color: var(--error); transform: rotate(90deg); }
-        
+
         .form-group { margin-bottom: 20px; }
         .form-group label {
             display: block;
@@ -395,7 +366,7 @@
             border-color: var(--gold);
             box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
         }
-        
+
         .pin-inputs {
             display: flex;
             gap: 12px;
@@ -418,7 +389,7 @@
             border-color: var(--gold);
             transform: scale(1.05);
         }
-        
+
         .fee-info {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
             border-radius: 16px;
@@ -427,7 +398,7 @@
             text-align: center;
             border: 1px solid rgba(198,164,63,0.2);
         }
-        
+
         .btn {
             width: 100%;
             padding: 16px;
@@ -444,7 +415,7 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
-        
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -481,7 +452,7 @@
         }
         .nav-item.active i, .nav-item.active span { color: var(--gold); }
         .nav-item:hover { transform: translateY(-3px); }
-        
+
         .loading-overlay {
             display: none;
             position: fixed;
@@ -502,8 +473,7 @@
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
+
         @media (max-width: 768px) {
             .container { padding: 20px; }
             .cards-grid { grid-template-columns: 1fr; }
@@ -514,7 +484,7 @@
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
         }
-        
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
@@ -522,7 +492,7 @@
 </head>
 <body data-theme="dark">
     <div class="top-bar">
-        <div class="logo" onclick="goToDashboard()">
+        <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span>Prime Heritage Bank</span>
         </div>
@@ -532,7 +502,7 @@
                 <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></div>
             </div>
             <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
-            <div class="avatar" onclick="goToProfile()"><i class="fas fa-user"></i></div>
+            <div class="avatar" onclick="location.href='/profile.html'"><i class="fas fa-user"></i></div>
         </div>
     </div>
 
@@ -543,21 +513,9 @@
         </div>
 
         <div class="stats-row">
-            <div class="stat-mini">
-                <i class="fas fa-credit-card"></i>
-                <div class="stat-number" id="totalCards">0</div>
-                <div class="stat-label">Total Cards</div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-check-circle"></i>
-                <div class="stat-number" id="activeCards">0</div>
-                <div class="stat-label">Active Cards</div>
-            </div>
-            <div class="stat-mini">
-                <i class="fas fa-hourglass-half"></i>
-                <div class="stat-number" id="pendingCards">0</div>
-                <div class="stat-label">Pending Requests</div>
-            </div>
+            <div class="stat-mini"><i class="fas fa-credit-card"></i><div class="stat-number" id="totalCards">0</div><div class="stat-label">Total Cards</div></div>
+            <div class="stat-mini"><i class="fas fa-check-circle"></i><div class="stat-number" id="activeCards">0</div><div class="stat-label">Active Cards</div></div>
+            <div class="stat-mini"><i class="fas fa-hourglass-half"></i><div class="stat-number" id="pendingCards">0</div><div class="stat-label">Pending Requests</div></div>
         </div>
 
         <div class="cards-grid" id="cardsList"></div>
@@ -569,7 +527,6 @@
         </div>
     </div>
 
-    <!-- Request Card Modal -->
     <div id="cardModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -608,23 +565,21 @@
                     <input type="password" maxlength="1" id="pin4">
                 </div>
             </div>
-            <button class="btn" onclick="submitCardRequest()">
-                <i class="fas fa-lock"></i> Pay & Request Card
-            </button>
+            <button class="btn" onclick="submitCardRequest()"><i class="fas fa-lock"></i> Pay & Request Card</button>
         </div>
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
-        <div class="nav-item active" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-        <div class="nav-item" onclick="goToLoans()"><i class="fas fa-hand-holding-usd"></i><span>Loans</span></div>
-        <div class="nav-item" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
-        <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
+        <div class="nav-item" onclick="location.href='/dashboard.html'"><i class="fas fa-home"></i><span>Home</span></div>
+        <div class="nav-item active" onclick="location.href='/cards.html'"><i class="fas fa-credit-card"></i><span>Cards</span></div>
+        <div class="nav-item" onclick="location.href='/send.html'"><i class="fas fa-paper-plane"></i><span>Send</span></div>
+        <div class="nav-item" onclick="location.href='/support.html'"><i class="fas fa-headset"></i><span>Support</span></div>
+        <div class="nav-item" onclick="location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
-        <div class="loader-text">Processing Payment...</div>
+        <div class="loader-text">Processing...</div>
     </div>
 
     <script>
@@ -632,7 +587,30 @@
         let userData = null;
         let currentUser = null;
         let pendingRequests = JSON.parse(localStorage.getItem('cardRequests') || '[]');
-        
+
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.getElementById('darkOption').classList.remove('active');
+            document.getElementById('lightOption').classList.remove('active');
+            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
+            else document.getElementById('lightOption').classList.add('active');
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+
+        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openRequestModal() { updateCardFee(); openModal('cardModal'); }
+        function movePin(current, nextId) { if (current.value.length === 1) document.getElementById(nextId).focus(); }
+
         function updateCardFee() {
             const type = document.getElementById('cardType').value;
             const design = document.getElementById('cardDesign').value;
@@ -644,46 +622,11 @@
                 This amount will be deducted from your balance.
             `;
         }
-        
-        function movePin(current, nextId) {
-            if(current.value.length === 1) document.getElementById(nextId).focus();
-        }
-        
-        function setTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            document.getElementById('darkOption').classList.remove('active');
-            document.getElementById('lightOption').classList.remove('active');
-            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
-            else document.getElementById('lightOption').classList.add('active');
-        }
-        
-        function toggleTheme() {
-            const current = document.body.getAttribute('data-theme');
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        }
-        
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
-        
-        function goToDashboard() { window.location.href = '/dashboard.html'; }
-        function goToCards() { window.location.href = '/cards.html'; }
-        function goToLoans() { window.location.href = '/loans.html'; }
-        function goToSupport() { window.location.href = '/support.html'; }
-        function goToProfile() { window.location.href = '/profile.html'; }
-        
-        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-        function openRequestModal() { 
-            updateCardFee();
-            openModal('cardModal'); 
-        }
-        
+
         async function loadUserData() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, { 
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } 
+                const res = await fetch(`${apiUrl}/api/me`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) { window.location.href = '/'; return; }
                 userData = await res.json();
@@ -692,40 +635,37 @@
                 renderCards();
             } catch(e) { console.error(e); }
         }
-        
+
         function renderCards() {
             const container = document.getElementById('cardsList');
             container.innerHTML = '';
-            
+
             const activeCards = userData.cards?.filter(c => c.status === 'active').length || 0;
             const totalCards = userData.cards?.length || 0;
-            
+
             document.getElementById('totalCards').innerHTML = totalCards;
             document.getElementById('activeCards').innerHTML = activeCards;
             document.getElementById('pendingCards').innerHTML = pendingRequests.length;
-            
-            // Render active cards
+
             if (userData.cards && userData.cards.length > 0) {
                 for (let card of userData.cards) {
                     const statusClass = card.status === 'active' ? 'status-active' : 'status-frozen';
                     const statusText = card.status === 'active' ? 'Active' : 'Frozen';
-                    const cardDesign = card.design || 'Classic Heritage';
-                    
                     container.innerHTML += `
                         <div class="card-preview">
                             <div class="card-chip"><i class="fas fa-microchip"></i></div>
                             <div class="card-number">4532 ${card.last4.slice(0,4)} ${card.last4.slice(4,8)} ${card.last4.slice(8,12)}</div>
                             <div class="card-details">
-                                <div class="card-expiry">VALID THRU<br>${card.expiryMonth}/${card.expiryYear}</div>
+                                <div class="card-expiry">VALID THRU<br>${card.expiry_month}/${card.expiry_year}</div>
                                 <div class="card-name">${currentUser.fullName.toUpperCase()}</div>
                             </div>
                             <div class="card-network"><i class="fab fa-cc-visa"></i></div>
                             <div class="card-actions">
                                 <span class="card-status ${statusClass}"><i class="fas ${card.status === 'active' ? 'fa-check-circle' : 'fa-snowflake'}"></i> ${statusText}</span>
-                                <button class="card-btn" onclick="toggleCardStatus('${card._id}', '${card.status}')">
+                                <button class="card-btn" onclick="toggleCardStatus('${card.id}', '${card.status}')">
                                     <i class="fas ${card.status === 'active' ? 'fa-temperature-low' : 'fa-play'}"></i> ${card.status === 'active' ? 'Freeze' : 'Unfreeze'}
                                 </button>
-                                <button class="card-btn" onclick="viewCardDetails('${card._id}')">
+                                <button class="card-btn" onclick="viewCardDetails('${card.id}')">
                                     <i class="fas fa-info-circle"></i> Details
                                 </button>
                             </div>
@@ -733,8 +673,7 @@
                     `;
                 }
             }
-            
-            // Render pending requests
+
             if (pendingRequests.length > 0) {
                 for (let req of pendingRequests) {
                     const designIcon = req.design === 'Premium Gold' ? '🌟' : req.design === 'Platinum Black' ? '🖤' : '✨';
@@ -749,9 +688,7 @@
                             <div class="card-network"><i class="fab fa-cc-visa"></i></div>
                             <div class="card-actions">
                                 <span class="card-status status-pending"><i class="fas fa-clock"></i> Pending</span>
-                                <span class="card-btn" style="opacity:0.6;">
-                                    <i class="fas fa-gem"></i> ${designIcon} ${req.design}
-                                </span>
+                                <span class="card-btn" style="opacity:0.6;"><i class="fas fa-gem"></i> ${designIcon} ${req.design}</span>
                             </div>
                             <div style="margin-top: 12px; font-size: 11px; color: var(--text-secondary);">
                                 <i class="fas fa-calendar"></i> Requested: ${req.date} | Fee: $${req.fee}
@@ -760,7 +697,7 @@
                     `;
                 }
             }
-            
+
             if ((!userData.cards || userData.cards.length === 0) && pendingRequests.length === 0) {
                 container.innerHTML = `
                     <div style="text-align:center; padding: 60px; background: var(--glass-bg); border-radius: 24px; border: 1px solid var(--border);">
@@ -770,30 +707,30 @@
                 `;
             }
         }
-        
+
         async function submitCardRequest() {
             const type = document.getElementById('cardType').value;
             const design = document.getElementById('cardDesign').value;
             const limit = document.getElementById('cardLimit').value;
-            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + document.getElementById('pin3').value + document.getElementById('pin4').value;
-            
+            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value +
+                       document.getElementById('pin3').value + document.getElementById('pin4').value;
+
             if (pin.length !== 4) {
                 Swal.fire('Error', 'Please enter your 4-digit transaction PIN', 'error');
                 return;
             }
-            
+
             let fee = type === 'virtual' ? 5 : 15;
             if (design === 'Premium Gold') fee += 10;
             if (design === 'Platinum Black') fee += 25;
-            
+
             const currentBalance = userData.totalBalance || 0;
             if (currentBalance < fee) {
                 Swal.fire('Insufficient Funds', `You need $${fee} to request this card. Your balance: $${currentBalance}`, 'error');
                 return;
             }
-            
+
             showLoading(true);
-            
             setTimeout(() => {
                 const newRequest = {
                     id: Date.now(),
@@ -806,7 +743,7 @@
                 };
                 pendingRequests.push(newRequest);
                 localStorage.setItem('cardRequests', JSON.stringify(pendingRequests));
-                
+
                 showLoading(false);
                 Swal.fire({
                     icon: 'success',
@@ -819,26 +756,18 @@
                             <p><strong>⏰ Status:</strong> Pending Approval (24-48 hours)</p>
                         </div>
                     `,
-                    confirmButtonColor: '#C6A43F',
-                    background: 'var(--bg-card)',
-                    color: 'var(--text-primary)'
+                    confirmButtonColor: '#C6A43F'
                 });
                 closeModal('cardModal');
                 renderCards();
-                
-                // Reset form
                 document.getElementById('cardType').value = 'virtual';
                 document.getElementById('cardDesign').value = 'Classic Heritage';
                 document.getElementById('cardLimit').value = '5000';
-                document.getElementById('pin1').value = '';
-                document.getElementById('pin2').value = '';
-                document.getElementById('pin3').value = '';
-                document.getElementById('pin4').value = '';
-                
+                document.querySelectorAll('.pin-inputs input').forEach(i => i.value = '');
                 loadUserData();
             }, 1500);
         }
-        
+
         async function toggleCardStatus(cardId, currentStatus) {
             Swal.fire({
                 title: currentStatus === 'active' ? 'Freeze Card?' : 'Unfreeze Card?',
@@ -865,26 +794,24 @@
                 }
             });
         }
-        
+
         function viewCardDetails(cardId) {
-            const card = userData.cards.find(c => c._id === cardId);
+            const card = userData.cards.find(c => c.id === cardId);
             Swal.fire({
                 title: '💳 Card Details',
                 html: `
                     <div style="text-align: left;">
                         <p><strong>Card Number:</strong> 4532 **** **** ${card.last4}</p>
-                        <p><strong>Expiry Date:</strong> ${card.expiryMonth}/${card.expiryYear}</p>
+                        <p><strong>Expiry Date:</strong> ${card.expiry_month}/${card.expiry_year}</p>
                         <p><strong>Status:</strong> ${card.status.toUpperCase()}</p>
-                        <p><strong>Daily Limit:</strong> $${card.dailyLimit || '5,000'}</p>
+                        <p><strong>Daily Limit:</strong> $${card.daily_limit || '5,000'}</p>
                         <p><strong>Card Type:</strong> ${card.type || 'Virtual'}</p>
                     </div>
                 `,
-                confirmButtonColor: '#C6A43F',
-                background: 'var(--bg-card)',
-                color: 'var(--text-primary)'
+                confirmButtonColor: '#C6A43F'
             });
         }
-        
+
         loadUserData();
     </script>
 </body>
