@@ -1,7 +1,6 @@
 require('dotenv').config();
 
 const express = require('express');
-const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const cors = require('cors');
@@ -10,10 +9,38 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const nodemailer = require('nodemailer');
+const { createClient } = require('@supabase/supabase-js');
 
 const app = express();
 
-// ========== COLORED LOGGING SYSTEM ==========
+// ========== SUPABASE CONFIG ==========
+const supabase = createClient(
+    process.env.SUPABASE_URL || 'https://locubftytnfyxacfberj.supabase.co',
+    process.env.SUPABASE_KEY || 'sb_publishable_AsPMmqBAtex3C_zfofY8sw_GGJ_nxyk'
+);
+
+// ========== EMAIL CONFIG ==========
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    auth: {
+        user: process.env.GMAIL_USER || 'primeheritageinternationalbank@gmail.com',
+        pass: process.env.GMAIL_APP_PASSWORD || 'pzxw dqxj queu wcch'
+    },
+    tls: { rejectUnauthorized: false }
+});
+
+// Verify email connection
+transporter.verify((error) => {
+    if (error) {
+        console.log('❌ Email connection failed:', error.message);
+    } else {
+        console.log('✅ Email service ready!');
+    }
+});
+
+// ========== COLORED LOGGING ==========
 const colors = {
     reset: '\x1b[0m',
     bright: '\x1b[1m',
@@ -73,40 +100,6 @@ console.log('║                                                                
 console.log('╚═══════════════════════════════════════════════════════════════════╝');
 console.log(`${colors.reset}\n`);
 
-// ========== CONFIGURATION ==========
-const PORT = process.env.PORT || 3000;
-const JWT_SECRET = process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure';
-
-// ========== FIXED MONGODB CONNECTION ==========
-// Use URL encoded password - the password is: fZ8W6OUOFYV6KxTU
-const MONGODB_URI = 'mongodb+srv://devvgift_db_user:fZ8W6OUOFYV6KxTU@cluster0.lcshvgf.mongodb.net/primeheritage?retryWrites=true&w=majority&appName=Cluster0';
-
-// Alternative if the above doesn't work, try this format:
-// const MONGODB_URI = 'mongodb+srv://devvgift_db_user:fZ8W6OUOFYV6KxTU@cluster0.lcshvgf.mongodb.net/primeheritage?retryWrites=true&w=majority';
-
-// ========== GMAIL EMAIL CONFIGURATION ==========
-const EMAIL_CONFIG = {
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    auth: {
-        user: 'primeheritageinternationalbank@gmail.com',
-        pass: 'pzxw dqxj queu wcch' // App Password
-    },
-    tls: { rejectUnauthorized: false }
-};
-
-const transporter = nodemailer.createTransport(EMAIL_CONFIG);
-
-transporter.verify((error) => {
-    if (error) {
-        log('ERROR', 'Email service connection failed:', error.message);
-    } else {
-        log('SUCCESS', '✅ Email service ready!');
-        log('INFO', `📧 From: ${EMAIL_CONFIG.auth.user}`);
-    }
-});
-
 // ========== RATE LIMITING ==========
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
@@ -114,109 +107,7 @@ const limiter = rateLimit({
     message: { error: 'Too many requests, please try again later.' }
 });
 
-// ========== DATABASE SCHEMAS ==========
-const UserSchema = new mongoose.Schema({
-    fullName: { type: String, required: true },
-    firstName: { type: String, required: true },
-    lastName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    phone: { type: String, required: true },
-    password: { type: String, required: true },
-    transactionPin: { type: String, required: true },
-    currency: { type: String, enum: ['USD', 'EUR', 'GBP'], default: 'USD' },
-    accountNumber: { type: String, unique: true },
-    iban: { type: String, unique: true },
-    swiftCode: String,
-    isActive: { type: Boolean, default: true },
-    isAdmin: { type: Boolean, default: false },
-    isEmailVerified: { type: Boolean, default: true },
-    lastLogin: Date,
-    loginCount: { type: Number, default: 0 },
-    createdAt: { type: Date, default: Date.now }
-});
-
-const AccountSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    currency: { type: String, required: true },
-    accountNumber: { type: String, unique: true },
-    iban: { type: String, unique: true },
-    balance: { type: Number, default: 0, min: 0 },
-    savings: { type: Number, default: 0 },
-    totalDeposits: { type: Number, default: 0 },
-    totalWithdrawals: { type: Number, default: 0 }
-});
-
-const TransactionSchema = new mongoose.Schema({
-    reference: { type: String, unique: true },
-    type: { type: String, enum: ['deposit', 'withdrawal', 'transfer', 'savings', 'loan'] },
-    amount: { type: Number, required: true },
-    currency: { type: String, required: true },
-    fromUserId: mongoose.Schema.Types.ObjectId,
-    fromAccountNumber: String,
-    fromName: String,
-    toUserId: mongoose.Schema.Types.ObjectId,
-    toAccountNumber: String,
-    toName: String,
-    status: { type: String, enum: ['pending', 'completed', 'failed'], default: 'completed' },
-    description: String,
-    createdAt: { type: Date, default: Date.now }
-});
-
-const CardSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    cardNumber: { type: String, unique: true },
-    last4: String,
-    expiryMonth: Number,
-    expiryYear: Number,
-    cvv: String,
-    type: { type: String, enum: ['debit', 'credit', 'premium'], default: 'premium' },
-    status: { type: String, enum: ['active', 'frozen', 'blocked'], default: 'active' },
-    dailyLimit: { type: Number, default: 5000 },
-    createdAt: { type: Date, default: Date.now }
-});
-
-const LoanSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    amount: { type: Number, required: true },
-    purpose: String,
-    interestRate: { type: Number, default: 12 },
-    tenureMonths: { type: Number, default: 12 },
-    monthlyPayment: Number,
-    totalPayable: Number,
-    status: { type: String, enum: ['pending', 'approved', 'rejected', 'active', 'completed'], default: 'pending' },
-    createdAt: { type: Date, default: Date.now }
-});
-
-const SupportTicketSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    name: String,
-    email: String,
-    subject: { type: String, required: true },
-    message: { type: String, required: true },
-    priority: { type: String, enum: ['low', 'medium', 'high', 'urgent'], default: 'medium' },
-    status: { type: String, enum: ['open', 'in-progress', 'resolved', 'closed'], default: 'open' },
-    createdAt: { type: Date, default: Date.now }
-});
-
-// ========== BBC SCHEMA ==========
-const BBCSchema = new mongoose.Schema({
-    code: { type: String, required: true, unique: true },
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    step: { type: Number, required: true },
-    isUsed: { type: Boolean, default: false },
-    expiresAt: { type: Date, required: true },
-    createdAt: { type: Date, default: Date.now }
-});
-
-const User = mongoose.model('User', UserSchema);
-const Account = mongoose.model('Account', AccountSchema);
-const Transaction = mongoose.model('Transaction', TransactionSchema);
-const Card = mongoose.model('Card', CardSchema);
-const Loan = mongoose.model('Loan', LoanSchema);
-const SupportTicket = mongoose.model('SupportTicket', SupportTicketSchema);
-const BBC = mongoose.model('BBC', BBCSchema);
-
-// ========== HELPER FUNCTIONS ==========
+// ========== HELPERS ==========
 function generateAccountNumber(currency) {
     const prefixes = { 'USD': 'PHB-USA', 'EUR': 'PHB-EU', 'GBP': 'PHB-UK' };
     const prefix = prefixes[currency] || 'PHB';
@@ -241,12 +132,6 @@ function generateSWIFTCode(currency) {
     return `PHBG${country}33${letters}`;
 }
 
-function generateCardNumber() {
-    const prefix = '4532';
-    const nums = Array.from({ length: 12 }, () => Math.floor(Math.random() * 10));
-    return prefix + nums.join('');
-}
-
 function generateReference() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const random = Array.from({ length: 8 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
@@ -257,46 +142,50 @@ function generateBBCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function hasBBCodes(userId, step) {
-    const count = await BBC.countDocuments({ 
-        userId, 
-        step, 
-        isUsed: false, 
-        expiresAt: { $gt: new Date() } 
-    });
-    return count > 0;
+async function getBBCodes(userId, step) {
+    const { data, error } = await supabase
+        .from('bbc_codes')
+        .select('code')
+        .eq('user_id', userId)
+        .eq('step', step)
+        .eq('is_used', false)
+        .gt('expires_at', new Date().toISOString())
+        .limit(1);
+    
+    if (error || !data || data.length === 0) return null;
+    return data[0].code;
 }
 
-async function useBBCode(userId, code, requiredStep) {
-    const bbc = await BBC.findOne({ 
-        code, 
-        userId, 
-        step: requiredStep, 
-        isUsed: false, 
-        expiresAt: { $gt: new Date() } 
-    });
-    if (!bbc) return null;
-    bbc.isUsed = true;
-    await bbc.save();
-    return bbc;
+async function useBBCode(userId, code, step) {
+    const { data, error } = await supabase
+        .from('bbc_codes')
+        .update({ is_used: true, used_at: new Date().toISOString() })
+        .eq('code', code)
+        .eq('user_id', userId)
+        .eq('step', step)
+        .eq('is_used', false)
+        .gt('expires_at', new Date().toISOString())
+        .select();
+    
+    if (error || !data || data.length === 0) return null;
+    return data[0];
 }
 
 // ========== EMAIL FUNCTIONS ==========
 async function sendEmail(to, subject, html) {
-    log('EMAIL', `📧 Sending email to: ${to}`);
     try {
         const mailOptions = {
-            from: `"Prime Heritage Bank" <${EMAIL_CONFIG.auth.user}>`,
+            from: `"Prime Heritage Bank" <${process.env.GMAIL_USER || 'primeheritageinternationalbank@gmail.com'}>`,
             to: to,
             subject: subject,
             html: html,
-            replyTo: 'primeheritageinternationalbank@gmail.com'
+            replyTo: 'support@primeheritage.com'
         };
         const info = await transporter.sendMail(mailOptions);
-        log('SUCCESS', `✅ Email sent! ID: ${info.messageId}`);
+        log('SUCCESS', `✅ Email sent to ${to}`);
         return true;
     } catch (error) {
-        log('ERROR', 'Email send failed:', error.message);
+        log('ERROR', 'Email failed:', error.message);
         return false;
     }
 }
@@ -313,7 +202,7 @@ function getWelcomeEmail(user) {
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
             background: #0A0E1A; 
             padding: 40px 20px;
             line-height: 1.6;
@@ -389,7 +278,6 @@ function getWelcomeEmail(user) {
             border-radius: 16px;
             border: 1px solid #1F2937;
         }
-        .feature i { font-size: 24px; display: block; margin-bottom: 6px; }
         .feature span { color: #9CA3AF; font-size: 11px; font-weight: 500; }
         .cta-button {
             display: inline-block;
@@ -423,7 +311,6 @@ function getWelcomeEmail(user) {
             margin: 0 12px;
             font-weight: 500;
         }
-        .footer-links a:hover { text-decoration: underline; }
         .badge {
             display: inline-block;
             background: rgba(198, 164, 63, 0.12);
@@ -450,7 +337,7 @@ function getWelcomeEmail(user) {
             <p class="subtitle">Your premium international banking journey begins now</p>
         </div>
         <div class="content">
-            <div class="greeting">Dear <span>${user.fullName}</span>,</div>
+            <div class="greeting">Dear <span>${user.full_name}</span>,</div>
             <div class="welcome-message">
                 <p style="font-size: 16px; font-weight: 500; color: #C6A43F; margin-bottom: 8px;">🎉 Welcome to the family!</p>
                 <p style="color: #E5E7EB;">Your Prime Heritage Bank account has been successfully created. We're honored to have you as a valued client. Experience world-class banking with premium benefits, global accessibility, and top-tier security.</p>
@@ -463,7 +350,7 @@ function getWelcomeEmail(user) {
             <div class="account-grid">
                 <div class="account-item">
                     <div class="label">📋 Account Number</div>
-                    <div class="value">${user.accountNumber}</div>
+                    <div class="value">${user.account_number}</div>
                 </div>
                 <div class="account-item">
                     <div class="label">🌍 IBAN</div>
@@ -471,7 +358,7 @@ function getWelcomeEmail(user) {
                 </div>
                 <div class="account-item">
                     <div class="label">🏦 SWIFT Code</div>
-                    <div class="value">${user.swiftCode}</div>
+                    <div class="value">${user.swift_code}</div>
                 </div>
                 <div class="account-item">
                     <div class="label">💱 Currency</div>
@@ -479,9 +366,9 @@ function getWelcomeEmail(user) {
                 </div>
             </div>
             <div class="features">
-                <div class="feature"><i>💳</i><span>Premium Card</span></div>
-                <div class="feature"><i>🌐</i><span>Global Access</span></div>
-                <div class="feature"><i>🔐</i><span>Secure Banking</span></div>
+                <div class="feature"><span>💳 Premium Card</span></div>
+                <div class="feature"><span>🌐 Global Access</span></div>
+                <div class="feature"><span>🔐 Secure Banking</span></div>
             </div>
             <div style="text-align: center;">
                 <a href="#" class="cta-button">🚀 Access Your Dashboard</a>
@@ -503,7 +390,7 @@ function getWelcomeEmail(user) {
                 <a href="#">Terms of Service</a>
                 <a href="#">Support</a>
             </div>
-            <p style="margin-top: 8px;">© 2026 Prime Heritage Bank. All rights reserved.</p>
+            <p>© 2026 Prime Heritage Bank. All rights reserved.</p>
             <p style="font-size: 11px; color: #4B5563; margin-top: 4px;">This is an automated welcome message. Please do not reply.</p>
         </div>
     </div>
@@ -511,14 +398,21 @@ function getWelcomeEmail(user) {
 </html>`;
 }
 
+// ========== API ROUTES ==========
+
 // ========== REGISTER ==========
 app.post('/api/register', async (req, res) => {
     log('AUTH', `📝 Registration: ${req.body.email}`);
     try {
         const { firstName, lastName, email, phone, password, transactionPin, currency } = req.body;
         
-        const existing = await User.findOne({ email });
-        if (existing) {
+        // Check if user exists
+        const { data: existing, error: checkError } = await supabase
+            .from('users')
+            .select('email')
+            .eq('email', email);
+        
+        if (existing && existing.length > 0) {
             return res.status(400).json({ error: 'Email already registered' });
         }
 
@@ -528,45 +422,56 @@ app.post('/api/register', async (req, res) => {
         const iban = generateIBAN(currency, accountNumber);
         const swiftCode = generateSWIFTCode(currency);
 
-        const user = new User({
-            fullName: `${firstName} ${lastName}`,
-            firstName, lastName, email, phone,
-            password: hashedPassword,
-            transactionPin: hashedPin,
-            currency, accountNumber, iban, swiftCode,
-            isEmailVerified: true,
-            lastLogin: new Date()
-        });
-        await user.save();
-        log('SUCCESS', `✅ User created: ${user._id} - ${email}`);
+        // Insert user
+        const { data: user, error: insertError } = await supabase
+            .from('users')
+            .insert([{
+                full_name: `${firstName} ${lastName}`,
+                first_name: firstName,
+                last_name: lastName,
+                email: email,
+                phone: phone,
+                password: hashedPassword,
+                transaction_pin: hashedPin,
+                currency: currency || 'USD',
+                account_number: accountNumber,
+                iban: iban,
+                swift_code: swiftCode,
+                is_email_verified: true,
+                is_active: true
+            }])
+            .select();
 
-        const account = new Account({
-            userId: user._id, currency, accountNumber, iban, balance: 0
-        });
-        await account.save();
+        if (insertError) {
+            log('ERROR', 'Supabase insert error:', insertError);
+            return res.status(500).json({ error: 'Registration failed' });
+        }
 
-        const cardNum = generateCardNumber();
-        const card = new Card({
-            userId: user._id,
-            cardNumber: cardNum,
-            last4: cardNum.slice(-4),
-            expiryMonth: 12,
-            expiryYear: 2030,
-            cvv: String(Math.floor(100 + Math.random() * 900)),
-            type: 'premium'
-        });
-        await card.save();
+        const newUser = user[0];
 
-        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
+        // Create account
+        await supabase
+            .from('accounts')
+            .insert([{
+                user_id: newUser.id,
+                currency: currency || 'USD',
+                account_number: accountNumber,
+                iban: iban,
+                balance: 0
+            }]);
 
+        // Generate token
+        const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure', { expiresIn: '7d' });
+
+        // Send welcome email
         try {
             await sendEmail(
                 email,
                 '👑 Welcome to Prime Heritage Bank - Your Premium Account is Ready!',
-                getWelcomeEmail(user)
+                getWelcomeEmail(newUser)
             );
         } catch (emailError) {
-            log('ERROR', `Email error: ${emailError.message}`);
+            log('ERROR', 'Email error:', emailError.message);
         }
 
         res.json({
@@ -574,15 +479,15 @@ app.post('/api/register', async (req, res) => {
             token,
             message: 'Account created successfully! Welcome to Prime Heritage Bank.',
             user: {
-                id: user._id,
-                fullName: user.fullName,
-                email: user.email,
-                accountNumber: user.accountNumber,
-                iban: user.iban,
-                swiftCode: user.swiftCode,
-                currency: user.currency,
-                isAdmin: user.isAdmin,
-                isEmailVerified: user.isEmailVerified
+                id: newUser.id,
+                fullName: newUser.full_name,
+                email: newUser.email,
+                accountNumber: newUser.account_number,
+                iban: newUser.iban,
+                swiftCode: newUser.swift_code,
+                currency: newUser.currency,
+                isAdmin: newUser.is_admin || false,
+                isEmailVerified: newUser.is_email_verified
             }
         });
 
@@ -598,49 +503,50 @@ app.post('/api/login', async (req, res) => {
     try {
         const { identifier, password } = req.body;
         
-        const user = await User.findOne({ 
-            $or: [{ email: identifier }, { accountNumber: identifier }, { iban: identifier }] 
-        });
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .or(`email.eq.${identifier},account_number.eq.${identifier},iban.eq.${identifier}`);
         
-        if (!user) {
+        if (!users || users.length === 0) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        
+
+        const user = users[0];
         const valid = await bcrypt.compare(password, user.password);
+        
         if (!valid) {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
-        
-        if (!user.isActive) {
+
+        if (!user.is_active) {
             return res.status(403).json({ error: 'Account is disabled' });
         }
-        
-        user.lastLogin = new Date();
-        user.loginCount += 1;
-        await user.save();
-        
-        const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
-        log('SUCCESS', `✅ Login successful: ${user.email}`);
-        
-        const hasBbc1 = await hasBBCodes(user._id, 1);
-        const hasBbc2 = await hasBBCodes(user._id, 2);
-        const hasBbc3 = await hasBBCodes(user._id, 3);
-        
+
+        // Update last login
+        await supabase
+            .from('users')
+            .update({ 
+                last_login: new Date().toISOString(),
+                login_count: (user.login_count || 0) + 1
+            })
+            .eq('id', user.id);
+
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure', { expiresIn: '7d' });
+
         res.json({
             success: true,
             token,
             user: {
-                id: user._id,
-                fullName: user.fullName,
+                id: user.id,
+                fullName: user.full_name,
                 email: user.email,
-                accountNumber: user.accountNumber,
+                accountNumber: user.account_number,
                 iban: user.iban,
-                swiftCode: user.swiftCode,
+                swiftCode: user.swift_code,
                 currency: user.currency,
-                isAdmin: user.isAdmin,
-                isEmailVerified: user.isEmailVerified
-            },
-            bbcStatus: { step1: hasBbc1, step2: hasBbc2, step3: hasBbc3 }
+                isAdmin: user.is_admin || false
+            }
         });
     } catch (error) {
         log('ERROR', 'Login error:', error.message);
@@ -654,82 +560,270 @@ app.get('/api/me', async (req, res) => {
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId).select('-password -transactionPin');
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        const account = await Account.findOne({ userId: user._id });
-        const cards = await Card.find({ userId: user._id });
-        const transactions = await Transaction.find({ 
-            $or: [{ fromUserId: user._id }, { toUserId: user._id }] 
-        }).sort({ createdAt: -1 }).limit(50);
-        const loans = await Loan.find({ userId: user._id });
-        const tickets = await SupportTicket.find({ userId: user._id });
+        // Get user
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', decoded.userId)
+            .single();
         
-        const hasBbc1 = await hasBBCodes(user._id, 1);
-        const hasBbc2 = await hasBBCodes(user._id, 2);
-        const hasBbc3 = await hasBBCodes(user._id, 3);
+        if (userError || !user) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+        
+        // Get account
+        const { data: account } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+        
+        // Get cards
+        const { data: cards } = await supabase
+            .from('cards')
+            .select('*')
+            .eq('user_id', user.id);
+        
+        // Get transactions
+        const { data: transactions } = await supabase
+            .from('transactions')
+            .select('*')
+            .or(`from_user_id.eq.${user.id},to_user_id.eq.${user.id}`)
+            .order('created_at', { ascending: false })
+            .limit(50);
+        
+        // Get loans
+        const { data: loans } = await supabase
+            .from('loans')
+            .select('*')
+            .eq('user_id', user.id);
+        
+        // Get tickets
+        const { data: tickets } = await supabase
+            .from('support_tickets')
+            .select('*')
+            .eq('user_id', user.id);
+        
+        // Get BBC status
+        const { data: bbc1 } = await supabase
+            .from('bbc_codes')
+            .select('code')
+            .eq('user_id', user.id)
+            .eq('step', 1)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString());
+        
+        const { data: bbc2 } = await supabase
+            .from('bbc_codes')
+            .select('code')
+            .eq('user_id', user.id)
+            .eq('step', 2)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString());
+        
+        const { data: bbc3 } = await supabase
+            .from('bbc_codes')
+            .select('code')
+            .eq('user_id', user.id)
+            .eq('step', 3)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString());
         
         res.json({
-            user,
-            account,
-            cards,
-            transactions,
-            loans,
-            tickets,
+            user: {
+                id: user.id,
+                fullName: user.full_name,
+                firstName: user.first_name,
+                lastName: user.last_name,
+                email: user.email,
+                phone: user.phone,
+                currency: user.currency,
+                accountNumber: user.account_number,
+                iban: user.iban,
+                swiftCode: user.swift_code,
+                isAdmin: user.is_admin,
+                isActive: user.is_active,
+                createdAt: user.created_at
+            },
+            account: account || { balance: 0 },
+            cards: cards || [],
+            transactions: transactions || [],
+            loans: loans || [],
+            tickets: tickets || [],
             totalBalance: account?.balance || 0,
-            bbcStatus: { step1: hasBbc1, step2: hasBbc2, step3: hasBbc3 }
+            bbcStatus: {
+                step1: bbc1 && bbc1.length > 0,
+                step2: bbc2 && bbc2.length > 0,
+                step3: bbc3 && bbc3.length > 0
+            }
         });
     } catch (error) {
+        log('ERROR', 'Profile error:', error.message);
         res.status(401).json({ error: 'Invalid token' });
     }
 });
 
-// ========== BBC 3-STEP SECURITY ==========
+// ========== UPDATE PASSWORD ==========
+app.post('/api/update-password', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        const { currentPassword, newPassword } = req.body;
+        
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('password')
+            .eq('id', decoded.userId)
+            .single();
+        
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        
+        const valid = await bcrypt.compare(currentPassword, user.password);
+        if (!valid) return res.status(401).json({ error: 'Current password is incorrect' });
+        
+        const hashedPassword = await bcrypt.hash(newPassword, 10);
+        
+        await supabase
+            .from('users')
+            .update({ password: hashedPassword })
+            .eq('id', decoded.userId);
+        
+        res.json({ success: true, message: 'Password updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update password' });
+    }
+});
+
+// ========== UPDATE PIN ==========
+app.post('/api/update-pin', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        const { currentPin, newPin } = req.body;
+        
+        const { data: user, error } = await supabase
+            .from('users')
+            .select('transaction_pin')
+            .eq('id', decoded.userId)
+            .single();
+        
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        
+        const valid = await bcrypt.compare(currentPin, user.transaction_pin);
+        if (!valid) return res.status(401).json({ error: 'Current PIN is incorrect' });
+        
+        const hashedPin = await bcrypt.hash(newPin, 10);
+        
+        await supabase
+            .from('users')
+            .update({ transaction_pin: hashedPin })
+            .eq('id', decoded.userId);
+        
+        res.json({ success: true, message: 'PIN updated successfully' });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to update PIN' });
+    }
+});
+
+// ========== SEND MONEY - STEP 1 ==========
 app.post('/api/send/step1', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { toAccountNumber, amount, description, transactionPin } = req.body;
         
-        const validPin = await bcrypt.compare(transactionPin, user.transactionPin);
+        // Get user
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('id', decoded.userId)
+            .single();
+        
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        
+        // Verify PIN
+        const validPin = await bcrypt.compare(transactionPin, user.transaction_pin);
         if (!validPin) return res.status(401).json({ error: 'Invalid PIN' });
         
-        const senderAccount = await Account.findOne({ userId: user._id });
+        // Get sender account
+        const { data: senderAccount } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('user_id', user.id)
+            .single();
+        
         if (!senderAccount || senderAccount.balance < amount) {
             return res.status(400).json({ error: 'Insufficient funds' });
         }
         
-        const recipient = await User.findOne({ 
-            $or: [{ accountNumber: toAccountNumber }, { iban: toAccountNumber }] 
-        });
+        // Find recipient
+        const { data: recipient, error: recipientError } = await supabase
+            .from('users')
+            .select('*')
+            .or(`account_number.eq.${toAccountNumber},iban.eq.${toAccountNumber}`)
+            .single();
+        
         if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
-        if (recipient._id.equals(user._id)) {
+        if (recipient.id === user.id) {
             return res.status(400).json({ error: 'Cannot transfer to yourself' });
         }
         
-        const hasBbc1 = await hasBBCodes(user._id, 1);
-        if (!hasBbc1) return res.status(403).json({ error: 'No BBC Code 1 available' });
+        // Get recipient account
+        const { data: recipientAccount } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('user_id', recipient.id)
+            .single();
+        
+        if (!recipientAccount) return res.status(404).json({ error: 'Recipient account not found' });
+        
+        // Check BBC Code 1 exists
+        const { data: bbc1, error: bbcError } = await supabase
+            .from('bbc_codes')
+            .select('code')
+            .eq('user_id', user.id)
+            .eq('step', 1)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString())
+            .limit(1);
+        
+        if (!bbc1 || bbc1.length === 0) {
+            return res.status(403).json({ error: 'BBC Code 1 not available. Contact admin.' });
+        }
         
         const reference = generateReference();
-        const transaction = new Transaction({
-            reference,
-            type: 'transfer',
-            amount,
-            currency: user.currency,
-            fromUserId: user._id,
-            fromAccountNumber: senderAccount.accountNumber,
-            fromName: user.fullName,
-            toUserId: recipient._id,
-            toAccountNumber: recipient.accountNumber,
-            toName: recipient.fullName,
-            description: description || 'Transfer',
-            status: 'pending'
-        });
-        await transaction.save();
+        
+        // Create pending transaction
+        const { data: transaction, error: txError } = await supabase
+            .from('transactions')
+            .insert([{
+                reference: reference,
+                type: 'transfer',
+                amount: amount,
+                currency: user.currency,
+                from_user_id: user.id,
+                from_account_number: senderAccount.account_number,
+                from_name: user.full_name,
+                to_user_id: recipient.id,
+                to_account_number: recipientAccount.account_number,
+                to_name: recipient.full_name,
+                description: description || 'Transfer',
+                status: 'pending'
+            }])
+            .select();
+        
+        if (txError) {
+            log('ERROR', 'Transaction creation error:', txError);
+            return res.status(500).json({ error: 'Failed to create transaction' });
+        }
         
         log('BBC', `🔐 Step 1: Transfer initiated - ${reference}`);
         
@@ -740,24 +834,40 @@ app.post('/api/send/step1', async (req, res) => {
     }
 });
 
+// ========== SEND MONEY - STEP 2 (BBC Code 1) ==========
 app.post('/api/send/step2', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { reference, bbcCode } = req.body;
         
-        const transaction = await Transaction.findOne({ 
-            reference, 
-            fromUserId: user._id, 
-            status: 'pending' 
-        });
+        // Get transaction
+        const { data: transaction, error: txError } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('reference', reference)
+            .eq('from_user_id', decoded.userId)
+            .eq('status', 'pending')
+            .single();
+        
         if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
         
-        const bbc = await useBBCode(user._id, bbcCode, 1);
-        if (!bbc) return res.status(403).json({ error: 'Invalid BBC Code 1' });
+        // Verify BBC Code 1
+        const { data: bbc, error: bbcError } = await supabase
+            .from('bbc_codes')
+            .update({ is_used: true, used_at: new Date().toISOString() })
+            .eq('code', bbcCode)
+            .eq('user_id', decoded.userId)
+            .eq('step', 1)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString())
+            .select();
+        
+        if (!bbc || bbc.length === 0) {
+            return res.status(403).json({ error: 'Invalid BBC Code 1' });
+        }
         
         log('BBC', `🔐 Step 2: BBC Code 1 verified - ${reference}`);
         
@@ -768,24 +878,40 @@ app.post('/api/send/step2', async (req, res) => {
     }
 });
 
+// ========== SEND MONEY - STEP 3 (BBC Code 2) ==========
 app.post('/api/send/step3', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { reference, bbcCode } = req.body;
         
-        const transaction = await Transaction.findOne({ 
-            reference, 
-            fromUserId: user._id, 
-            status: 'pending' 
-        });
+        // Get transaction
+        const { data: transaction, error: txError } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('reference', reference)
+            .eq('from_user_id', decoded.userId)
+            .eq('status', 'pending')
+            .single();
+        
         if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
         
-        const bbc = await useBBCode(user._id, bbcCode, 2);
-        if (!bbc) return res.status(403).json({ error: 'Invalid BBC Code 2' });
+        // Verify BBC Code 2
+        const { data: bbc, error: bbcError } = await supabase
+            .from('bbc_codes')
+            .update({ is_used: true, used_at: new Date().toISOString() })
+            .eq('code', bbcCode)
+            .eq('user_id', decoded.userId)
+            .eq('step', 2)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString())
+            .select();
+        
+        if (!bbc || bbc.length === 0) {
+            return res.status(403).json({ error: 'Invalid BBC Code 2' });
+        }
         
         log('BBC', `🔐 Step 3: BBC Code 2 verified - ${reference}`);
         
@@ -796,45 +922,91 @@ app.post('/api/send/step3', async (req, res) => {
     }
 });
 
+// ========== SEND MONEY - STEP 4 (BBC Code 3 & Complete) ==========
 app.post('/api/send/step4', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { reference, bbcCode } = req.body;
         
-        const transaction = await Transaction.findOne({ 
-            reference, 
-            fromUserId: user._id, 
-            status: 'pending' 
-        });
+        // Get transaction
+        const { data: transaction, error: txError } = await supabase
+            .from('transactions')
+            .select('*')
+            .eq('reference', reference)
+            .eq('from_user_id', decoded.userId)
+            .eq('status', 'pending')
+            .single();
+        
         if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
         
-        const bbc = await useBBCode(user._id, bbcCode, 3);
-        if (!bbc) return res.status(403).json({ error: 'Invalid BBC Code 3' });
+        // Verify BBC Code 3
+        const { data: bbc, error: bbcError } = await supabase
+            .from('bbc_codes')
+            .update({ is_used: true, used_at: new Date().toISOString() })
+            .eq('code', bbcCode)
+            .eq('user_id', decoded.userId)
+            .eq('step', 3)
+            .eq('is_used', false)
+            .gt('expires_at', new Date().toISOString())
+            .select();
         
-        const senderAccount = await Account.findOne({ userId: user._id });
-        const recipientAccount = await Account.findOne({ userId: transaction.toUserId });
+        if (!bbc || bbc.length === 0) {
+            return res.status(403).json({ error: 'Invalid BBC Code 3' });
+        }
         
-        senderAccount.balance -= transaction.amount;
-        recipientAccount.balance += transaction.amount;
-        await senderAccount.save();
-        await recipientAccount.save();
+        // Get sender account
+        const { data: senderAccount } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('user_id', decoded.userId)
+            .single();
         
-        transaction.status = 'completed';
-        await transaction.save();
+        // Get recipient account
+        const { data: recipientAccount } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('user_id', transaction.to_user_id)
+            .single();
+        
+        // Update balances
+        await supabase
+            .from('accounts')
+            .update({ balance: senderAccount.balance - transaction.amount })
+            .eq('id', senderAccount.id);
+        
+        await supabase
+            .from('accounts')
+            .update({ balance: recipientAccount.balance + transaction.amount })
+            .eq('id', recipientAccount.id);
+        
+        // Complete transaction
+        await supabase
+            .from('transactions')
+            .update({ 
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            })
+            .eq('id', transaction.id);
         
         log('BBC', `🔐 Step 4: Transfer completed - ${reference}`);
-        log('BANK', `💸 Transfer: ${transaction.amount} ${transaction.currency} from ${user.email} to ${transaction.toName}`);
+        log('BANK', `💸 Transfer: ${transaction.amount} ${transaction.currency} completed`);
+        
+        // Get updated balance
+        const { data: updatedAccount } = await supabase
+            .from('accounts')
+            .select('balance')
+            .eq('user_id', decoded.userId)
+            .single();
         
         res.json({ 
             success: true, 
             step: 4, 
             reference, 
             amount: transaction.amount, 
-            newBalance: senderAccount.balance 
+            newBalance: updatedAccount?.balance || 0 
         });
     } catch (error) {
         log('ERROR', 'Step 4 error:', error.message);
@@ -848,119 +1020,187 @@ app.get('/api/transactions', async (req, res) => {
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const transactions = await Transaction.find({
-            $or: [{ fromUserId: decoded.userId }, { toUserId: decoded.userId }]
-        }).sort({ createdAt: -1 }).limit(100);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        res.json(transactions);
+        const { data: transactions, error } = await supabase
+            .from('transactions')
+            .select('*')
+            .or(`from_user_id.eq.${decoded.userId},to_user_id.eq.${decoded.userId}`)
+            .order('created_at', { ascending: false })
+            .limit(100);
+        
+        res.json(transactions || []);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch transactions' });
     }
 });
 
-// ========== LOANS ==========
-app.post('/api/loans', async (req, res) => {
+// ========== APPLY FOR LOAN ==========
+app.post('/api/loans/apply', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { amount, purpose, tenureMonths } = req.body;
         
         const interestRate = 12;
         const monthlyPayment = (amount * (1 + interestRate / 100)) / tenureMonths;
         const totalPayable = monthlyPayment * tenureMonths;
         
-        const loan = new Loan({
-            userId: decoded.userId,
-            amount,
-            purpose,
-            interestRate,
-            tenureMonths,
-            monthlyPayment: Math.round(monthlyPayment * 100) / 100,
-            totalPayable: Math.round(totalPayable * 100) / 100,
-            status: 'pending'
-        });
-        await loan.save();
+        const { data: loan, error } = await supabase
+            .from('loans')
+            .insert([{
+                user_id: decoded.userId,
+                amount: amount,
+                purpose: purpose,
+                interest_rate: interestRate,
+                tenure_months: tenureMonths,
+                monthly_payment: Math.round(monthlyPayment * 100) / 100,
+                total_payable: Math.round(totalPayable * 100) / 100,
+                status: 'pending'
+            }])
+            .select();
+        
+        if (error) {
+            log('ERROR', 'Loan error:', error);
+            return res.status(500).json({ error: 'Failed to apply for loan' });
+        }
         
         log('BANK', `💰 Loan application: ${amount} from user ${decoded.userId}`);
         
-        res.json({ success: true, loan });
+        res.json({ success: true, loan: loan[0] });
     } catch (error) {
         res.status(500).json({ error: 'Failed to apply for loan' });
     }
 });
 
+// ========== GET LOANS ==========
 app.get('/api/loans', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const loans = await Loan.find({ userId: decoded.userId }).sort({ createdAt: -1 });
-        res.json(loans);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        
+        const { data: loans, error } = await supabase
+            .from('loans')
+            .select('*')
+            .eq('user_id', decoded.userId)
+            .order('created_at', { ascending: false });
+        
+        res.json(loans || []);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch loans' });
     }
 });
 
-// ========== SUPPORT ==========
+// ========== CREATE SUPPORT TICKET ==========
 app.post('/api/support', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const user = await User.findById(decoded.userId);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { subject, message, priority } = req.body;
         
-        const ticket = new SupportTicket({
-            userId: user._id,
-            name: user.fullName,
-            email: user.email,
-            subject,
-            message,
-            priority: priority || 'medium',
-            status: 'open'
-        });
-        await ticket.save();
+        const { data: user } = await supabase
+            .from('users')
+            .select('full_name, email')
+            .eq('id', decoded.userId)
+            .single();
         
-        log('BANK', `🎫 Support ticket created: ${ticket._id} from ${user.email}`);
+        const { data: ticket, error } = await supabase
+            .from('support_tickets')
+            .insert([{
+                user_id: decoded.userId,
+                name: user.full_name,
+                email: user.email,
+                subject: subject,
+                message: message,
+                priority: priority || 'medium',
+                status: 'open'
+            }])
+            .select();
         
-        res.json({ success: true, ticket });
+        if (error) {
+            log('ERROR', 'Support error:', error);
+            return res.status(500).json({ error: 'Failed to create ticket' });
+        }
+        
+        log('BANK', `🎫 Support ticket created: ${ticket[0].id}`);
+        
+        res.json({ success: true, ticket: ticket[0] });
     } catch (error) {
         res.status(500).json({ error: 'Failed to create ticket' });
     }
 });
 
-app.get('/api/support', async (req, res) => {
+// ========== GET SUPPORT TICKETS ==========
+app.get('/api/support/tickets', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const tickets = await SupportTicket.find({ userId: decoded.userId }).sort({ createdAt: -1 });
-        res.json(tickets);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        
+        const { data: tickets, error } = await supabase
+            .from('support_tickets')
+            .select('*')
+            .eq('user_id', decoded.userId)
+            .order('created_at', { ascending: false });
+        
+        res.json(tickets || []);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch tickets' });
     }
 });
 
 // ========== ADMIN ROUTES ==========
+
+// Get all users
 app.get('/api/admin/users', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const admin = await User.findById(decoded.userId);
-        if (!admin.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        const users = await User.find({}, '-password -transactionPin');
+        // Check if admin
+        const { data: admin, error: adminError } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', decoded.userId)
+            .single();
+        
+        if (!admin || !admin.is_admin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        const { data: users, error } = await supabase
+            .from('users')
+            .select('*')
+            .order('created_at', { ascending: false });
+        
+        // Get balances for each user
         const usersWithBalance = await Promise.all(users.map(async (u) => {
-            const account = await Account.findOne({ userId: u._id });
-            return { ...u.toObject(), balance: account?.balance || 0 };
+            const { data: account } = await supabase
+                .from('accounts')
+                .select('balance')
+                .eq('user_id', u.id)
+                .single();
+            
+            // Get BBC count
+            const { data: bbcCodes } = await supabase
+                .from('bbc_codes')
+                .select('id')
+                .eq('user_id', u.id);
+            
+            return {
+                ...u,
+                totalBalance: account?.balance || 0,
+                bbcCount: bbcCodes?.length || 0
+            };
         }));
         
         res.json(usersWithBalance);
@@ -969,226 +1209,359 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
+// Toggle user status
 app.post('/api/admin/toggle-status', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const admin = await User.findById(decoded.userId);
-        if (!admin.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        
+        // Check if admin
+        const { data: admin, error: adminError } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', decoded.userId)
+            .single();
+        
+        if (!admin || !admin.is_admin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
         
         const { userId } = req.body;
-        const user = await User.findById(userId);
+        
+        // Get current user
+        const { data: user, error: userError } = await supabase
+            .from('users')
+            .select('is_active')
+            .eq('id', userId)
+            .single();
+        
         if (!user) return res.status(404).json({ error: 'User not found' });
         
-        user.isActive = !user.isActive;
-        await user.save();
+        // Toggle status
+        await supabase
+            .from('users')
+            .update({ is_active: !user.is_active })
+            .eq('id', userId);
         
-        log('BANK', `👤 User ${user.email} status changed to ${user.isActive ? 'active' : 'inactive'}`);
+        log('BANK', `👤 User status toggled to ${!user.is_active ? 'active' : 'inactive'}`);
         
-        res.json({ success: true, isActive: user.isActive });
+        res.json({ success: true, isActive: !user.is_active });
     } catch (error) {
         res.status(500).json({ error: 'Failed to toggle status' });
     }
 });
 
-app.post('/api/admin/send-money', async (req, res) => {
+// Admin send money
+app.post('/api/admin/send', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const admin = await User.findById(decoded.userId);
-        if (!admin.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        const { toAccountNumber, amount, currency, description } = req.body;
+        // Check if admin
+        const { data: admin, error: adminError } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', decoded.userId)
+            .single();
         
-        const recipient = await User.findOne({ accountNumber: toAccountNumber });
-        if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
-        
-        const recipientAccount = await Account.findOne({ userId: recipient._id });
-        if (!recipientAccount) {
-            return res.status(404).json({ error: 'Recipient account not found' });
+        if (!admin || !admin.is_admin) {
+            return res.status(403).json({ error: 'Admin access required' });
         }
         
-        recipientAccount.balance += amount;
-        await recipientAccount.save();
+        const { toAccountNumber, amount, currency, senderName, note } = req.body;
         
-        const transaction = new Transaction({
-            reference: generateReference(),
-            type: 'deposit',
-            amount,
-            currency,
-            toUserId: recipient._id,
-            toAccountNumber: recipientAccount.accountNumber,
-            toName: recipient.fullName,
-            fromName: 'System Administrator',
-            description: description || 'Admin deposit',
-            status: 'completed'
-        });
-        await transaction.save();
+        // Find recipient
+        const { data: recipient, error: recipientError } = await supabase
+            .from('users')
+            .select('*')
+            .eq('account_number', toAccountNumber)
+            .single();
+        
+        if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
+        
+        // Get recipient account
+        const { data: recipientAccount, error: accError } = await supabase
+            .from('accounts')
+            .select('*')
+            .eq('user_id', recipient.id)
+            .single();
+        
+        if (!recipientAccount) {
+            // Create account if doesn't exist
+            const { data: newAccount, error: createError } = await supabase
+                .from('accounts')
+                .insert([{
+                    user_id: recipient.id,
+                    currency: currency || 'USD',
+                    account_number: recipient.account_number,
+                    iban: recipient.iban,
+                    balance: amount
+                }])
+                .select();
+            
+            if (createError) {
+                log('ERROR', 'Account creation error:', createError);
+                return res.status(500).json({ error: 'Failed to create account' });
+            }
+        } else {
+            // Update existing account
+            await supabase
+                .from('accounts')
+                .update({ balance: recipientAccount.balance + amount })
+                .eq('id', recipientAccount.id);
+        }
+        
+        // Create transaction
+        const reference = generateReference();
+        await supabase
+            .from('transactions')
+            .insert([{
+                reference: reference,
+                type: 'deposit',
+                amount: amount,
+                currency: currency || 'USD',
+                to_user_id: recipient.id,
+                to_account_number: recipient.account_number,
+                to_name: recipient.full_name,
+                from_name: senderName || 'System Administrator',
+                description: note || 'Admin deposit',
+                status: 'completed',
+                completed_at: new Date().toISOString()
+            }]);
         
         log('BANK', `💰 Admin deposit: ${amount} ${currency} to ${recipient.email}`);
         
         res.json({
             success: true,
-            message: `Successfully sent ${amount} ${currency} to ${recipient.fullName}`
+            message: `Successfully sent ${amount} ${currency} to ${recipient.full_name}`
         });
     } catch (error) {
+        log('ERROR', 'Admin send error:', error.message);
         res.status(500).json({ error: 'Failed to send money' });
     }
 });
 
+// Generate BBC codes
 app.post('/api/admin/generate-bbc', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const admin = await User.findById(decoded.userId);
-        if (!admin.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        
+        // Check if admin
+        const { data: admin, error: adminError } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', decoded.userId)
+            .single();
+        
+        if (!admin || !admin.is_admin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
         
         const { userId, step = 1, quantity = 20, expiryDays = 30 } = req.body;
         
         const codes = [];
+        const expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + expiryDays);
+        
         for (let i = 0; i < quantity; i++) {
             const code = generateBBCode();
-            await new BBC({
-                code,
-                userId,
-                step,
-                expiresAt: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
-            }).save();
-            codes.push(code);
+            const { data, error } = await supabase
+                .from('bbc_codes')
+                .insert([{
+                    code: code,
+                    user_id: userId,
+                    step: step,
+                    is_used: false,
+                    expires_at: expiryDate.toISOString()
+                }])
+                .select();
+            
+            if (data && data.length > 0) {
+                codes.push(data[0].code);
+            }
         }
         
-        log('BBC', `🔐 Generated ${quantity} BBC codes for user ${userId}, step ${step}`);
+        log('BBC', `🔐 Generated ${codes.length} BBC codes for user ${userId}, step ${step}`);
         
-        res.json({ success: true, codes, quantity });
+        res.json({ success: true, codes: codes, quantity: codes.length });
     } catch (error) {
         log('ERROR', 'Generate BBC error:', error.message);
         res.status(500).json({ error: 'Failed to generate BBC codes' });
     }
 });
 
+// Get BBC codes for user
 app.get('/api/admin/bbc/:userId', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
-        const decoded = jwt.verify(token, JWT_SECRET);
-        const admin = await User.findById(decoded.userId);
-        if (!admin.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         
-        const codes = await BBC.find({ userId: req.params.userId })
-            .select('code step isUsed expiresAt createdAt')
-            .sort({ createdAt: -1 });
+        // Check if admin
+        const { data: admin, error: adminError } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', decoded.userId)
+            .single();
         
-        res.json(codes);
+        if (!admin || !admin.is_admin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        const { data: codes, error } = await supabase
+            .from('bbc_codes')
+            .select('*')
+            .eq('user_id', req.params.userId)
+            .order('created_at', { ascending: false });
+        
+        res.json(codes || []);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch BBC codes' });
+    }
+});
+
+// Get single BBC code
+app.get('/api/admin/bbc/check/:code', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        
+        // Check if admin
+        const { data: admin, error: adminError } = await supabase
+            .from('users')
+            .select('is_admin')
+            .eq('id', decoded.userId)
+            .single();
+        
+        if (!admin || !admin.is_admin) {
+            return res.status(403).json({ error: 'Admin access required' });
+        }
+        
+        const { data: code, error } = await supabase
+            .from('bbc_codes')
+            .select('*')
+            .eq('code', req.params.code)
+            .single();
+        
+        if (!code) {
+            return res.status(404).json({ error: 'BBC code not found' });
+        }
+        
+        res.json(code);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to check BBC code' });
     }
 });
 
 // ========== CREATE ADMIN ==========
 async function createAdmin() {
     try {
-        const adminExists = await User.findOne({ isAdmin: true });
-        if (!adminExists) {
-            log('INFO', 'Creating admin user...');
-            const hashedPassword = await bcrypt.hash('Prime@Admin2026', 10);
-            const hashedPin = await bcrypt.hash('0000', 10);
-            const accountNumber = generateAccountNumber('USD');
-            
-            const admin = new User({
-                fullName: 'System Administrator',
-                firstName: 'System',
-                lastName: 'Admin',
+        // Check if admin exists
+        const { data: existing, error } = await supabase
+            .from('users')
+            .select('id')
+            .eq('email', 'admin@primeheritage.com');
+        
+        if (existing && existing.length > 0) {
+            log('INFO', 'Admin user already exists');
+            return;
+        }
+        
+        log('INFO', 'Creating admin user...');
+        const hashedPassword = await bcrypt.hash('Prime@Admin2026', 10);
+        const hashedPin = await bcrypt.hash('0000', 10);
+        const accountNumber = generateAccountNumber('USD');
+        const iban = generateIBAN('USD', accountNumber);
+        const swiftCode = generateSWIFTCode('USD');
+        
+        const { data: admin, error: insertError } = await supabase
+            .from('users')
+            .insert([{
+                full_name: 'System Administrator',
+                first_name: 'System',
+                last_name: 'Admin',
                 email: 'admin@primeheritage.com',
                 phone: '+1 (800) 555-0000',
                 password: hashedPassword,
-                transactionPin: hashedPin,
+                transaction_pin: hashedPin,
                 currency: 'USD',
-                accountNumber,
-                iban: generateIBAN('USD', accountNumber),
-                swiftCode: generateSWIFTCode('USD'),
-                isAdmin: true,
-                isEmailVerified: true,
-                isActive: true
-            });
-            await admin.save();
-            
-            const account = new Account({
-                userId: admin._id,
-                currency: 'USD',
-                accountNumber,
-                iban: generateIBAN('USD', accountNumber),
-                balance: 1000000
-            });
-            await account.save();
-            
-            log('SUCCESS', '✅ Admin created successfully!');
-            log('AUTH', '📧 Email: admin@primeheritage.com');
-            log('AUTH', '🔑 Password: Prime@Admin2026');
-        } else {
-            log('INFO', 'Admin user already exists');
+                account_number: accountNumber,
+                iban: iban,
+                swift_code: swiftCode,
+                is_admin: true,
+                is_email_verified: true,
+                is_active: true
+            }])
+            .select();
+        
+        if (insertError) {
+            log('ERROR', 'Admin creation error:', insertError);
+            return;
         }
+        
+        const newAdmin = admin[0];
+        
+        await supabase
+            .from('accounts')
+            .insert([{
+                user_id: newAdmin.id,
+                currency: 'USD',
+                account_number: accountNumber,
+                iban: iban,
+                balance: 1000000
+            }]);
+        
+        log('SUCCESS', '✅ Admin created successfully!');
+        log('AUTH', '📧 Email: admin@primeheritage.com');
+        log('AUTH', '🔑 Password: Prime@Admin2026');
     } catch (error) {
         log('ERROR', 'Admin creation error:', error.message);
     }
 }
 
-// ========== CONNECT TO MONGODB ==========
-async function connectDB() {
-    try {
-        await mongoose.connect(MONGODB_URI, {
-            useNewUrlParser: true,
-            useUnifiedTopology: true,
-        });
-        log('SUCCESS', '✅ MongoDB connected successfully!');
-        log('INFO', `📊 Database: ${mongoose.connection.name}`);
-        log('INFO', `🌐 Host: ${mongoose.connection.host}`);
-        return true;
-    } catch (error) {
-        log('ERROR', 'MongoDB connection failed:', error.message);
-        return false;
-    }
-}
+// ========== MIDDLEWARE ==========
+app.use(helmet({
+    contentSecurityPolicy: false,
+    crossOriginEmbedderPolicy: false
+}));
+app.use(compression());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cors());
+app.use(limiter);
+app.use(express.static('public'));
+
+// ========== HEALTH CHECK ==========
+app.get('/api/health', (req, res) => {
+    res.json({
+        status: 'online',
+        version: '5.0.0',
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime()
+    });
+});
+
+// ========== SERVE FRONTEND ==========
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 // ========== START SERVER ==========
+const PORT = process.env.PORT || 3000;
+
 async function startServer() {
-    const dbConnected = await connectDB();
-    if (!dbConnected) {
-        log('ERROR', 'Cannot start server without database connection');
-        process.exit(1);
-    }
-    
+    // Create admin on startup
     await createAdmin();
-    
-    app.use(helmet({
-        contentSecurityPolicy: false,
-        crossOriginEmbedderPolicy: false
-    }));
-    app.use(compression());
-    app.use(express.json());
-    app.use(express.urlencoded({ extended: true }));
-    app.use(cors());
-    app.use(limiter);
-    app.use(express.static('public'));
-    
-    app.get('/api/health', (req, res) => {
-        res.json({
-            status: 'online',
-            version: '5.0.0',
-            timestamp: new Date().toISOString(),
-            uptime: process.uptime()
-        });
-    });
-    
-    app.get('*', (req, res) => {
-        res.sendFile(path.join(__dirname, 'public', 'index.html'));
-    });
     
     app.listen(PORT, () => {
         console.log(`\n${colors.bright}${colors.gold}`);
@@ -1207,6 +1580,7 @@ async function startServer() {
         log('SUCCESS', '🎉 Server is ready for connections!');
         log('INFO', `💻 Environment: ${process.env.NODE_ENV || 'development'}`);
         log('INFO', `📊 API: /api/register, /api/login, /api/me, /api/send/step1-4`);
+        log('INFO', `👑 Admin: admin@primeheritage.com / Prime@Admin2026`);
     });
 }
 
@@ -1215,7 +1589,7 @@ process.on('uncaughtException', (error) => {
     console.error(error.stack);
 });
 
-process.on('unhandledRejection', (reason, promise) => {
+process.on('unhandledRejection', (reason) => {
     log('ERROR', 'Unhandled Rejection:', reason);
 });
 
