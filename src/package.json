@@ -1,6 +1,6 @@
 {
   "name": "prime-heritage-bank",
-  "version": "3.0.0",
+  "version": "5.0.0",
   "description": "Premium International Banking Platform",
   "main": "server.js",
   "scripts": {
@@ -18,9 +18,7 @@
     "express-rate-limit": "^6.10.0",
     "helmet": "^7.0.0",
     "compression": "^1.7.4",
-    "resend": "^3.2.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "resend": "^3.2.0"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
