@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Profile | Prime Heritage Bank</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
@@ -19,7 +19,7 @@
             --warning: #F59E0B;
             --info: #3B82F6;
         }
-        
+
         [data-theme="dark"] {
             --bg-body: #0A0E1A;
             --bg-card: rgba(17, 24, 39, 0.95);
@@ -27,10 +27,9 @@
             --text-primary: #FFFFFF;
             --text-secondary: #9CA3AF;
             --input-bg: #0F1622;
-            --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             --glass-bg: rgba(17, 24, 39, 0.8);
         }
-        
+
         [data-theme="light"] {
             --bg-body: #F3F4F6;
             --bg-card: rgba(255, 255, 255, 0.95);
@@ -38,10 +37,9 @@
             --text-primary: #111827;
             --text-secondary: #6B7280;
             --input-bg: #F9FAFB;
-            --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
             --glass-bg: rgba(255, 255, 255, 0.8);
         }
-        
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-body);
@@ -49,7 +47,7 @@
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
-        
+
         body::before {
             content: '';
             position: fixed;
@@ -62,17 +60,15 @@
             pointer-events: none;
             z-index: 0;
         }
-        
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px); } 
-            to { opacity: 1; transform: translateY(0); } 
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeIn { 
-            from { opacity: 0; } 
-            to { opacity: 1; } 
-        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
-        
+
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -85,7 +81,7 @@
             z-index: 100;
             border-bottom: 1px solid var(--border);
         }
-        
+
         .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo-icon {
             width: 44px; height: 44px;
@@ -104,9 +100,9 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .user-section { display: flex; align-items: center; gap: 20px; }
-        
+
         .theme-toggle {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--border);
@@ -127,7 +123,7 @@
             color: #0A0E1A;
         }
         .theme-option i { margin-right: 8px; }
-        
+
         .avatar {
             width: 46px; height: 46px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
@@ -140,9 +136,9 @@
         }
         .avatar:hover { transform: scale(1.1) rotate(5deg); }
         .avatar i { color: #0A0E1A; font-size: 20px; }
-        
+
         .container { max-width: 600px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
-        
+
         .profile-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -153,17 +149,11 @@
             animation: slideUp 0.6s ease;
             transition: all 0.3s;
         }
-        
         .profile-card:hover { border-color: var(--gold); }
-        
-        .profile-header {
-            text-align: center;
-            margin-bottom: 28px;
-        }
-        
+
+        .profile-header { text-align: center; margin-bottom: 28px; }
         .profile-avatar {
-            width: 100px;
-            height: 100px;
+            width: 100px; height: 100px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             border-radius: 50%;
             display: flex;
@@ -173,9 +163,7 @@
             box-shadow: 0 10px 30px rgba(198,164,63,0.3);
             transition: all 0.3s;
         }
-        
         .profile-avatar i { font-size: 48px; color: #0A0E1A; }
-        
         .profile-name {
             font-size: 24px;
             font-weight: 700;
@@ -183,22 +171,15 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
-        .profile-email {
-            color: var(--text-secondary);
-            font-size: 13px;
-            margin-top: 6px;
-        }
-        
+        .profile-email { color: var(--text-secondary); font-size: 13px; margin-top: 6px; }
+
         .info-row {
             display: flex;
             justify-content: space-between;
             padding: 16px 0;
             border-bottom: 1px solid var(--border);
         }
-        
         .info-row:last-child { border-bottom: none; }
-        
         .info-label {
             color: var(--text-secondary);
             font-size: 13px;
@@ -207,15 +188,13 @@
             align-items: center;
             gap: 8px;
         }
-        
         .info-label i { color: var(--gold); width: 20px; }
-        
         .info-value {
             color: var(--text-primary);
             font-weight: 600;
             font-size: 14px;
         }
-        
+
         .section-title {
             font-size: 18px;
             font-weight: 700;
@@ -227,11 +206,9 @@
             padding-bottom: 12px;
             border-bottom: 2px solid var(--border);
         }
-        
         .section-title i { color: var(--gold); font-size: 20px; }
-        
+
         .form-group { margin-bottom: 20px; }
-        
         .form-group label {
             display: block;
             font-size: 12px;
@@ -241,12 +218,10 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        
         .form-group label i {
             margin-right: 8px;
             color: var(--gold);
         }
-        
         .form-group input {
             width: 100%;
             padding: 14px 18px;
@@ -258,20 +233,18 @@
             font-size: 15px;
             transition: all 0.3s;
         }
-        
         .form-group input:focus {
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
             transform: translateY(-2px);
         }
-        
+
         .pin-inputs {
             display: flex;
             gap: 12px;
             justify-content: center;
         }
-        
         .pin-inputs input {
             width: 60px;
             height: 60px;
@@ -284,12 +257,11 @@
             color: var(--gold);
             transition: all 0.2s;
         }
-        
         .pin-inputs input:focus {
             border-color: var(--gold);
             transform: scale(1.05);
         }
-        
+
         .btn {
             width: 100%;
             padding: 16px;
@@ -307,26 +279,24 @@
             justify-content: center;
             gap: 10px;
         }
-        
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
-        
+
         .btn-logout {
             background: linear-gradient(135deg, #EF4444, #DC2626);
             color: white;
         }
-        
-        .btn-logout:hover {
-            box-shadow: 0 10px 25px rgba(239,68,68,0.3);
-        }
-        
-        .btn-secondary {
-            background: linear-gradient(135deg, #4B5563, #374151);
+        .btn-logout:hover { box-shadow: 0 10px 25px rgba(239,68,68,0.3); }
+
+        .btn-danger-zone {
+            background: linear-gradient(135deg, #DC2626, #991B1B);
             color: white;
+            margin-top: 12px;
         }
-        
+        .btn-danger-zone:hover { box-shadow: 0 10px 25px rgba(220,38,38,0.3); }
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -340,7 +310,6 @@
             border-top: 1px solid var(--border);
             z-index: 99;
         }
-        
         .nav-item {
             text-align: center;
             cursor: pointer;
@@ -348,27 +317,23 @@
             border-radius: 14px;
             transition: all 0.3s;
         }
-        
         .nav-item i {
             font-size: 22px;
             color: var(--text-secondary);
             display: block;
             margin-bottom: 6px;
         }
-        
         .nav-item span {
             font-size: 11px;
             color: var(--text-secondary);
             font-weight: 500;
         }
-        
         .nav-item.active {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
         }
-        
         .nav-item.active i, .nav-item.active span { color: var(--gold); }
         .nav-item:hover { transform: translateY(-3px); }
-        
+
         .loading-overlay {
             display: none;
             position: fixed;
@@ -381,7 +346,6 @@
             justify-content: center;
             flex-direction: column;
         }
-        
         .loader {
             width: 60px; height: 60px;
             border: 3px solid rgba(198,164,63,0.2);
@@ -390,9 +354,7 @@
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
-        
-        @keyframes spin { to { transform: rotate(360deg); } }
-        
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .profile-card { padding: 24px; }
@@ -403,7 +365,7 @@
             .theme-option i { margin-right: 0; }
             .info-row { flex-direction: column; gap: 8px; }
         }
-        
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
@@ -427,18 +389,23 @@
     </div>
 
     <div class="container">
-        <!-- Profile Information Card -->
         <div class="profile-card">
             <div class="profile-header">
-                <div class="profile-avatar">
-                    <i class="fas fa-user-astronaut"></i>
-                </div>
+                <div class="profile-avatar"><i class="fas fa-user-astronaut"></i></div>
                 <div class="profile-name" id="profileName">Loading...</div>
                 <div class="profile-email" id="profileEmail">Loading...</div>
             </div>
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-credit-card"></i> Account Number</span>
                 <span class="info-value" id="accountNumber">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-globe"></i> IBAN</span>
+                <span class="info-value" id="iban">—</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label"><i class="fas fa-code-branch"></i> SWIFT Code</span>
+                <span class="info-value" id="swiftCode">—</span>
             </div>
             <div class="info-row">
                 <span class="info-label"><i class="fas fa-phone-alt"></i> Phone Number</span>
@@ -454,11 +421,8 @@
             </div>
         </div>
 
-        <!-- Change Password Card -->
         <div class="profile-card">
-            <div class="section-title">
-                <i class="fas fa-lock"></i> Change Password
-            </div>
+            <div class="section-title"><i class="fas fa-lock"></i> Change Password</div>
             <div class="form-group">
                 <label><i class="fas fa-key"></i> Current Password</label>
                 <input type="password" id="currentPassword" placeholder="Enter your current password">
@@ -471,16 +435,11 @@
                 <label><i class="fas fa-check-circle"></i> Confirm New Password</label>
                 <input type="password" id="confirmPassword" placeholder="Confirm new password">
             </div>
-            <button class="btn" onclick="updatePassword()">
-                <i class="fas fa-save"></i> Update Password
-            </button>
+            <button class="btn" onclick="updatePassword()"><i class="fas fa-save"></i> Update Password</button>
         </div>
 
-        <!-- Change PIN Card -->
         <div class="profile-card">
-            <div class="section-title">
-                <i class="fas fa-key"></i> Change Transaction PIN
-            </div>
+            <div class="section-title"><i class="fas fa-key"></i> Change Transaction PIN</div>
             <div class="form-group">
                 <label><i class="fas fa-old-key"></i> Current PIN</label>
                 <div class="pin-inputs">
@@ -499,20 +458,17 @@
                     <input type="password" maxlength="1" id="newPin4">
                 </div>
             </div>
-            <button class="btn" onclick="updatePin()">
-                <i class="fas fa-sync-alt"></i> Change PIN
-            </button>
+            <button class="btn" onclick="updatePin()"><i class="fas fa-sync-alt"></i> Change PIN</button>
         </div>
 
-        <!-- Danger Zone Card -->
         <div class="profile-card">
-            <div class="section-title">
+            <div class="section-title" style="border-color: #EF4444;">
                 <i class="fas fa-exclamation-triangle" style="color: #EF4444;"></i> Danger Zone
             </div>
             <button class="btn btn-logout" onclick="confirmLogout()">
                 <i class="fas fa-sign-out-alt"></i> Logout Account
             </button>
-            <button class="btn btn-secondary" onclick="deleteAccount()" style="margin-top: 12px; background: linear-gradient(135deg, #DC2626, #991B1B);">
+            <button class="btn btn-danger-zone" onclick="deleteAccount()">
                 <i class="fas fa-trash-alt"></i> Delete Account
             </button>
         </div>
@@ -521,7 +477,7 @@
     <div class="bottom-nav">
         <div class="nav-item" onclick="location.href='/dashboard.html'"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="nav-item" onclick="location.href='/cards.html'"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-        <div class="nav-item" onclick="location.href='/loans.html'"><i class="fas fa-hand-holding-usd"></i><span>Loans</span></div>
+        <div class="nav-item" onclick="location.href='/send.html'"><i class="fas fa-paper-plane"></i><span>Send</span></div>
         <div class="nav-item" onclick="location.href='/support.html'"><i class="fas fa-headset"></i><span>Support</span></div>
         <div class="nav-item active" onclick="location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
@@ -534,7 +490,7 @@
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
         let userData = null;
-        
+
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
@@ -543,57 +499,51 @@
             if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
             else document.getElementById('lightOption').classList.add('active');
         }
-        
+
         function toggleTheme() {
             const current = document.body.getAttribute('data-theme');
             setTheme(current === 'dark' ? 'light' : 'dark');
         }
-        
+
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
-        
+
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
-        
+
         function movePin(current, nextId) {
             if (current.value.length === 1 && nextId) {
                 document.getElementById(nextId).focus();
             }
         }
-        
+
         async function loadProfile() {
             try {
                 const token = localStorage.getItem('token');
-                if (!token) {
-                    window.location.href = '/';
-                    return;
-                }
+                if (!token) { window.location.href = '/'; return; }
                 const res = await fetch(`${apiUrl}/api/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.status === 401) {
-                    logout();
-                    return;
-                }
+                if (res.status === 401) { logout(); return; }
                 userData = await res.json();
                 const user = userData.user;
                 document.getElementById('profileName').innerHTML = user.fullName || user.firstName + ' ' + user.lastName;
                 document.getElementById('profileEmail').innerHTML = user.email;
                 document.getElementById('accountNumber').innerHTML = user.accountNumber || '—';
+                document.getElementById('iban').innerHTML = user.iban || '—';
+                document.getElementById('swiftCode').innerHTML = user.swiftCode || '—';
                 document.getElementById('phoneNumber').innerHTML = user.phone || '—';
                 document.getElementById('currency').innerHTML = user.currency || 'USD';
                 document.getElementById('memberSince').innerHTML = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
-            } catch(e) {
-                console.error(e);
-            }
+            } catch(e) { console.error(e); }
         }
-        
+
         async function updatePassword() {
             const current = document.getElementById('currentPassword').value;
             const newPass = document.getElementById('newPassword').value;
             const confirm = document.getElementById('confirmPassword').value;
-            
+
             if (!current || !newPass) {
                 Swal.fire('Error', 'Please fill all fields', 'error');
                 return;
@@ -606,7 +556,7 @@
                 Swal.fire('Error', 'Password must be at least 6 characters', 'error');
                 return;
             }
-            
+
             showLoading(true);
             try {
                 const res = await fetch(`${apiUrl}/api/update-password`, {
@@ -632,18 +582,18 @@
                 showLoading(false);
             }
         }
-        
+
         async function updatePin() {
-            const curPin = document.getElementById('curPin1').value + document.getElementById('curPin2').value + 
+            const curPin = document.getElementById('curPin1').value + document.getElementById('curPin2').value +
                           document.getElementById('curPin3').value + document.getElementById('curPin4').value;
-            const newPin = document.getElementById('newPin1').value + document.getElementById('newPin2').value + 
+            const newPin = document.getElementById('newPin1').value + document.getElementById('newPin2').value +
                           document.getElementById('newPin3').value + document.getElementById('newPin4').value;
-            
+
             if (curPin.length !== 4 || newPin.length !== 4) {
                 Swal.fire('Error', 'Please enter valid 4-digit PINs', 'error');
                 return;
             }
-            
+
             showLoading(true);
             try {
                 const res = await fetch(`${apiUrl}/api/update-pin`, {
@@ -667,7 +617,7 @@
                 showLoading(false);
             }
         }
-        
+
         function confirmLogout() {
             Swal.fire({
                 title: 'Logout?',
@@ -680,12 +630,10 @@
                 background: document.body.getAttribute('data-theme') === 'dark' ? '#111827' : '#fff',
                 color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
             }).then((result) => {
-                if (result.isConfirmed) {
-                    logout();
-                }
+                if (result.isConfirmed) { logout(); }
             });
         }
-        
+
         function deleteAccount() {
             Swal.fire({
                 title: 'Delete Account?',
@@ -704,19 +652,18 @@
                 }
             });
         }
-        
+
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/';
         }
-        
-        // Check authentication on load
+
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') {
             window.location.href = '/';
         }
-        
+
         loadProfile();
     </script>
 </body>
