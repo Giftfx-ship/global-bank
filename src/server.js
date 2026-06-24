@@ -8,8 +8,8 @@ const cors = require('cors');
 const path = require('path');
 const helmet = require('helmet');
 const compression = require('compression');
-const nodemailer = require('nodemailer');
 const rateLimit = require('express-rate-limit');
+const nodemailer = require('nodemailer');
 
 const app = express();
 
@@ -38,7 +38,8 @@ function log(level, message, data = null) {
         'DEBUG': '🔍 DEBUG',
         'AUTH': '🔐 AUTH',
         'EMAIL': '📧 EMAIL',
-        'BANK': '🏦 BANK'
+        'BANK': '🏦 BANK',
+        'BBC': '🔐 BBC'
     }[level] || '📌 LOG';
     
     const color = {
@@ -49,7 +50,8 @@ function log(level, message, data = null) {
         'DEBUG': colors.magenta,
         'AUTH': colors.gold,
         'EMAIL': colors.blue,
-        'BANK': colors.gold
+        'BANK': colors.gold,
+        'BBC': colors.magenta
     }[level] || colors.white;
     
     console.log(`${color}[${timestamp}] ${prefix}: ${message}${colors.reset}`);
@@ -63,6 +65,7 @@ console.log('║                                                                
 console.log('║     👑  PRIME HERITAGE BANK - INTERNATIONAL BANKING 2026        ║');
 console.log('║                                                                   ║');
 console.log('║     🌍 Global Excellence  •  💎 Premium Service  •  🔒 Secure    ║');
+console.log('║     🔐 BBC 3-Step Security System Active                         ║');
 console.log('║                                                                   ║');
 console.log('║     Version: 5.0.0                                               ║');
 console.log('║     Initializing banking system...                               ║');
@@ -75,14 +78,14 @@ const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure';
 const MONGODB_URI = 'mongodb+srv://devvgift_db_user:fZ8W6OUOFYV6KxTU@cluster0.lcshvgf.mongodb.net/primeheritage?retryWrites=true&w=majority&appName=Cluster0';
 
-// ========== EMAIL CONFIGURATION ==========
+// ========== GMAIL EMAIL CONFIGURATION ==========
 const EMAIL_CONFIG = {
     host: 'smtp.gmail.com',
     port: 587,
     secure: false,
     auth: {
         user: 'primeheritageinternationalbank@gmail.com',
-        pass: 'pzxw dqxj queu wcch'
+        pass: 'pzxw dqxj queu wcch' // App Password
     },
     tls: { rejectUnauthorized: false }
 };
@@ -160,7 +163,7 @@ const CardSchema = new mongoose.Schema({
     expiryMonth: Number,
     expiryYear: Number,
     cvv: String,
-    type: { type: String, enum: ['debit', 'credit', 'premium'], default: 'debit' },
+    type: { type: String, enum: ['debit', 'credit', 'premium'], default: 'premium' },
     status: { type: String, enum: ['active', 'frozen', 'blocked'], default: 'active' },
     dailyLimit: { type: Number, default: 5000 },
     createdAt: { type: Date, default: Date.now }
@@ -189,12 +192,23 @@ const SupportTicketSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now }
 });
 
+// ========== BBC SCHEMA ==========
+const BBCSchema = new mongoose.Schema({
+    code: { type: String, required: true, unique: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    step: { type: Number, required: true },
+    isUsed: { type: Boolean, default: false },
+    expiresAt: { type: Date, required: true },
+    createdAt: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', UserSchema);
 const Account = mongoose.model('Account', AccountSchema);
 const Transaction = mongoose.model('Transaction', TransactionSchema);
 const Card = mongoose.model('Card', CardSchema);
 const Loan = mongoose.model('Loan', LoanSchema);
 const SupportTicket = mongoose.model('SupportTicket', SupportTicketSchema);
+const BBC = mongoose.model('BBC', BBCSchema);
 
 // ========== HELPER FUNCTIONS ==========
 function generateAccountNumber(currency) {
@@ -233,6 +247,35 @@ function generateReference() {
     return `PHB-${Date.now().toString(36).toUpperCase()}-${random}`;
 }
 
+function generateBBCode() {
+    return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+async function hasBBCodes(userId, step) {
+    const count = await BBC.countDocuments({ 
+        userId, 
+        step, 
+        isUsed: false, 
+        expiresAt: { $gt: new Date() } 
+    });
+    return count > 0;
+}
+
+async function useBBCode(userId, code, requiredStep) {
+    const bbc = await BBC.findOne({ 
+        code, 
+        userId, 
+        step: requiredStep, 
+        isUsed: false, 
+        expiresAt: { $gt: new Date() } 
+    });
+    if (!bbc) return null;
+    bbc.isUsed = true;
+    await bbc.save();
+    return bbc;
+}
+
+// ========== EMAIL FUNCTIONS ==========
 async function sendEmail(to, subject, html) {
     log('EMAIL', `📧 Sending email to: ${to}`);
     try {
@@ -278,10 +321,7 @@ function getWelcomeEmail(user) {
             border: 1px solid rgba(198, 164, 63, 0.3);
             box-shadow: 0 25px 50px -12px rgba(0,0,0,0.8);
         }
-        .header { 
-            text-align: center; 
-            margin-bottom: 32px;
-        }
+        .header { text-align: center; margin-bottom: 32px; }
         .logo { 
             display: inline-block; 
             background: linear-gradient(135deg, #C6A43F, #9E8032); 
@@ -290,36 +330,12 @@ function getWelcomeEmail(user) {
             margin-bottom: 20px;
             box-shadow: 0 10px 30px rgba(198, 164, 63, 0.3);
         }
-        .logo span { 
-            color: #0A0E1A; 
-            font-size: 22px; 
-            font-weight: 800; 
-            letter-spacing: 3px;
-        }
-        .gold-text { color: #C6A43F; }
-        h1 { 
-            color: #C6A43F; 
-            font-size: 32px; 
-            font-weight: 800;
-            margin-bottom: 8px;
-        }
-        .subtitle { 
-            color: #9CA3AF; 
-            font-size: 15px;
-            font-weight: 400;
-        }
-        .divider { 
-            height: 2px; 
-            background: linear-gradient(90deg, transparent, #C6A43F, transparent);
-            margin: 30px 0;
-            opacity: 0.3;
-        }
+        .logo span { color: #0A0E1A; font-size: 22px; font-weight: 800; letter-spacing: 3px; }
+        h1 { color: #C6A43F; font-size: 32px; font-weight: 800; margin-bottom: 8px; }
+        .subtitle { color: #9CA3AF; font-size: 15px; font-weight: 400; }
+        .divider { height: 2px; background: linear-gradient(90deg, transparent, #C6A43F, transparent); margin: 30px 0; opacity: 0.3; }
         .content { color: #E5E7EB; }
-        .greeting { 
-            font-size: 20px; 
-            font-weight: 600;
-            margin-bottom: 16px;
-        }
+        .greeting { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
         .greeting span { color: #C6A43F; }
         .welcome-message {
             background: linear-gradient(135deg, rgba(198, 164, 63, 0.08), rgba(158, 128, 50, 0.04));
@@ -367,16 +383,8 @@ function getWelcomeEmail(user) {
             border-radius: 16px;
             border: 1px solid #1F2937;
         }
-        .feature i {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 6px;
-        }
-        .feature span {
-            color: #9CA3AF;
-            font-size: 11px;
-            font-weight: 500;
-        }
+        .feature i { font-size: 24px; display: block; margin-bottom: 6px; }
+        .feature span { color: #9CA3AF; font-size: 11px; font-weight: 500; }
         .cta-button {
             display: inline-block;
             background: linear-gradient(135deg, #C6A43F, #9E8032);
@@ -435,29 +443,17 @@ function getWelcomeEmail(user) {
             <h1>Welcome to Prime Heritage Bank</h1>
             <p class="subtitle">Your premium international banking journey begins now</p>
         </div>
-        
         <div class="content">
-            <div class="greeting">
-                Dear <span>${user.fullName}</span>,
-            </div>
-            
+            <div class="greeting">Dear <span>${user.fullName}</span>,</div>
             <div class="welcome-message">
-                <p style="font-size: 16px; font-weight: 500; color: #C6A43F; margin-bottom: 8px;">
-                    🎉 Welcome to the family!
-                </p>
-                <p style="color: #E5E7EB;">
-                    Your Prime Heritage Bank account has been successfully created. 
-                    We're honored to have you as a valued client. Experience world-class 
-                    banking with premium benefits, global accessibility, and top-tier security.
-                </p>
+                <p style="font-size: 16px; font-weight: 500; color: #C6A43F; margin-bottom: 8px;">🎉 Welcome to the family!</p>
+                <p style="color: #E5E7EB;">Your Prime Heritage Bank account has been successfully created. We're honored to have you as a valued client. Experience world-class banking with premium benefits, global accessibility, and top-tier security.</p>
             </div>
-
             <div style="text-align: center; margin: 8px 0 16px;">
                 <span class="badge">🌟 Premium Account</span>
                 <span class="badge">🔒 Secure Banking</span>
                 <span class="badge">🌍 International</span>
             </div>
-
             <div class="account-grid">
                 <div class="account-item">
                     <div class="label">📋 Account Number</div>
@@ -476,35 +472,18 @@ function getWelcomeEmail(user) {
                     <div class="value">${user.currency}</div>
                 </div>
             </div>
-
             <div class="features">
-                <div class="feature">
-                    <i style="font-size: 24px;">💳</i>
-                    <span>Premium Card</span>
-                </div>
-                <div class="feature">
-                    <i style="font-size: 24px;">🌐</i>
-                    <span>Global Access</span>
-                </div>
-                <div class="feature">
-                    <i style="font-size: 24px;">🔐</i>
-                    <span>Secure Banking</span>
-                </div>
+                <div class="feature"><i>💳</i><span>Premium Card</span></div>
+                <div class="feature"><i>🌐</i><span>Global Access</span></div>
+                <div class="feature"><i>🔐</i><span>Secure Banking</span></div>
             </div>
-
             <div style="text-align: center;">
                 <a href="#" class="cta-button">🚀 Access Your Dashboard</a>
-                <p style="color: #6B7280; font-size: 13px; margin-top: 12px;">
-                    Sign in to manage your account, transfer funds, and more
-                </p>
+                <p style="color: #6B7280; font-size: 13px; margin-top: 12px;">Sign in to manage your account, transfer funds, and more</p>
             </div>
-
             <div class="divider"></div>
-            
             <div style="background: #0F1622; border-radius: 16px; padding: 20px; margin-top: 16px;">
-                <p style="color: #9CA3AF; font-size: 13px; text-align: center;">
-                    💡 <strong style="color: #C6A43F;">Quick Tips:</strong>
-                </p>
+                <p style="color: #9CA3AF; font-size: 13px; text-align: center;">💡 <strong style="color: #C6A43F;">Quick Tips:</strong></p>
                 <ul style="color: #9CA3AF; font-size: 13px; list-style: none; padding: 0; text-align: center;">
                     <li style="padding: 4px 0;">• Your account is ready for international transfers</li>
                     <li style="padding: 4px 0;">• Access your funds 24/7 through our digital platform</li>
@@ -512,7 +491,6 @@ function getWelcomeEmail(user) {
                 </ul>
             </div>
         </div>
-
         <div class="footer">
             <div class="footer-links">
                 <a href="#">Privacy Policy</a>
@@ -520,9 +498,7 @@ function getWelcomeEmail(user) {
                 <a href="#">Support</a>
             </div>
             <p style="margin-top: 8px;">© 2026 Prime Heritage Bank. All rights reserved.</p>
-            <p style="font-size: 11px; color: #4B5563; margin-top: 4px;">
-                This is an automated welcome message. Please do not reply.
-            </p>
+            <p style="font-size: 11px; color: #4B5563; margin-top: 4px;">This is an automated welcome message. Please do not reply.</p>
         </div>
     </div>
 </body>
@@ -531,7 +507,7 @@ function getWelcomeEmail(user) {
 
 // ========== API ROUTES ==========
 
-// Register
+// ========== REGISTER ==========
 app.post('/api/register', async (req, res) => {
     log('AUTH', `📝 Registration: ${req.body.email}`);
     try {
@@ -613,7 +589,7 @@ app.post('/api/register', async (req, res) => {
     }
 });
 
-// Login
+// ========== LOGIN ==========
 app.post('/api/login', async (req, res) => {
     log('AUTH', `🔐 Login attempt: ${req.body.identifier}`);
     try {
@@ -643,6 +619,11 @@ app.post('/api/login', async (req, res) => {
         const token = jwt.sign({ userId: user._id }, JWT_SECRET, { expiresIn: '7d' });
         log('SUCCESS', `✅ Login successful: ${user.email}`);
         
+        // Get BBC status
+        const hasBbc1 = await hasBBCodes(user._id, 1);
+        const hasBbc2 = await hasBBCodes(user._id, 2);
+        const hasBbc3 = await hasBBCodes(user._id, 3);
+        
         res.json({
             success: true,
             token,
@@ -656,7 +637,8 @@ app.post('/api/login', async (req, res) => {
                 currency: user.currency,
                 isAdmin: user.isAdmin,
                 isEmailVerified: user.isEmailVerified
-            }
+            },
+            bbcStatus: { step1: hasBbc1, step2: hasBbc2, step3: hasBbc3 }
         });
     } catch (error) {
         log('ERROR', 'Login error:', error.message);
@@ -664,7 +646,7 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// Get user profile
+// ========== GET USER PROFILE ==========
 app.get('/api/me', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -682,6 +664,11 @@ app.get('/api/me', async (req, res) => {
         const loans = await Loan.find({ userId: user._id });
         const tickets = await SupportTicket.find({ userId: user._id });
         
+        // Get BBC status
+        const hasBbc1 = await hasBBCodes(user._id, 1);
+        const hasBbc2 = await hasBBCodes(user._id, 2);
+        const hasBbc3 = await hasBBCodes(user._id, 3);
+        
         res.json({
             user,
             account,
@@ -689,15 +676,18 @@ app.get('/api/me', async (req, res) => {
             transactions,
             loans,
             tickets,
-            totalBalance: account?.balance || 0
+            totalBalance: account?.balance || 0,
+            bbcStatus: { step1: hasBbc1, step2: hasBbc2, step3: hasBbc3 }
         });
     } catch (error) {
         res.status(401).json({ error: 'Invalid token' });
     }
 });
 
-// Transfer money
-app.post('/api/transfer', async (req, res) => {
+// ========== BBC 3-STEP SECURITY ==========
+
+// Step 1: Initiate transfer
+app.post('/api/send/step1', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
@@ -722,15 +712,10 @@ app.post('/api/transfer', async (req, res) => {
             return res.status(400).json({ error: 'Cannot transfer to yourself' });
         }
         
-        const recipientAccount = await Account.findOne({ userId: recipient._id });
-        if (!recipientAccount) return res.status(404).json({ error: 'Recipient account not found' });
+        const hasBbc1 = await hasBBCodes(user._id, 1);
+        if (!hasBbc1) return res.status(403).json({ error: 'No BBC Code 1 available' });
         
         const reference = generateReference();
-        senderAccount.balance -= amount;
-        recipientAccount.balance += amount;
-        await senderAccount.save();
-        await recipientAccount.save();
-        
         const transaction = new Transaction({
             reference,
             type: 'transfer',
@@ -740,29 +725,129 @@ app.post('/api/transfer', async (req, res) => {
             fromAccountNumber: senderAccount.accountNumber,
             fromName: user.fullName,
             toUserId: recipient._id,
-            toAccountNumber: recipientAccount.accountNumber,
+            toAccountNumber: recipient.accountNumber,
             toName: recipient.fullName,
             description: description || 'Transfer',
-            status: 'completed'
+            status: 'pending'
         });
         await transaction.save();
         
-        log('BANK', `💸 Transfer: ${amount} ${user.currency} from ${user.email} to ${recipient.email}`);
+        log('BBC', `🔐 Step 1: Transfer initiated - ${reference}`);
         
-        res.json({
-            success: true,
-            reference,
-            amount,
-            newBalance: senderAccount.balance,
-            recipient: recipient.fullName
-        });
+        res.json({ success: true, step: 1, reference });
     } catch (error) {
-        log('ERROR', 'Transfer error:', error.message);
-        res.status(500).json({ error: 'Transfer failed' });
+        log('ERROR', 'Step 1 error:', error.message);
+        res.status(500).json({ error: 'Failed' });
     }
 });
 
-// Get transactions
+// Step 2: Verify BBC Code 1
+app.post('/api/send/step2', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+        const { reference, bbcCode } = req.body;
+        
+        const transaction = await Transaction.findOne({ 
+            reference, 
+            fromUserId: user._id, 
+            status: 'pending' 
+        });
+        if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+        
+        const bbc = await useBBCode(user._id, bbcCode, 1);
+        if (!bbc) return res.status(403).json({ error: 'Invalid BBC Code 1' });
+        
+        log('BBC', `🔐 Step 2: BBC Code 1 verified - ${reference}`);
+        
+        res.json({ success: true, step: 2, reference });
+    } catch (error) {
+        log('ERROR', 'Step 2 error:', error.message);
+        res.status(500).json({ error: 'Failed' });
+    }
+});
+
+// Step 3: Verify BBC Code 2
+app.post('/api/send/step3', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+        const { reference, bbcCode } = req.body;
+        
+        const transaction = await Transaction.findOne({ 
+            reference, 
+            fromUserId: user._id, 
+            status: 'pending' 
+        });
+        if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+        
+        const bbc = await useBBCode(user._id, bbcCode, 2);
+        if (!bbc) return res.status(403).json({ error: 'Invalid BBC Code 2' });
+        
+        log('BBC', `🔐 Step 3: BBC Code 2 verified - ${reference}`);
+        
+        res.json({ success: true, step: 3, reference });
+    } catch (error) {
+        log('ERROR', 'Step 3 error:', error.message);
+        res.status(500).json({ error: 'Failed' });
+    }
+});
+
+// Step 4: Finalize with BBC Code 3
+app.post('/api/send/step4', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const user = await User.findById(decoded.userId);
+        const { reference, bbcCode } = req.body;
+        
+        const transaction = await Transaction.findOne({ 
+            reference, 
+            fromUserId: user._id, 
+            status: 'pending' 
+        });
+        if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+        
+        const bbc = await useBBCode(user._id, bbcCode, 3);
+        if (!bbc) return res.status(403).json({ error: 'Invalid BBC Code 3' });
+        
+        // Process transfer
+        const senderAccount = await Account.findOne({ userId: user._id });
+        const recipientAccount = await Account.findOne({ userId: transaction.toUserId });
+        
+        senderAccount.balance -= transaction.amount;
+        recipientAccount.balance += transaction.amount;
+        await senderAccount.save();
+        await recipientAccount.save();
+        
+        transaction.status = 'completed';
+        await transaction.save();
+        
+        log('BBC', `🔐 Step 4: Transfer completed - ${reference}`);
+        log('BANK', `💸 Transfer: ${transaction.amount} ${transaction.currency} from ${user.email} to ${transaction.toName}`);
+        
+        res.json({ 
+            success: true, 
+            step: 4, 
+            reference, 
+            amount: transaction.amount, 
+            newBalance: senderAccount.balance 
+        });
+    } catch (error) {
+        log('ERROR', 'Step 4 error:', error.message);
+        res.status(500).json({ error: 'Failed' });
+    }
+});
+
+// ========== GET TRANSACTIONS ==========
 app.get('/api/transactions', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -779,7 +864,7 @@ app.get('/api/transactions', async (req, res) => {
     }
 });
 
-// Apply for loan
+// ========== LOANS ==========
 app.post('/api/loans', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -812,7 +897,6 @@ app.post('/api/loans', async (req, res) => {
     }
 });
 
-// Get loans
 app.get('/api/loans', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -826,7 +910,7 @@ app.get('/api/loans', async (req, res) => {
     }
 });
 
-// Support ticket
+// ========== SUPPORT ==========
 app.post('/api/support', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -855,7 +939,6 @@ app.post('/api/support', async (req, res) => {
     }
 });
 
-// Get support tickets
 app.get('/api/support', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -870,6 +953,8 @@ app.get('/api/support', async (req, res) => {
 });
 
 // ========== ADMIN ROUTES ==========
+
+// Get all users
 app.get('/api/admin/users', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -891,6 +976,7 @@ app.get('/api/admin/users', async (req, res) => {
     }
 });
 
+// Toggle user status
 app.post('/api/admin/toggle-status', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -915,6 +1001,7 @@ app.post('/api/admin/toggle-status', async (req, res) => {
     }
 });
 
+// Admin send money
 app.post('/api/admin/send-money', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -959,6 +1046,59 @@ app.post('/api/admin/send-money', async (req, res) => {
         });
     } catch (error) {
         res.status(500).json({ error: 'Failed to send money' });
+    }
+});
+
+// Generate BBC Codes (Admin only)
+app.post('/api/admin/generate-bbc', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const admin = await User.findById(decoded.userId);
+        if (!admin.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+        
+        const { userId, step = 1, quantity = 20, expiryDays = 30 } = req.body;
+        
+        const codes = [];
+        for (let i = 0; i < quantity; i++) {
+            const code = generateBBCode();
+            await new BBC({
+                code,
+                userId,
+                step,
+                expiresAt: new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000)
+            }).save();
+            codes.push(code);
+        }
+        
+        log('BBC', `🔐 Generated ${quantity} BBC codes for user ${userId}, step ${step}`);
+        
+        res.json({ success: true, codes, quantity });
+    } catch (error) {
+        log('ERROR', 'Generate BBC error:', error.message);
+        res.status(500).json({ error: 'Failed to generate BBC codes' });
+    }
+});
+
+// Get BBC codes for user (Admin only)
+app.get('/api/admin/bbc/:userId', async (req, res) => {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) return res.status(401).json({ error: 'No token' });
+    
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const admin = await User.findById(decoded.userId);
+        if (!admin.isAdmin) return res.status(403).json({ error: 'Admin access required' });
+        
+        const codes = await BBC.find({ userId: req.params.userId })
+            .select('code step isUsed expiresAt createdAt')
+            .sort({ createdAt: -1 });
+        
+        res.json(codes);
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to fetch BBC codes' });
     }
 });
 
@@ -1034,6 +1174,7 @@ async function startServer() {
     
     await createAdmin();
     
+    // Middleware
     app.use(helmet({
         contentSecurityPolicy: false,
         crossOriginEmbedderPolicy: false
@@ -1045,6 +1186,7 @@ async function startServer() {
     app.use(limiter);
     app.use(express.static('public'));
     
+    // Health check
     app.get('/api/health', (req, res) => {
         res.json({
             status: 'online',
@@ -1054,6 +1196,7 @@ async function startServer() {
         });
     });
     
+    // Serve frontend
     app.get('*', (req, res) => {
         res.sendFile(path.join(__dirname, 'public', 'index.html'));
     });
@@ -1066,6 +1209,7 @@ async function startServer() {
         console.log('║                                                                   ║');
         console.log(`║     🌐  URL:     http://localhost:${PORT}                          ║`);
         console.log('║     📧  Email:   primeheritageinternationalbank@gmail.com        ║');
+        console.log('║     🔐  BBC:     3-Step Security System ACTIVE                   ║');
         console.log('║     💳  System:  International Banking Platform 2026             ║');
         console.log('║                                                                   ║');
         console.log('╚═══════════════════════════════════════════════════════════════════╝');
@@ -1073,10 +1217,11 @@ async function startServer() {
         
         log('SUCCESS', '🎉 Server is ready for connections!');
         log('INFO', `💻 Environment: ${process.env.NODE_ENV || 'development'}`);
-        log('INFO', `📊 API: /api/register, /api/login, /api/me, /api/transfer`);
+        log('INFO', `📊 API: /api/register, /api/login, /api/me, /api/send/step1-4`);
     });
 }
 
+// ========== ERROR HANDLING ==========
 process.on('uncaughtException', (error) => {
     log('ERROR', 'Uncaught Exception:', error.message);
     console.error(error.stack);
