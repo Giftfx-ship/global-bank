@@ -14,24 +14,23 @@ const { createClient } = require('@supabase/supabase-js');
 const app = express();
 
 // ========== SUPABASE CONFIG ==========
+console.log('🔌 Initializing Supabase...');
 const supabase = createClient(
     process.env.SUPABASE_URL || 'https://locubftytnfyxacfberj.supabase.co',
     process.env.SUPABASE_KEY || 'sb_publishable_AsPMmqBAtex3C_zfofY8sw_GGJ_nxyk'
 );
+console.log('✅ Supabase initialized');
 
-// ========== EMAIL CONFIG ==========
+// ========== EMAIL CONFIG (Using Your Method) ==========
+console.log('📧 Initializing Email...');
 const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
+    service: 'gmail',
     auth: {
         user: process.env.GMAIL_USER || 'primeheritageinternationalbank@gmail.com',
         pass: process.env.GMAIL_APP_PASSWORD || 'pzxw dqxj queu wcch'
-    },
-    tls: { rejectUnauthorized: false }
+    }
 });
 
-// Verify email connection
 transporter.verify((error) => {
     if (error) {
         console.log('❌ Email connection failed:', error.message);
@@ -142,36 +141,27 @@ function generateBBCode() {
     return Math.floor(100000 + Math.random() * 900000).toString();
 }
 
-async function getBBCodes(userId, step) {
-    const { data, error } = await supabase
-        .from('bbc_codes')
-        .select('code')
-        .eq('user_id', userId)
-        .eq('step', step)
-        .eq('is_used', false)
-        .gt('expires_at', new Date().toISOString())
-        .limit(1);
-    
-    if (error || !data || data.length === 0) return null;
-    return data[0].code;
+// ========== EMAIL FUNCTIONS (YOUR METHOD - NON-BLOCKING) ==========
+
+// This sends email in background WITHOUT blocking the response
+function sendWelcomeEmailBackground(user) {
+    // Don't await - fire and forget
+    sendEmail(
+        user.email,
+        '👑 Welcome to Prime Heritage Bank!',
+        getWelcomeEmail(user)
+    ).then(result => {
+        if (result) {
+            log('SUCCESS', `✅ Welcome email sent to ${user.email}`);
+        } else {
+            log('WARN', `⚠️ Welcome email failed for ${user.email}`);
+        }
+    }).catch(err => {
+        log('ERROR', `❌ Email error for ${user.email}:`, err.message);
+    });
 }
 
-async function useBBCode(userId, code, step) {
-    const { data, error } = await supabase
-        .from('bbc_codes')
-        .update({ is_used: true, used_at: new Date().toISOString() })
-        .eq('code', code)
-        .eq('user_id', userId)
-        .eq('step', step)
-        .eq('is_used', false)
-        .gt('expires_at', new Date().toISOString())
-        .select();
-    
-    if (error || !data || data.length === 0) return null;
-    return data[0];
-}
-
-// ========== EMAIL FUNCTIONS ==========
+// Email function using YOUR method (service: 'gmail')
 async function sendEmail(to, subject, html) {
     try {
         const mailOptions = {
@@ -181,16 +171,18 @@ async function sendEmail(to, subject, html) {
             html: html,
             replyTo: 'support@primeheritage.com'
         };
+        
+        log('DEBUG', `📧 Sending email to ${to}...`);
         const info = await transporter.sendMail(mailOptions);
-        log('SUCCESS', `✅ Email sent to ${to}`);
+        log('SUCCESS', `✅ Email sent to ${to} - ID: ${info.messageId}`);
         return true;
     } catch (error) {
-        log('ERROR', 'Email failed:', error.message);
+        log('ERROR', `❌ Email failed for ${to}:`, error.message);
         return false;
     }
 }
 
-// ========== EMAIL TEMPLATES ==========
+// ========== WELCOME EMAIL TEMPLATE ==========
 function getWelcomeEmail(user) {
     return `
 <!DOCTYPE html>
@@ -398,8 +390,6 @@ function getWelcomeEmail(user) {
 </html>`;
 }
 
-// ========== API ROUTES ==========
-
 // ========== REGISTER ==========
 app.post('/api/register', async (req, res) => {
     log('AUTH', `📝 Registration: ${req.body.email}`);
@@ -413,6 +403,7 @@ app.post('/api/register', async (req, res) => {
             .eq('email', email);
         
         if (existing && existing.length > 0) {
+            log('WARN', `Email already registered: ${email}`);
             return res.status(400).json({ error: 'Email already registered' });
         }
 
@@ -438,13 +429,14 @@ app.post('/api/register', async (req, res) => {
                 iban: iban,
                 swift_code: swiftCode,
                 is_email_verified: true,
-                is_active: true
+                is_active: true,
+                is_admin: false
             }])
             .select();
 
         if (insertError) {
             log('ERROR', 'Supabase insert error:', insertError);
-            return res.status(500).json({ error: 'Registration failed' });
+            return res.status(500).json({ error: 'Registration failed: ' + insertError.message });
         }
 
         const newUser = user[0];
@@ -463,17 +455,13 @@ app.post('/api/register', async (req, res) => {
         // Generate token
         const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure', { expiresIn: '7d' });
 
-        // Send welcome email
-        try {
-            await sendEmail(
-                email,
-                '👑 Welcome to Prime Heritage Bank - Your Premium Account is Ready!',
-                getWelcomeEmail(newUser)
-            );
-        } catch (emailError) {
-            log('ERROR', 'Email error:', emailError.message);
-        }
+        // ========== SEND EMAIL IN BACKGROUND (NON-BLOCKING) ==========
+        // This runs in the background - user gets response immediately
+        log('INFO', `📧 Queueing welcome email for ${email} (will send in background)`);
+        sendWelcomeEmailBackground(newUser);
 
+        // ========== IMMEDIATE RESPONSE - NO DELAY ==========
+        log('SUCCESS', `✅ User registered: ${email}`);
         res.json({
             success: true,
             token,
@@ -486,13 +474,14 @@ app.post('/api/register', async (req, res) => {
                 iban: newUser.iban,
                 swiftCode: newUser.swift_code,
                 currency: newUser.currency,
-                isAdmin: newUser.is_admin || false,
-                isEmailVerified: newUser.is_email_verified
+                isAdmin: false,
+                isEmailVerified: true
             }
         });
 
     } catch (error) {
         log('ERROR', 'Registration error:', error.message);
+        console.error(error.stack);
         res.status(500).json({ error: 'Registration failed: ' + error.message });
     }
 });
@@ -509,6 +498,7 @@ app.post('/api/login', async (req, res) => {
             .or(`email.eq.${identifier},account_number.eq.${identifier},iban.eq.${identifier}`);
         
         if (!users || users.length === 0) {
+            log('WARN', `Login failed: User not found - ${identifier}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
@@ -516,10 +506,12 @@ app.post('/api/login', async (req, res) => {
         const valid = await bcrypt.compare(password, user.password);
         
         if (!valid) {
+            log('WARN', `Login failed: Invalid password - ${identifier}`);
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
         if (!user.is_active) {
+            log('WARN', `Login blocked: Account disabled - ${identifier}`);
             return res.status(403).json({ error: 'Account is disabled' });
         }
 
@@ -533,6 +525,8 @@ app.post('/api/login', async (req, res) => {
             .eq('id', user.id);
 
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure', { expiresIn: '7d' });
+
+        log('SUCCESS', `✅ Login successful: ${user.email}`);
 
         res.json({
             success: true,
@@ -550,6 +544,7 @@ app.post('/api/login', async (req, res) => {
         });
     } catch (error) {
         log('ERROR', 'Login error:', error.message);
+        console.error(error.stack);
         res.status(500).json({ error: 'Login failed' });
     }
 });
@@ -557,10 +552,14 @@ app.post('/api/login', async (req, res) => {
 // ========== GET USER PROFILE ==========
 app.get('/api/me', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'No token' });
+    if (!token) {
+        log('WARN', 'No token provided for /api/me');
+        return res.status(401).json({ error: 'No token' });
+    }
     
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
+        log('DEBUG', `🔍 Fetching user profile: ${decoded.userId}`);
         
         // Get user
         const { data: user, error: userError } = await supabase
@@ -570,6 +569,7 @@ app.get('/api/me', async (req, res) => {
             .single();
         
         if (userError || !user) {
+            log('WARN', `User not found: ${decoded.userId}`);
             return res.status(404).json({ error: 'User not found' });
         }
         
@@ -661,6 +661,7 @@ app.get('/api/me', async (req, res) => {
         });
     } catch (error) {
         log('ERROR', 'Profile error:', error.message);
+        console.error(error.stack);
         res.status(401).json({ error: 'Invalid token' });
     }
 });
@@ -694,6 +695,7 @@ app.post('/api/update-password', async (req, res) => {
         
         res.json({ success: true, message: 'Password updated successfully' });
     } catch (error) {
+        log('ERROR', 'Update password error:', error.message);
         res.status(500).json({ error: 'Failed to update password' });
     }
 });
@@ -727,6 +729,7 @@ app.post('/api/update-pin', async (req, res) => {
         
         res.json({ success: true, message: 'PIN updated successfully' });
     } catch (error) {
+        log('ERROR', 'Update PIN error:', error.message);
         res.status(500).json({ error: 'Failed to update PIN' });
     }
 });
@@ -740,6 +743,8 @@ app.post('/api/send/step1', async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { toAccountNumber, amount, description, transactionPin } = req.body;
         
+        log('BBC', `🔐 Send Money Step 1: User ${decoded.userId}, Amount: ${amount}`);
+        
         // Get user
         const { data: user, error: userError } = await supabase
             .from('users')
@@ -747,11 +752,17 @@ app.post('/api/send/step1', async (req, res) => {
             .eq('id', decoded.userId)
             .single();
         
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (!user) {
+            log('WARN', `User not found: ${decoded.userId}`);
+            return res.status(404).json({ error: 'User not found' });
+        }
         
         // Verify PIN
         const validPin = await bcrypt.compare(transactionPin, user.transaction_pin);
-        if (!validPin) return res.status(401).json({ error: 'Invalid PIN' });
+        if (!validPin) {
+            log('WARN', `Invalid PIN for user: ${decoded.userId}`);
+            return res.status(401).json({ error: 'Invalid PIN' });
+        }
         
         // Get sender account
         const { data: senderAccount } = await supabase
@@ -761,6 +772,7 @@ app.post('/api/send/step1', async (req, res) => {
             .single();
         
         if (!senderAccount || senderAccount.balance < amount) {
+            log('WARN', `Insufficient funds for user: ${decoded.userId}, Balance: ${senderAccount?.balance}, Amount: ${amount}`);
             return res.status(400).json({ error: 'Insufficient funds' });
         }
         
@@ -771,8 +783,12 @@ app.post('/api/send/step1', async (req, res) => {
             .or(`account_number.eq.${toAccountNumber},iban.eq.${toAccountNumber}`)
             .single();
         
-        if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
+        if (!recipient) {
+            log('WARN', `Recipient not found: ${toAccountNumber}`);
+            return res.status(404).json({ error: 'Recipient not found' });
+        }
         if (recipient.id === user.id) {
+            log('WARN', `Cannot transfer to self: ${user.email}`);
             return res.status(400).json({ error: 'Cannot transfer to yourself' });
         }
         
@@ -783,7 +799,10 @@ app.post('/api/send/step1', async (req, res) => {
             .eq('user_id', recipient.id)
             .single();
         
-        if (!recipientAccount) return res.status(404).json({ error: 'Recipient account not found' });
+        if (!recipientAccount) {
+            log('WARN', `Recipient account not found: ${recipient.id}`);
+            return res.status(404).json({ error: 'Recipient account not found' });
+        }
         
         // Check BBC Code 1 exists
         const { data: bbc1, error: bbcError } = await supabase
@@ -796,6 +815,7 @@ app.post('/api/send/step1', async (req, res) => {
             .limit(1);
         
         if (!bbc1 || bbc1.length === 0) {
+            log('WARN', `No BBC Code 1 available for user: ${user.id}`);
             return res.status(403).json({ error: 'BBC Code 1 not available. Contact admin.' });
         }
         
@@ -830,11 +850,12 @@ app.post('/api/send/step1', async (req, res) => {
         res.json({ success: true, step: 1, reference });
     } catch (error) {
         log('ERROR', 'Step 1 error:', error.message);
+        console.error(error.stack);
         res.status(500).json({ error: 'Failed' });
     }
 });
 
-// ========== SEND MONEY - STEP 2 (BBC Code 1) ==========
+// ========== SEND MONEY - STEP 2 ==========
 app.post('/api/send/step2', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -842,6 +863,8 @@ app.post('/api/send/step2', async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { reference, bbcCode } = req.body;
+        
+        log('BBC', `🔐 Send Money Step 2: ${reference}`);
         
         // Get transaction
         const { data: transaction, error: txError } = await supabase
@@ -852,7 +875,10 @@ app.post('/api/send/step2', async (req, res) => {
             .eq('status', 'pending')
             .single();
         
-        if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+        if (!transaction) {
+            log('WARN', `Transaction not found: ${reference}`);
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
         
         // Verify BBC Code 1
         const { data: bbc, error: bbcError } = await supabase
@@ -866,6 +892,7 @@ app.post('/api/send/step2', async (req, res) => {
             .select();
         
         if (!bbc || bbc.length === 0) {
+            log('WARN', `Invalid BBC Code 1: ${bbcCode} for user ${decoded.userId}`);
             return res.status(403).json({ error: 'Invalid BBC Code 1' });
         }
         
@@ -874,11 +901,12 @@ app.post('/api/send/step2', async (req, res) => {
         res.json({ success: true, step: 2, reference });
     } catch (error) {
         log('ERROR', 'Step 2 error:', error.message);
+        console.error(error.stack);
         res.status(500).json({ error: 'Failed' });
     }
 });
 
-// ========== SEND MONEY - STEP 3 (BBC Code 2) ==========
+// ========== SEND MONEY - STEP 3 ==========
 app.post('/api/send/step3', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -886,6 +914,8 @@ app.post('/api/send/step3', async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { reference, bbcCode } = req.body;
+        
+        log('BBC', `🔐 Send Money Step 3: ${reference}`);
         
         // Get transaction
         const { data: transaction, error: txError } = await supabase
@@ -896,7 +926,10 @@ app.post('/api/send/step3', async (req, res) => {
             .eq('status', 'pending')
             .single();
         
-        if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+        if (!transaction) {
+            log('WARN', `Transaction not found: ${reference}`);
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
         
         // Verify BBC Code 2
         const { data: bbc, error: bbcError } = await supabase
@@ -910,6 +943,7 @@ app.post('/api/send/step3', async (req, res) => {
             .select();
         
         if (!bbc || bbc.length === 0) {
+            log('WARN', `Invalid BBC Code 2: ${bbcCode} for user ${decoded.userId}`);
             return res.status(403).json({ error: 'Invalid BBC Code 2' });
         }
         
@@ -918,11 +952,12 @@ app.post('/api/send/step3', async (req, res) => {
         res.json({ success: true, step: 3, reference });
     } catch (error) {
         log('ERROR', 'Step 3 error:', error.message);
+        console.error(error.stack);
         res.status(500).json({ error: 'Failed' });
     }
 });
 
-// ========== SEND MONEY - STEP 4 (BBC Code 3 & Complete) ==========
+// ========== SEND MONEY - STEP 4 ==========
 app.post('/api/send/step4', async (req, res) => {
     const token = req.headers.authorization?.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
@@ -930,6 +965,8 @@ app.post('/api/send/step4', async (req, res) => {
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
         const { reference, bbcCode } = req.body;
+        
+        log('BBC', `🔐 Send Money Step 4: ${reference}`);
         
         // Get transaction
         const { data: transaction, error: txError } = await supabase
@@ -940,7 +977,10 @@ app.post('/api/send/step4', async (req, res) => {
             .eq('status', 'pending')
             .single();
         
-        if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+        if (!transaction) {
+            log('WARN', `Transaction not found: ${reference}`);
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
         
         // Verify BBC Code 3
         const { data: bbc, error: bbcError } = await supabase
@@ -954,6 +994,7 @@ app.post('/api/send/step4', async (req, res) => {
             .select();
         
         if (!bbc || bbc.length === 0) {
+            log('WARN', `Invalid BBC Code 3: ${bbcCode} for user ${decoded.userId}`);
             return res.status(403).json({ error: 'Invalid BBC Code 3' });
         }
         
@@ -1010,6 +1051,7 @@ app.post('/api/send/step4', async (req, res) => {
         });
     } catch (error) {
         log('ERROR', 'Step 4 error:', error.message);
+        console.error(error.stack);
         res.status(500).json({ error: 'Failed' });
     }
 });
@@ -1031,6 +1073,7 @@ app.get('/api/transactions', async (req, res) => {
         
         res.json(transactions || []);
     } catch (error) {
+        log('ERROR', 'Transactions error:', error.message);
         res.status(500).json({ error: 'Failed to fetch transactions' });
     }
 });
@@ -1071,6 +1114,7 @@ app.post('/api/loans/apply', async (req, res) => {
         
         res.json({ success: true, loan: loan[0] });
     } catch (error) {
+        log('ERROR', 'Loan apply error:', error.message);
         res.status(500).json({ error: 'Failed to apply for loan' });
     }
 });
@@ -1091,6 +1135,7 @@ app.get('/api/loans', async (req, res) => {
         
         res.json(loans || []);
     } catch (error) {
+        log('ERROR', 'Loans error:', error.message);
         res.status(500).json({ error: 'Failed to fetch loans' });
     }
 });
@@ -1132,6 +1177,7 @@ app.post('/api/support', async (req, res) => {
         
         res.json({ success: true, ticket: ticket[0] });
     } catch (error) {
+        log('ERROR', 'Support error:', error.message);
         res.status(500).json({ error: 'Failed to create ticket' });
     }
 });
@@ -1152,6 +1198,7 @@ app.get('/api/support/tickets', async (req, res) => {
         
         res.json(tickets || []);
     } catch (error) {
+        log('ERROR', 'Tickets error:', error.message);
         res.status(500).json({ error: 'Failed to fetch tickets' });
     }
 });
@@ -1174,6 +1221,7 @@ app.get('/api/admin/users', async (req, res) => {
             .single();
         
         if (!admin || !admin.is_admin) {
+            log('WARN', `Non-admin access attempt: ${decoded.userId}`);
             return res.status(403).json({ error: 'Admin access required' });
         }
         
@@ -1205,6 +1253,7 @@ app.get('/api/admin/users', async (req, res) => {
         
         res.json(usersWithBalance);
     } catch (error) {
+        log('ERROR', 'Admin users error:', error.message);
         res.status(500).json({ error: 'Failed to fetch users' });
     }
 });
@@ -1249,6 +1298,7 @@ app.post('/api/admin/toggle-status', async (req, res) => {
         
         res.json({ success: true, isActive: !user.is_active });
     } catch (error) {
+        log('ERROR', 'Toggle status error:', error.message);
         res.status(500).json({ error: 'Failed to toggle status' });
     }
 });
@@ -1347,7 +1397,7 @@ app.post('/api/admin/send', async (req, res) => {
 
 // Generate BBC codes
 app.post('/api/admin/generate-bbc', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
+    const token = req.headers.authorization?.split(' '')[1];
     if (!token) return res.status(401).json({ error: 'No token' });
     
     try {
@@ -1424,42 +1474,8 @@ app.get('/api/admin/bbc/:userId', async (req, res) => {
         
         res.json(codes || []);
     } catch (error) {
+        log('ERROR', 'Get BBC error:', error.message);
         res.status(500).json({ error: 'Failed to fetch BBC codes' });
-    }
-});
-
-// Get single BBC code
-app.get('/api/admin/bbc/check/:code', async (req, res) => {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) return res.status(401).json({ error: 'No token' });
-    
-    try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET || 'prime_heritage_super_secret_2026_secure');
-        
-        // Check if admin
-        const { data: admin, error: adminError } = await supabase
-            .from('users')
-            .select('is_admin')
-            .eq('id', decoded.userId)
-            .single();
-        
-        if (!admin || !admin.is_admin) {
-            return res.status(403).json({ error: 'Admin access required' });
-        }
-        
-        const { data: code, error } = await supabase
-            .from('bbc_codes')
-            .select('*')
-            .eq('code', req.params.code)
-            .single();
-        
-        if (!code) {
-            return res.status(404).json({ error: 'BBC code not found' });
-        }
-        
-        res.json(code);
-    } catch (error) {
-        res.status(500).json({ error: 'Failed to check BBC code' });
     }
 });
 
@@ -1537,7 +1553,15 @@ app.use(helmet({
 app.use(compression());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cors());
+
+// ========== CORS ==========
+app.use(cors({
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
+}));
+app.options('*', cors());
+
 app.use(limiter);
 app.use(express.static('public'));
 
