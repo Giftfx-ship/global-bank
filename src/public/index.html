@@ -47,7 +47,6 @@
             transition: var(--transition);
         }
 
-        /* Animated Background */
         .bg-effects {
             position: fixed;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -73,7 +72,6 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Floating Orbs */
         .orb {
             position: fixed;
             border-radius: 50%;
@@ -132,10 +130,6 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
 
         .logo-section {
             text-align: center;
@@ -907,6 +901,7 @@
 
     <script>
         // ========== CONFIGURATION ==========
+        // FIXED: Hardcode your Render URL for production
         const API_URL = 'https://global-bank-i4cd.onrender.com';
 
         // ========== GLOBAL STATE ==========
@@ -927,46 +922,56 @@
             setTheme(current === 'dark' ? 'light' : 'dark');
         }
 
-        // Load saved theme
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
 
         // ========== UI HELPERS ==========
         function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.style.display = show ? 'flex' : 'none';
         }
 
         function switchTab(tab) {
-            document.getElementById('loginPanel').style.display = tab === 'login' ? 'block' : 'none';
-            document.getElementById('registerPanel').style.display = tab === 'register' ? 'block' : 'none';
-            document.getElementById('forgotPanel').style.display = 'none';
-            
+            const loginPanel = document.getElementById('loginPanel');
+            const registerPanel = document.getElementById('registerPanel');
+            const forgotPanel = document.getElementById('forgotPanel');
+
+            if (loginPanel) loginPanel.style.display = tab === 'login' ? 'block' : 'none';
+            if (registerPanel) registerPanel.style.display = tab === 'register' ? 'block' : 'none';
+            if (forgotPanel) forgotPanel.style.display = 'none';
+
             document.querySelectorAll('.tab').forEach((t, i) => {
                 t.classList.toggle('active', (tab === 'login' && i === 0) || (tab === 'register' && i === 1));
             });
-            
+
             if (tab === 'register') {
                 currentSection = 1;
                 updateProgress();
-                document.querySelectorAll('.form-section').forEach((section, index) => {
-                    section.classList.toggle('active-section', index === 0);
+                document.querySelectorAll('.form-section').forEach((s, i) => {
+                    s.classList.toggle('active-section', i === 0);
                 });
             }
         }
 
         function showForgotPassword() {
-            document.getElementById('loginPanel').style.display = 'none';
-            document.getElementById('registerPanel').style.display = 'none';
-            document.getElementById('forgotPanel').style.display = 'block';
+            const loginPanel = document.getElementById('loginPanel');
+            const registerPanel = document.getElementById('registerPanel');
+            const forgotPanel = document.getElementById('forgotPanel');
+
+            if (loginPanel) loginPanel.style.display = 'none';
+            if (registerPanel) registerPanel.style.display = 'none';
+            if (forgotPanel) forgotPanel.style.display = 'block';
         }
 
         // ========== REGISTRATION NAVIGATION ==========
         function updateProgress() {
             for (let i = 1; i <= 4; i++) {
                 const step = document.getElementById(`step${i}`);
-                step.classList.remove('active', 'completed');
-                if (i < currentSection) step.classList.add('completed');
-                else if (i === currentSection) step.classList.add('active');
+                if (step) {
+                    step.classList.remove('active', 'completed');
+                    if (i < currentSection) step.classList.add('completed');
+                    else if (i === currentSection) step.classList.add('active');
+                }
             }
         }
 
@@ -974,8 +979,8 @@
             if (section < currentSection) {
                 currentSection = section;
                 updateProgress();
-                document.querySelectorAll('.form-section').forEach((sec, idx) => {
-                    sec.classList.toggle('active-section', idx + 1 === currentSection);
+                document.querySelectorAll('.form-section').forEach((s, idx) => {
+                    s.classList.toggle('active-section', idx + 1 === currentSection);
                 });
             }
         }
@@ -1001,11 +1006,11 @@
         // ========== VALIDATION ==========
         function validateSection(section) {
             if (section === 1) {
-                const firstName = document.getElementById('firstName').value.trim();
-                const lastName = document.getElementById('lastName').value.trim();
-                const email = document.getElementById('email').value.trim();
-                const phone = document.getElementById('phone').value.trim();
-                
+                const firstName = document.getElementById('firstName')?.value.trim();
+                const lastName = document.getElementById('lastName')?.value.trim();
+                const email = document.getElementById('email')?.value.trim();
+                const phone = document.getElementById('phone')?.value.trim();
+
                 if (!firstName || !lastName || !email || !phone) {
                     Swal.fire('Error', 'Please fill all personal information fields', 'error');
                     return false;
@@ -1017,12 +1022,14 @@
                 return true;
             }
             if (section === 2) {
-                const password = document.getElementById('password').value;
-                const confirm = document.getElementById('confirmPassword').value;
-                const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + 
-                           document.getElementById('pin3').value + document.getElementById('pin4').value;
-                
-                if (password.length < 6) {
+                const password = document.getElementById('password')?.value;
+                const confirm = document.getElementById('confirmPassword')?.value;
+                const pin = (document.getElementById('pin1')?.value || '') + 
+                           (document.getElementById('pin2')?.value || '') +
+                           (document.getElementById('pin3')?.value || '') + 
+                           (document.getElementById('pin4')?.value || '');
+
+                if (password?.length < 6) {
                     Swal.fire('Error', 'Password must be at least 6 characters', 'error');
                     return false;
                 }
@@ -1041,29 +1048,31 @@
 
         function saveSectionData() {
             if (currentSection === 1) {
-                registrationData.firstName = document.getElementById('firstName').value.trim();
-                registrationData.lastName = document.getElementById('lastName').value.trim();
-                registrationData.email = document.getElementById('email').value.trim();
-                registrationData.phone = document.getElementById('phone').value.trim();
+                registrationData.firstName = document.getElementById('firstName')?.value.trim();
+                registrationData.lastName = document.getElementById('lastName')?.value.trim();
+                registrationData.email = document.getElementById('email')?.value.trim();
+                registrationData.phone = document.getElementById('phone')?.value.trim();
             }
             if (currentSection === 2) {
-                registrationData.password = document.getElementById('password').value;
+                registrationData.password = document.getElementById('password')?.value;
                 registrationData.transactionPin = 
-                    document.getElementById('pin1').value + document.getElementById('pin2').value + 
-                    document.getElementById('pin3').value + document.getElementById('pin4').value;
+                    (document.getElementById('pin1')?.value || '') +
+                    (document.getElementById('pin2')?.value || '') +
+                    (document.getElementById('pin3')?.value || '') +
+                    (document.getElementById('pin4')?.value || '');
             }
             if (currentSection === 3) {
                 registrationData.currency = selectedCurrency;
-                registrationData.notifications = document.getElementById('notifications').value;
+                registrationData.notifications = document.getElementById('notifications')?.value;
             }
         }
 
         function updateReview() {
             document.getElementById('reviewName').textContent = 
-                `${registrationData.firstName} ${registrationData.lastName}`;
+                `${registrationData.firstName || ''} ${registrationData.lastName || ''}`;
             document.getElementById('reviewContact').textContent = 
-                `${registrationData.email} | ${registrationData.phone}`;
-            document.getElementById('reviewCurrency').textContent = registrationData.currency;
+                `${registrationData.email || ''} | ${registrationData.phone || ''}`;
+            document.getElementById('reviewCurrency').textContent = registrationData.currency || 'USD';
         }
 
         // ========== FORM HELPERS ==========
@@ -1075,56 +1084,59 @@
         }
 
         function checkPasswordStrength() {
-            const password = document.getElementById('password').value;
+            const password = document.getElementById('password')?.value || '';
             const bar = document.getElementById('strengthBar');
             const text = document.getElementById('strengthText');
-            
+
             let strength = 0;
             if (password.length >= 6) strength++;
             if (password.length >= 10) strength++;
             if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
             if (/[0-9]/.test(password)) strength++;
             if (/[^a-zA-Z0-9]/.test(password)) strength++;
-            
-            const width = (strength / 5) * 100;
-            bar.style.width = width + '%';
-            
-            if (strength <= 2) {
-                bar.style.background = '#EF4444';
-                text.textContent = 'Weak - add more characters';
-            } else if (strength <= 4) {
-                bar.style.background = '#F59E0B';
-                text.textContent = 'Medium - add symbols for strength';
-            } else {
-                bar.style.background = '#10B981';
-                text.textContent = 'Strong password! ✓';
+
+            if (bar) {
+                bar.style.width = (strength / 5 * 100) + '%';
+                bar.style.background = strength <= 2 ? '#EF4444' : strength <= 4 ? '#F59E0B' : '#10B981';
+            }
+            if (text) {
+                text.textContent = strength <= 2 ? 'Weak - add more characters' : 
+                                  strength <= 4 ? 'Medium - add symbols' : 'Strong password! ✓';
             }
         }
 
         function checkPin() {
-            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + 
-                       document.getElementById('pin3').value + document.getElementById('pin4').value;
-            document.getElementById('pinError').style.display = pin.length === 4 ? 'none' : 'block';
+            const pin = (document.getElementById('pin1')?.value || '') +
+                       (document.getElementById('pin2')?.value || '') +
+                       (document.getElementById('pin3')?.value || '') +
+                       (document.getElementById('pin4')?.value || '');
+            const error = document.getElementById('pinError');
+            if (error) error.style.display = pin.length === 4 ? 'none' : 'block';
         }
 
         function moveToNext(current, nextId) {
-            if (current.value.length === 1) document.getElementById(nextId).focus();
+            if (current.value.length === 1) {
+                const next = document.getElementById(nextId);
+                if (next) next.focus();
+            }
         }
 
         function toggleCheckbox() {
-            const checkbox = document.getElementById('termsCheckbox');
-            checkbox.checked = !checkbox.checked;
+            const cb = document.getElementById('termsCheckbox');
+            if (cb) cb.checked = !cb.checked;
         }
 
         // ========== API CALLS ==========
         async function submitRegistration() {
-            if (!document.getElementById('termsCheckbox').checked) {
+            const cb = document.getElementById('termsCheckbox');
+            if (!cb?.checked) {
                 Swal.fire('Error', 'Please agree to the Terms & Conditions', 'error');
                 return;
             }
-            
+
             showLoading(true);
             try {
+                console.log('📝 Submitting registration to:', API_URL);
                 const response = await fetch(`${API_URL}/api/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1135,11 +1147,12 @@
                         phone: registrationData.phone,
                         password: registrationData.password,
                         transactionPin: registrationData.transactionPin,
-                        currency: registrationData.currency
+                        currency: registrationData.currency || 'USD'
                     })
                 });
                 const data = await response.json();
-                
+                console.log('📝 Registration response:', data);
+
                 if (data.success) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
@@ -1151,12 +1164,13 @@
                         showConfirmButton: false
                     });
                     setTimeout(() => {
-                        window.location.href = data.user.isAdmin ? '/admin.html' : '/dashboard.html';
+                        window.location.href = data.user?.isAdmin ? '/admin.html' : '/dashboard.html';
                     }, 2000);
                 } else {
                     Swal.fire('Error', data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
+                console.error('Registration error:', error);
                 Swal.fire('Error', 'Connection error. Please try again.', 'error');
             } finally {
                 showLoading(false);
@@ -1164,23 +1178,25 @@
         }
 
         async function handleLogin() {
-            const identifier = document.getElementById('loginIdentifier').value.trim();
-            const password = document.getElementById('loginPassword').value;
-            
+            const identifier = document.getElementById('loginIdentifier')?.value.trim();
+            const password = document.getElementById('loginPassword')?.value;
+
             if (!identifier || !password) {
                 Swal.fire('Error', 'Please enter email/account and password', 'error');
                 return;
             }
-            
+
             showLoading(true);
             try {
+                console.log('🔐 Login attempt:', identifier);
                 const response = await fetch(`${API_URL}/api/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ identifier, password })
                 });
                 const data = await response.json();
-                
+                console.log('🔐 Login response:', data);
+
                 if (data.success) {
                     localStorage.setItem('token', data.token);
                     localStorage.setItem('user', JSON.stringify(data.user));
@@ -1192,12 +1208,13 @@
                         showConfirmButton: false
                     });
                     setTimeout(() => {
-                        window.location.href = data.user.isAdmin ? '/admin.html' : '/dashboard.html';
+                        window.location.href = data.user?.isAdmin ? '/admin.html' : '/dashboard.html';
                     }, 1500);
                 } else {
                     Swal.fire('Error', data.error || 'Login failed', 'error');
                 }
             } catch (error) {
+                console.error('Login error:', error);
                 Swal.fire('Error', 'Connection error. Please try again.', 'error');
             } finally {
                 showLoading(false);
@@ -1205,12 +1222,12 @@
         }
 
         async function sendResetCode() {
-            const email = document.getElementById('resetEmail').value.trim();
+            const email = document.getElementById('resetEmail')?.value.trim();
             if (!email) {
                 Swal.fire('Error', 'Please enter your email', 'error');
                 return;
             }
-            
+
             showLoading(true);
             try {
                 const response = await fetch(`${API_URL}/api/forgot-password`, {
@@ -1219,7 +1236,7 @@
                     body: JSON.stringify({ email })
                 });
                 const data = await response.json();
-                
+
                 if (data.success) {
                     Swal.fire('Success', 'Password reset code sent to your email!', 'success');
                     switchTab('login');
@@ -1227,6 +1244,7 @@
                     Swal.fire('Error', data.error || 'Failed to send reset code', 'error');
                 }
             } catch (error) {
+                console.error('Reset error:', error);
                 Swal.fire('Error', 'Failed to send reset code', 'error');
             } finally {
                 showLoading(false);
