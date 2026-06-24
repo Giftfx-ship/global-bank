@@ -3,20 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Prime Heritage Bank | Premium International Banking</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <title>Prime Heritage Bank | Premium International Banking 2026</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800;14..32,900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --gold: #C6A43F;
+            --gold-light: #E8D5A4;
+            --gold-dark: #9E8032;
+            --bg-primary: #0A0E1A;
+            --bg-secondary: #111827;
+            --bg-card: #0F1622;
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --border-color: #1F2937;
+            --shadow-gold: rgba(198, 164, 63, 0.3);
+            --radius: 24px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0A0E1A;
+            background: var(--bg-primary);
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -24,139 +33,59 @@
             position: relative;
             overflow-x: hidden;
         }
-
-        /* Premium Gradient Background */
-        body::before {
-            content: '';
+        .bg-effects {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(198, 164, 63, 0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(198, 164, 63, 0.05) 0%, transparent 60%);
+            top: 0; left: 0; right: 0; bottom: 0;
             pointer-events: none;
             z-index: 0;
+            overflow: hidden;
         }
-
-        /* Animated Orbs */
+        .bg-effects::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: 
+                radial-gradient(circle at 30% 40%, rgba(198, 164, 63, 0.06) 0%, transparent 40%),
+                radial-gradient(circle at 70% 80%, rgba(198, 164, 63, 0.04) 0%, transparent 50%),
+                radial-gradient(circle at 50% 20%, rgba(158, 128, 50, 0.03) 0%, transparent 30%);
+            animation: rotateBg 60s linear infinite;
+        }
+        @keyframes rotateBg {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
         .orb {
             position: fixed;
             border-radius: 50%;
-            filter: blur(80px);
-            opacity: 0.4;
+            filter: blur(100px);
             pointer-events: none;
             z-index: 0;
-            animation: floatOrb 20s ease-in-out infinite;
+            animation: floatOrb 25s ease-in-out infinite;
         }
-
         .orb-1 {
-            width: 400px;
-            height: 400px;
-            background: radial-gradient(circle, rgba(198, 164, 63, 0.4), transparent);
-            top: -200px;
-            left: -200px;
+            width: 500px; height: 500px;
+            background: radial-gradient(circle, rgba(198, 164, 63, 0.15), transparent);
+            top: -200px; left: -200px;
         }
-
         .orb-2 {
-            width: 500px;
-            height: 500px;
-            background: radial-gradient(circle, rgba(158, 128, 50, 0.3), transparent);
-            bottom: -250px;
-            right: -250px;
-            animation-delay: 5s;
+            width: 600px; height: 600px;
+            background: radial-gradient(circle, rgba(158, 128, 50, 0.10), transparent);
+            bottom: -300px; right: -300px;
+            animation-delay: 8s;
         }
-
         .orb-3 {
-            width: 300px;
-            height: 300px;
-            background: radial-gradient(circle, rgba(198, 164, 63, 0.2), transparent);
-            top: 50%;
-            left: 50%;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(198, 164, 63, 0.08), transparent);
+            top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            animation-delay: 10s;
+            animation-delay: 15s;
         }
-
         @keyframes floatOrb {
             0%, 100% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(30px, 30px) scale(1.1); }
+            33% { transform: translate(40px, -30px) scale(1.1); }
+            66% { transform: translate(-20px, 40px) scale(0.9); }
         }
-
-        /* Splash Screen */
-        .splash {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #0A0E1A;
-            z-index: 10000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            animation: fadeOut 2.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-            pointer-events: none;
-        }
-
-        @keyframes fadeOut {
-            0% { opacity: 1; visibility: visible; backdrop-filter: blur(0); }
-            70% { opacity: 1; }
-            100% { opacity: 0; visibility: hidden; backdrop-filter: blur(10px); }
-        }
-
-        /* 3D Cube Animation */
-        .cube-3d {
-            width: 80px;
-            height: 80px;
-            perspective: 400px;
-        }
-
-        .cube-3d-inner {
-            width: 100%;
-            height: 100%;
-            position: relative;
-            transform-style: preserve-3d;
-            animation: rotate3d 2s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite;
-        }
-
-        @keyframes rotate3d {
-            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
-            100% { transform: rotateX(360deg) rotateY(360deg) rotateZ(360deg); }
-        }
-
-        .cube-face-3d {
-            position: absolute;
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            opacity: 0.9;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-
-        .cube-face-3d.front { transform: translateZ(40px); }
-        .cube-face-3d.back { transform: rotateY(180deg) translateZ(40px); }
-        .cube-face-3d.right { transform: rotateY(90deg) translateZ(40px); }
-        .cube-face-3d.left { transform: rotateY(-90deg) translateZ(40px); }
-        .cube-face-3d.top { transform: rotateX(90deg) translateZ(40px); }
-        .cube-face-3d.bottom { transform: rotateX(-90deg) translateZ(40px); }
-
-        .splash-text {
-            margin-top: 30px;
-            color: #C6A43F;
-            font-size: 14px;
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            font-weight: 600;
-            animation: pulse 1.5s ease infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 0.6; }
-            50% { opacity: 1; }
-        }
-
-        /* Main Container */
         .container {
             position: relative;
             z-index: 1;
@@ -164,540 +93,236 @@
             max-width: 520px;
             padding: 20px;
             opacity: 0;
-            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 2.8s forwards;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
         }
-
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        /* Logo Section */
         .logo-section {
             text-align: center;
             margin-bottom: 32px;
         }
-
         .logo-icon {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            border-radius: 24px;
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 16px;
-            box-shadow: 0 20px 40px -12px rgba(198, 164, 63, 0.4);
-            transition: transform 0.3s ease;
+            box-shadow: 0 20px 40px -12px var(--shadow-gold);
+            transition: var(--transition);
         }
-
         .logo-icon:hover {
-            transform: scale(1.05);
+            transform: scale(1.05) rotate(-5deg);
         }
-
         .logo-icon i {
-            font-size: 36px;
-            color: #0A0E1A;
+            font-size: 40px;
+            color: var(--bg-primary);
         }
-
         .logo-section h1 {
-            color: #C6A43F;
+            color: var(--gold);
             font-size: 28px;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin-bottom: 6px;
         }
-
         .logo-section .tagline {
-            color: #9CA3AF;
+            color: var(--text-secondary);
             font-size: 12px;
             font-weight: 500;
-            letter-spacing: 0.5px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
         }
-
-        /* Card */
         .card {
             background: rgba(17, 24, 39, 0.95);
-            backdrop-filter: blur(10px);
-            border-radius: 32px;
+            backdrop-filter: blur(20px);
+            border-radius: var(--radius);
             padding: 32px;
             border: 1px solid rgba(198, 164, 63, 0.15);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
-
-        /* Tabs */
+        .card:hover {
+            border-color: rgba(198, 164, 63, 0.3);
+        }
         .tabs {
             display: flex;
-            gap: 10px;
-            margin-bottom: 32px;
-            background: #0F1622;
+            gap: 8px;
+            margin-bottom: 28px;
+            background: var(--bg-card);
             padding: 6px;
-            border-radius: 20px;
+            border-radius: 18px;
+            border: 1px solid var(--border-color);
         }
-
         .tab {
             flex: 1;
             text-align: center;
-            padding: 12px 20px;
+            padding: 12px 16px;
             border: none;
             background: transparent;
-            font-size: 14px;
+            font-size: 13px;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 16px;
-            color: #9CA3AF;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 14px;
+            color: var(--text-secondary);
+            transition: var(--transition);
             position: relative;
-            overflow: hidden;
         }
-
-        .tab::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            opacity: 0;
-            transition: opacity 0.3s ease;
-            z-index: -1;
-        }
-
         .tab.active {
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            color: #0A0E1A;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--bg-primary);
             transform: scale(1.02);
+            box-shadow: 0 8px 20px var(--shadow-gold);
         }
-
         .tab:not(.active):hover {
-            color: #C6A43F;
-            background: rgba(198, 164, 63, 0.1);
+            color: var(--gold);
+            background: rgba(198, 164, 63, 0.08);
         }
-
-        /* Progress Steps */
-        .progress-steps {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 32px;
-            position: relative;
-        }
-
-        .progress-steps::before {
-            content: '';
-            position: absolute;
-            top: 20px;
-            left: 10%;
-            right: 10%;
-            height: 2px;
-            background: linear-gradient(90deg, #1F2937, #374151, #1F2937);
-            border-radius: 2px;
-            z-index: 0;
-        }
-
-        .step {
-            text-align: center;
-            z-index: 1;
-            background: transparent;
-            flex: 1;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .step-number {
-            width: 42px;
-            height: 42px;
-            background: #0F1622;
-            border: 2px solid #1F2937;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 8px;
-            font-weight: 700;
-            font-size: 16px;
-            color: #9CA3AF;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .step.active .step-number {
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            border-color: #C6A43F;
-            color: #0A0E1A;
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(198, 164, 63, 0.5);
-        }
-
-        .step.completed .step-number {
-            background: #10B981;
-            border-color: #10B981;
-            color: white;
-        }
-
-        .step.completed .step-number span {
-            display: none;
-        }
-
-        .step.completed .step-number::after {
-            content: '✓';
-            font-size: 18px;
-            font-weight: bold;
-        }
-
-        .step-label {
-            font-size: 11px;
-            color: #9CA3AF;
-            font-weight: 500;
-            transition: color 0.3s ease;
-        }
-
-        .step.active .step-label {
-            color: #C6A43F;
-            font-weight: 600;
-        }
-
-        /* Form Sections */
-        .form-section {
-            display: none;
-            animation: fadeSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .form-section.active-section {
-            display: block;
-        }
-
-        @keyframes fadeSlide {
-            from {
-                opacity: 0;
-                transform: translateX(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
-        .section-title {
-            font-size: 20px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #C6A43F, #E8D5A4);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 24px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title i {
-            font-size: 24px;
-            background: none;
-            -webkit-text-fill-color: #C6A43F;
-        }
-
-        /* Form Groups */
+        .tab i { margin-right: 8px; }
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
-
         .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            color: #9CA3AF;
-            margin-bottom: 8px;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
         .form-group label i {
             margin-right: 8px;
-            width: 16px;
-            color: #C6A43F;
+            color: var(--gold);
         }
-
         .form-group input,
         .form-group select {
             width: 100%;
             padding: 14px 16px;
-            background: #0F1622;
-            border: 1.5px solid #1F2937;
-            border-radius: 16px;
+            background: var(--bg-card);
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
             font-size: 14px;
-            color: #FFFFFF;
+            color: var(--text-primary);
             font-family: 'Inter', sans-serif;
-            transition: all 0.3s ease;
+            transition: var(--transition);
         }
-
         .form-group input:focus,
         .form-group select:focus {
             outline: none;
-            border-color: #C6A43F;
+            border-color: var(--gold);
             box-shadow: 0 0 0 3px rgba(198, 164, 63, 0.1);
             transform: translateY(-1px);
         }
-
         .form-group input:hover,
         .form-group select:hover {
-            border-color: #C6A43F;
+            border-color: var(--gold);
         }
-
+        .form-group input::placeholder {
+            color: #4B5563;
+        }
         .row-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 16px;
+            gap: 14px;
         }
-
-        /* PIN Inputs */
-        .pin-inputs {
-            display: flex;
-            gap: 12px;
-            justify-content: center;
-        }
-
-        .pin-inputs input {
-            width: 60px;
-            height: 60px;
-            text-align: center;
-            font-size: 24px;
-            font-weight: 700;
-            background: #0F1622;
-            border: 2px solid #1F2937;
-            border-radius: 16px;
-            color: #C6A43F;
-            transition: all 0.2s ease;
-        }
-
-        .pin-inputs input:focus {
-            border-color: #C6A43F;
-            transform: scale(1.05);
-        }
-
-        /* Password Strength */
-        .password-strength {
-            margin-top: 10px;
-            height: 4px;
-            background: #1F2937;
-            border-radius: 4px;
-            overflow: hidden;
-        }
-
-        .strength-bar {
-            width: 0%;
-            height: 100%;
-            transition: width 0.3s ease, background 0.3s ease;
-            border-radius: 4px;
-        }
-
-        .strength-text {
-            font-size: 11px;
-            margin-top: 8px;
-            color: #9CA3AF;
-        }
-
-        /* Currency Selector */
-        .currency-selector {
-            display: flex;
-            gap: 12px;
-            margin-top: 8px;
-        }
-
-        .currency-option {
-            flex: 1;
-            padding: 14px;
-            border: 1.5px solid #1F2937;
-            border-radius: 16px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            background: #0F1622;
-        }
-
-        .currency-option:hover {
-            border-color: #C6A43F;
-            transform: translateY(-2px);
-        }
-
-        .currency-option.selected {
-            border-color: #C6A43F;
-            background: linear-gradient(135deg, rgba(198, 164, 63, 0.15), rgba(158, 128, 50, 0.1));
-            transform: scale(1.02);
-        }
-
-        .currency-option i {
-            font-size: 24px;
-            display: block;
-            margin-bottom: 6px;
-            color: #9CA3AF;
-            transition: color 0.3s ease;
-        }
-
-        .currency-option .symbol {
-            font-size: 13px;
-            font-weight: 600;
-            color: #FFFFFF;
-        }
-
-        .currency-option.selected i,
-        .currency-option.selected .symbol {
-            color: #C6A43F;
-        }
-
-        /* Review Box */
-        .review-box {
-            background: linear-gradient(135deg, #0F1622, #0A0E1A);
-            border-radius: 20px;
-            padding: 24px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(198, 164, 63, 0.2);
-        }
-
-        .review-item {
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid #1F2937;
-        }
-
-        .review-item:last-child {
-            border-bottom: none;
-            margin-bottom: 0;
-            padding-bottom: 0;
-        }
-
-        .review-label {
-            font-size: 11px;
-            color: #C6A43F;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 4px;
-        }
-
-        .review-value {
-            font-size: 15px;
-            font-weight: 600;
-            color: #FFFFFF;
-        }
-
-        /* Buttons */
         .btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            color: #0A0E1A;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: var(--bg-primary);
             border: none;
-            border-radius: 16px;
+            border-radius: 14px;
             font-size: 14px;
             font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: var(--transition);
             position: relative;
             overflow: hidden;
         }
-
         .btn::before {
             content: '';
             position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 0;
-            height: 0;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.2);
             transform: translate(-50%, -50%);
             transition: width 0.6s, height 0.6s;
         }
-
         .btn:hover::before {
-            width: 300px;
-            height: 300px;
+            width: 300px; height: 300px;
         }
-
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(198, 164, 63, 0.4);
+            box-shadow: 0 10px 30px var(--shadow-gold);
         }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
+        .btn:active { transform: translateY(0); }
         .btn-secondary {
             background: transparent;
-            border: 1.5px solid #1F2937;
-            color: #9CA3AF;
+            border: 1.5px solid var(--border-color);
+            color: var(--text-secondary);
         }
-
         .btn-secondary:hover {
-            border-color: #C6A43F;
-            color: #C6A43F;
-            transform: translateY(-2px);
+            border-color: var(--gold);
+            color: var(--gold);
             box-shadow: none;
         }
-
-        .btn-group {
-            display: flex;
-            gap: 12px;
-            margin-top: 24px;
+        .forgot-link {
+            text-align: center;
+            margin-top: 16px;
         }
-
-        .btn-group .btn {
-            margin-top: 0;
+        .forgot-link a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
         }
-
-        /* Checkbox */
+        .forgot-link a:hover {
+            color: var(--gold);
+        }
         .checkbox-group {
             display: flex;
             align-items: center;
             gap: 12px;
-            cursor: pointer;
-            padding: 12px;
-            background: #0F1622;
+            padding: 12px 16px;
+            background: var(--bg-card);
             border-radius: 12px;
-            margin-top: 16px;
+            margin: 16px 0;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
         }
-
-        .checkbox-group input {
+        .checkbox-group:hover {
+            border-color: var(--gold);
+        }
+        .checkbox-group input[type="checkbox"] {
             width: 20px;
             height: 20px;
             cursor: pointer;
-            accent-color: #C6A43F;
+            accent-color: var(--gold);
         }
-
         .checkbox-group label {
-            margin: 0;
             cursor: pointer;
             font-size: 13px;
-            color: #9CA3AF;
+            color: var(--text-secondary);
+            margin: 0;
         }
-
         .checkbox-group a {
-            color: #C6A43F;
+            color: var(--gold);
             text-decoration: none;
             font-weight: 600;
         }
-
-        .checkbox-group a:hover {
-            text-decoration: underline;
-        }
-
-        /* Verification Box */
-        .verification-box {
-            background: linear-gradient(135deg, #0F1622, #0A0E1A);
-            border-radius: 20px;
-            padding: 28px;
-            text-align: center;
-            border: 1px solid rgba(198, 164, 63, 0.2);
-        }
-
-        /* Loading Overlay */
+        .checkbox-group a:hover { text-decoration: underline; }
         .loading-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(10, 14, 26, 0.98);
             backdrop-filter: blur(8px);
             z-index: 10001;
@@ -705,110 +330,270 @@
             justify-content: center;
             flex-direction: column;
         }
-
         .loading-spinner {
-            width: 60px;
-            height: 60px;
-            border: 3px solid #1F2937;
-            border-top-color: #C6A43F;
+            width: 60px; height: 60px;
+            border: 3px solid var(--border-color);
+            border-top-color: var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
-
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
-
-        /* Links */
-        .forgot-link {
+        .loading-overlay p {
+            color: var(--gold);
+            font-weight: 500;
+            font-size: 14px;
+        }
+        .password-strength {
+            margin-top: 8px;
+            height: 4px;
+            background: var(--border-color);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .strength-bar {
+            width: 0%;
+            height: 100%;
+            transition: width 0.3s ease, background 0.3s ease;
+            border-radius: 4px;
+        }
+        .strength-text {
+            font-size: 11px;
+            margin-top: 6px;
+            color: var(--text-secondary);
+        }
+        .pin-inputs {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        .pin-inputs input {
+            width: 56px;
+            height: 56px;
             text-align: center;
+            font-size: 22px;
+            font-weight: 700;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 14px;
+            color: var(--gold);
+            transition: var(--transition);
+        }
+        .pin-inputs input:focus {
+            border-color: var(--gold);
+            transform: scale(1.05);
+        }
+        .currency-selector {
+            display: flex;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .currency-option {
+            flex: 1;
+            padding: 12px;
+            border: 1.5px solid var(--border-color);
+            border-radius: 14px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            background: var(--bg-card);
+        }
+        .currency-option:hover {
+            border-color: var(--gold);
+            transform: translateY(-2px);
+        }
+        .currency-option.selected {
+            border-color: var(--gold);
+            background: linear-gradient(135deg, rgba(198, 164, 63, 0.15), rgba(158, 128, 50, 0.08));
+            transform: scale(1.02);
+        }
+        .currency-option i {
+            font-size: 22px;
+            display: block;
+            margin-bottom: 4px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .currency-option .symbol {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .currency-option.selected i,
+        .currency-option.selected .symbol {
+            color: var(--gold);
+        }
+        .review-box {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-color);
+        }
+        .review-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        .review-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+        .review-value {
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 13px;
+        }
+        .form-section {
+            display: none;
+            animation: fadeSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .form-section.active-section { display: block; }
+        @keyframes fadeSlide {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--gold);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .section-title i { font-size: 22px; }
+        .progress-steps {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            position: relative;
+        }
+        .progress-steps::before {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 10%; right: 10%;
+            height: 2px;
+            background: var(--border-color);
+            border-radius: 2px;
+            z-index: 0;
+        }
+        .step {
+            text-align: center;
+            z-index: 1;
+            background: transparent;
+            flex: 1;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .step-number {
+            width: 38px;
+            height: 38px;
+            background: var(--bg-card);
+            border: 2px solid var(--border-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 6px;
+            font-weight: 700;
+            font-size: 14px;
+            color: var(--text-secondary);
+            transition: var(--transition);
+        }
+        .step.active .step-number {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-color: var(--gold);
+            color: var(--bg-primary);
+            transform: scale(1.1);
+            box-shadow: 0 0 20px var(--shadow-gold);
+        }
+        .step.completed .step-number {
+            background: #10B981;
+            border-color: #10B981;
+            color: white;
+        }
+        .step.completed .step-number span { display: none; }
+        .step.completed .step-number::after {
+            content: '✓';
+            font-size: 16px;
+            font-weight: bold;
+        }
+        .step-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .step.active .step-label {
+            color: var(--gold);
+            font-weight: 600;
+        }
+        .btn-group {
+            display: flex;
+            gap: 10px;
             margin-top: 20px;
         }
-
-        .forgot-link a {
-            color: #C6A43F;
-            text-decoration: none;
-            font-size: 13px;
-            font-weight: 500;
-            transition: color 0.3s ease;
+        .btn-group .btn { margin-top: 0; }
+        .verification-box {
+            text-align: center;
+            padding: 20px;
         }
-
-        .forgot-link a:hover {
-            color: #E8D5A4;
-            text-decoration: underline;
+        .verification-box i {
+            font-size: 48px;
+            color: var(--gold);
+            margin-bottom: 16px;
         }
-
-        /* Responsive */
+        .verification-box h3 {
+            color: var(--gold);
+            margin-bottom: 12px;
+        }
+        .verification-box p {
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+        }
+        .verification-box p strong {
+            color: var(--gold);
+        }
+        #loginPanel, #registerPanel, #verificationPanel, #forgotPanel {
+            transition: var(--transition);
+        }
         @media (max-width: 500px) {
-            .container {
-                padding: 16px;
-            }
-            .card {
-                padding: 24px;
-            }
-            .pin-inputs input {
-                width: 50px;
-                height: 50px;
-                font-size: 20px;
-            }
-            .step-label {
-                font-size: 9px;
-            }
-            .step-number {
-                width: 36px;
-                height: 36px;
-                font-size: 14px;
-            }
-        }
-
-        /* Animations */
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-
-        .loading-skeleton {
-            background: linear-gradient(90deg, #1F2937 25%, #374151 50%, #1F2937 75%);
-            background-size: 1000px 100%;
-            animation: shimmer 2s infinite;
+            .container { padding: 16px; }
+            .card { padding: 20px; }
+            .pin-inputs input { width: 48px; height: 48px; font-size: 18px; }
+            .row-2 { grid-template-columns: 1fr; }
+            .step-label { font-size: 8px; }
+            .step-number { width: 32px; height: 32px; font-size: 12px; }
+            .currency-selector { gap: 6px; }
+            .currency-option { padding: 10px; }
         }
     </style>
 </head>
 <body>
-    <!-- Animated Orbs -->
+    <div class="bg-effects"></div>
     <div class="orb orb-1"></div>
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
 
-    <!-- Splash Screen -->
-    <div class="splash">
-        <div class="cube-3d">
-            <div class="cube-3d-inner">
-                <div class="cube-face-3d front"></div>
-                <div class="cube-face-3d back"></div>
-                <div class="cube-face-3d right"></div>
-                <div class="cube-face-3d left"></div>
-                <div class="cube-face-3d top"></div>
-                <div class="cube-face-3d bottom"></div>
-            </div>
-        </div>
-        <div class="splash-text">Prime Heritage Bank</div>
-    </div>
-
     <div class="container">
         <div class="logo-section">
-            <div class="logo-icon">
-                <i class="fas fa-crown"></i>
-            </div>
+            <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <h1>Prime Heritage Bank</h1>
-            <div class="tagline">International Banking System 2026 | Global Excellence</div>
+            <div class="tagline">International Banking System 2026</div>
         </div>
 
         <div class="card">
             <div class="tabs">
-                <button class="tab active" onclick="switchTab('login')">Sign In</button>
-                <button class="tab" onclick="switchTab('register')">Open Account</button>
+                <button class="tab active" onclick="switchTab('login')"><i class="fas fa-sign-in-alt"></i> Sign In</button>
+                <button class="tab" onclick="switchTab('register')"><i class="fas fa-user-plus"></i> Open Account</button>
             </div>
 
             <!-- Login Panel -->
@@ -821,17 +606,16 @@
                     <label><i class="fas fa-lock"></i> Password</label>
                     <input type="password" id="loginPassword" placeholder="Enter your password">
                 </div>
-                <button class="btn" onclick="handleLogin()">Sign In</button>
+                <button class="btn" onclick="handleLogin()"><i class="fas fa-arrow-right"></i> Sign In</button>
                 <div class="forgot-link">
                     <a href="#" onclick="showForgotPassword()">Forgot Password?</a>
                 </div>
             </div>
 
-            <!-- Registration Panel -->
+            <!-- Register Panel -->
             <div id="registerPanel" style="display: none;">
-                <!-- Progress Steps -->
                 <div class="progress-steps">
-                    <div class="step" id="step1" onclick="goToSection(1)">
+                    <div class="step active" id="step1" onclick="goToSection(1)">
                         <div class="step-number"><span>1</span></div>
                         <div class="step-label">Personal</div>
                     </div>
@@ -849,12 +633,9 @@
                     </div>
                 </div>
 
-                <!-- Section 1: Personal Info -->
+                <!-- Section 1 -->
                 <div class="form-section active-section" id="section1">
-                    <div class="section-title">
-                        <i class="fas fa-user-circle"></i>
-                        Personal Information
-                    </div>
+                    <div class="section-title"><i class="fas fa-user-circle"></i> Personal Information</div>
                     <div class="row-2">
                         <div class="form-group">
                             <label><i class="fas fa-user"></i> First Name</label>
@@ -879,18 +660,13 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Security -->
+                <!-- Section 2 -->
                 <div class="form-section" id="section2">
-                    <div class="section-title">
-                        <i class="fas fa-shield-alt"></i>
-                        Security Settings
-                    </div>
+                    <div class="section-title"><i class="fas fa-shield-alt"></i> Security Settings</div>
                     <div class="form-group">
                         <label><i class="fas fa-lock"></i> Password</label>
                         <input type="password" id="password" placeholder="Create a strong password" onkeyup="checkPasswordStrength()">
-                        <div class="password-strength">
-                            <div class="strength-bar" id="strengthBar"></div>
-                        </div>
+                        <div class="password-strength"><div class="strength-bar" id="strengthBar"></div></div>
                         <div class="strength-text" id="strengthText">Use 8+ characters with letters & numbers</div>
                     </div>
                     <div class="form-group">
@@ -913,12 +689,9 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Banking Preferences -->
+                <!-- Section 3 -->
                 <div class="form-section" id="section3">
-                    <div class="section-title">
-                        <i class="fas fa-globe"></i>
-                        Banking Preferences
-                    </div>
+                    <div class="section-title"><i class="fas fa-globe"></i> Banking Preferences</div>
                     <div class="form-group">
                         <label><i class="fas fa-money-bill-wave"></i> Preferred Currency</label>
                         <div class="currency-selector">
@@ -946,32 +719,29 @@
                     </div>
                     <div class="btn-group">
                         <button class="btn btn-secondary" onclick="prevSection()">← Back</button>
-                        <button class="btn" onclick="nextSection()">Review Account →</button>
+                        <button class="btn" onclick="nextSection()">Review →</button>
                     </div>
                 </div>
 
-                <!-- Section 4: Review -->
+                <!-- Section 4 -->
                 <div class="form-section" id="section4">
-                    <div class="section-title">
-                        <i class="fas fa-clipboard-list"></i>
-                        Review Your Information
-                    </div>
+                    <div class="section-title"><i class="fas fa-clipboard-list"></i> Review & Confirm</div>
                     <div class="review-box">
                         <div class="review-item">
-                            <div class="review-label">Full Name</div>
-                            <div class="review-value" id="reviewName">-</div>
+                            <span class="review-label">Full Name</span>
+                            <span class="review-value" id="reviewName">-</span>
                         </div>
                         <div class="review-item">
-                            <div class="review-label">Contact Information</div>
-                            <div class="review-value" id="reviewContact">-</div>
+                            <span class="review-label">Contact</span>
+                            <span class="review-value" id="reviewContact">-</span>
                         </div>
                         <div class="review-item">
-                            <div class="review-label">Currency</div>
-                            <div class="review-value" id="reviewCurrency">-</div>
+                            <span class="review-label">Currency</span>
+                            <span class="review-value" id="reviewCurrency">-</span>
                         </div>
                         <div class="review-item">
-                            <div class="review-label">Security</div>
-                            <div class="review-value" id="reviewSecurity">✓ Password & PIN set</div>
+                            <span class="review-label">Security</span>
+                            <span class="review-value">✓ Password & PIN set</span>
                         </div>
                     </div>
                     <div class="checkbox-group" onclick="toggleCheckbox()">
@@ -985,31 +755,15 @@
                 </div>
             </div>
 
-            <!-- Verification Panel -->
-            <div id="verificationPanel" style="display: none;">
-                <div class="verification-box">
-                    <i class="fas fa-envelope" style="font-size: 48px; color: #C6A43F; margin-bottom: 20px;"></i>
-                    <h3 style="color: #C6A43F; margin-bottom: 15px;">Verify Your Email</h3>
-                    <p style="color: #9CA3AF; margin-bottom: 20px;">We've sent a verification code to <strong id="verifyEmail" style="color: #C6A43F;"></strong></p>
-                    <div class="form-group">
-                        <input type="text" id="verificationCode" placeholder="Enter 6-digit code" maxlength="6" style="text-align: center; font-size: 20px; letter-spacing: 5px;">
-                    </div>
-                    <button class="btn" onclick="verifyEmail()">Verify Account</button>
-                    <div class="forgot-link">
-                        <a href="#" onclick="resendVerification()">Resend Code</a>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Forgot Password Panel -->
+            <!-- Forgot Password -->
             <div id="forgotPanel" style="display: none;">
                 <div class="form-group">
                     <label><i class="fas fa-envelope"></i> Email Address</label>
                     <input type="email" id="resetEmail" placeholder="Enter your email">
                 </div>
-                <button class="btn" onclick="sendResetCode()">Send Reset Code</button>
+                <button class="btn" onclick="sendResetCode()"><i class="fas fa-paper-plane"></i> Send Reset Code</button>
                 <div class="forgot-link">
-                    <a href="#" onclick="switchTab('login')">Back to Sign In</a>
+                    <a href="#" onclick="switchTab('login')">← Back to Sign In</a>
                 </div>
             </div>
         </div>
@@ -1017,22 +771,19 @@
 
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loading-spinner"></div>
-        <p style="color: #C6A43F; margin-top: 20px; font-weight: 500;">Processing...</p>
+        <p>Processing...</p>
     </div>
 
     <script>
         // ========== CONFIGURATION ==========
-        // CHANGE THIS TO YOUR RENDER URL
-        const API_URL = 'https://prime-heritage-bank.onrender.com';
-        
-        // ========== GLOBAL VARIABLES ==========
-        let pendingUserEmail = '';
-        let pendingUserToken = '';
+        const API_URL = window.location.origin;
+
+        // ========== GLOBAL STATE ==========
         let currentSection = 1;
         let selectedCurrency = 'USD';
         let registrationData = {};
 
-        // ========== UTILITY FUNCTIONS ==========
+        // ========== UI HELPERS ==========
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
@@ -1040,7 +791,6 @@
         function switchTab(tab) {
             document.getElementById('loginPanel').style.display = tab === 'login' ? 'block' : 'none';
             document.getElementById('registerPanel').style.display = tab === 'register' ? 'block' : 'none';
-            document.getElementById('verificationPanel').style.display = 'none';
             document.getElementById('forgotPanel').style.display = 'none';
             
             document.querySelectorAll('.tab').forEach((t, i) => {
@@ -1051,8 +801,7 @@
                 currentSection = 1;
                 updateProgress();
                 document.querySelectorAll('.form-section').forEach((section, index) => {
-                    if (index === 0) section.classList.add('active-section');
-                    else section.classList.remove('active-section');
+                    section.classList.toggle('active-section', index === 0);
                 });
             }
         }
@@ -1060,21 +809,16 @@
         function showForgotPassword() {
             document.getElementById('loginPanel').style.display = 'none';
             document.getElementById('registerPanel').style.display = 'none';
-            document.getElementById('verificationPanel').style.display = 'none';
             document.getElementById('forgotPanel').style.display = 'block';
         }
 
-        // ========== SECTION NAVIGATION ==========
+        // ========== REGISTRATION NAVIGATION ==========
         function updateProgress() {
             for (let i = 1; i <= 4; i++) {
                 const step = document.getElementById(`step${i}`);
-                const section = document.getElementById(`section${i}`);
                 step.classList.remove('active', 'completed');
-                if (i < currentSection) {
-                    step.classList.add('completed');
-                } else if (i === currentSection) {
-                    step.classList.add('active');
-                }
+                if (i < currentSection) step.classList.add('completed');
+                else if (i === currentSection) step.classList.add('active');
             }
         }
 
@@ -1083,8 +827,7 @@
                 currentSection = section;
                 updateProgress();
                 document.querySelectorAll('.form-section').forEach((sec, idx) => {
-                    if (idx + 1 === currentSection) sec.classList.add('active-section');
-                    else sec.classList.remove('active-section');
+                    sec.classList.toggle('active-section', idx + 1 === currentSection);
                 });
             }
         }
@@ -1110,10 +853,10 @@
         // ========== VALIDATION ==========
         function validateSection(section) {
             if (section === 1) {
-                const firstName = document.getElementById('firstName').value;
-                const lastName = document.getElementById('lastName').value;
-                const email = document.getElementById('email').value;
-                const phone = document.getElementById('phone').value;
+                const firstName = document.getElementById('firstName').value.trim();
+                const lastName = document.getElementById('lastName').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const phone = document.getElementById('phone').value.trim();
                 
                 if (!firstName || !lastName || !email || !phone) {
                     Swal.fire('Error', 'Please fill all personal information fields', 'error');
@@ -1125,15 +868,11 @@
                 }
                 return true;
             }
-            
             if (section === 2) {
                 const password = document.getElementById('password').value;
                 const confirm = document.getElementById('confirmPassword').value;
-                const pin1 = document.getElementById('pin1').value;
-                const pin2 = document.getElementById('pin2').value;
-                const pin3 = document.getElementById('pin3').value;
-                const pin4 = document.getElementById('pin4').value;
-                const pin = pin1 + pin2 + pin3 + pin4;
+                const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + 
+                           document.getElementById('pin3').value + document.getElementById('pin4').value;
                 
                 if (password.length < 6) {
                     Swal.fire('Error', 'Password must be at least 6 characters', 'error');
@@ -1154,18 +893,16 @@
 
         function saveSectionData() {
             if (currentSection === 1) {
-                registrationData.firstName = document.getElementById('firstName').value;
-                registrationData.lastName = document.getElementById('lastName').value;
-                registrationData.email = document.getElementById('email').value;
-                registrationData.phone = document.getElementById('phone').value;
+                registrationData.firstName = document.getElementById('firstName').value.trim();
+                registrationData.lastName = document.getElementById('lastName').value.trim();
+                registrationData.email = document.getElementById('email').value.trim();
+                registrationData.phone = document.getElementById('phone').value.trim();
             }
             if (currentSection === 2) {
                 registrationData.password = document.getElementById('password').value;
-                const pin1 = document.getElementById('pin1').value;
-                const pin2 = document.getElementById('pin2').value;
-                const pin3 = document.getElementById('pin3').value;
-                const pin4 = document.getElementById('pin4').value;
-                registrationData.transactionPin = pin1 + pin2 + pin3 + pin4;
+                registrationData.transactionPin = 
+                    document.getElementById('pin1').value + document.getElementById('pin2').value + 
+                    document.getElementById('pin3').value + document.getElementById('pin4').value;
             }
             if (currentSection === 3) {
                 registrationData.currency = selectedCurrency;
@@ -1174,17 +911,18 @@
         }
 
         function updateReview() {
-            document.getElementById('reviewName').innerHTML = `${registrationData.firstName} ${registrationData.lastName}`;
-            document.getElementById('reviewContact').innerHTML = `${registrationData.email} | ${registrationData.phone}`;
-            document.getElementById('reviewCurrency').innerHTML = registrationData.currency;
+            document.getElementById('reviewName').textContent = 
+                `${registrationData.firstName} ${registrationData.lastName}`;
+            document.getElementById('reviewContact').textContent = 
+                `${registrationData.email} | ${registrationData.phone}`;
+            document.getElementById('reviewCurrency').textContent = registrationData.currency;
         }
 
         // ========== FORM HELPERS ==========
         function selectCurrency(currency) {
             selectedCurrency = currency;
             document.querySelectorAll('.currency-option').forEach(opt => {
-                opt.classList.remove('selected');
-                if (opt.getAttribute('data-currency') === currency) opt.classList.add('selected');
+                opt.classList.toggle('selected', opt.dataset.currency === currency);
             });
         }
 
@@ -1196,43 +934,33 @@
             let strength = 0;
             if (password.length >= 6) strength++;
             if (password.length >= 10) strength++;
-            if (password.match(/[a-z]/) && password.match(/[A-Z]/)) strength++;
-            if (password.match(/[0-9]/)) strength++;
-            if (password.match(/[^a-zA-Z0-9]/)) strength++;
+            if (/[a-z]/.test(password) && /[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
             
             const width = (strength / 5) * 100;
             bar.style.width = width + '%';
             
             if (strength <= 2) {
                 bar.style.background = '#EF4444';
-                text.innerHTML = 'Weak password - add more characters';
+                text.textContent = 'Weak - add more characters';
             } else if (strength <= 4) {
                 bar.style.background = '#F59E0B';
-                text.innerHTML = 'Medium password - add symbols for strength';
+                text.textContent = 'Medium - add symbols for strength';
             } else {
                 bar.style.background = '#10B981';
-                text.innerHTML = 'Strong password! ✓';
+                text.textContent = 'Strong password! ✓';
             }
         }
 
         function checkPin() {
-            const pin1 = document.getElementById('pin1').value;
-            const pin2 = document.getElementById('pin2').value;
-            const pin3 = document.getElementById('pin3').value;
-            const pin4 = document.getElementById('pin4').value;
-            const pinError = document.getElementById('pinError');
-            
-            if (pin1 && pin2 && pin3 && pin4) {
-                pinError.style.display = 'none';
-            } else {
-                pinError.style.display = 'block';
-            }
+            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + 
+                       document.getElementById('pin3').value + document.getElementById('pin4').value;
+            document.getElementById('pinError').style.display = pin.length === 4 ? 'none' : 'block';
         }
 
         function moveToNext(current, nextId) {
-            if (current.value.length === 1) {
-                document.getElementById(nextId).focus();
-            }
+            if (current.value.length === 1) document.getElementById(nextId).focus();
         }
 
         function toggleCheckbox() {
@@ -1242,8 +970,7 @@
 
         // ========== API CALLS ==========
         async function submitRegistration() {
-            const terms = document.getElementById('termsCheckbox').checked;
-            if (!terms) {
+            if (!document.getElementById('termsCheckbox').checked) {
                 Swal.fire('Error', 'Please agree to the Terms & Conditions', 'error');
                 return;
             }
@@ -1266,92 +993,30 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    pendingUserEmail = registrationData.email;
-                    pendingUserToken = data.token;
-                    document.getElementById('verifyEmail').textContent = registrationData.email;
-                    document.getElementById('registerPanel').style.display = 'none';
-                    document.getElementById('verificationPanel').style.display = 'block';
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('user', JSON.stringify(data.user));
                     Swal.fire({
                         icon: 'success',
-                        title: 'Verification Code Sent!',
-                        text: 'Please check your email for the verification code.',
-                        confirmButtonColor: '#C6A43F'
+                        title: '🎉 Account Created!',
+                        text: 'Welcome to Prime Heritage Bank! Redirecting...',
+                        timer: 2000,
+                        showConfirmButton: false
                     });
+                    setTimeout(() => {
+                        window.location.href = data.user.isAdmin ? '/admin.html' : '/dashboard.html';
+                    }, 2000);
                 } else {
                     Swal.fire('Error', data.error || 'Registration failed', 'error');
                 }
             } catch (error) {
-                console.error('Registration error:', error);
                 Swal.fire('Error', 'Connection error. Please try again.', 'error');
             } finally {
                 showLoading(false);
             }
         }
 
-        async function verifyEmail() {
-            const code = document.getElementById('verificationCode').value;
-            if (!code || code.length !== 6) {
-                Swal.fire('Error', 'Please enter the 6-digit verification code', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            try {
-                const response = await fetch(`${API_URL}/api/verify-email`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: pendingUserEmail, code })
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    localStorage.setItem('token', data.token);
-                    localStorage.setItem('user', JSON.stringify(data.user));
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Account Verified!',
-                        html: 'Welcome to Prime Heritage Bank!<br>Redirecting to dashboard...',
-                        timer: 2000,
-                        showConfirmButton: false
-                    });
-                    setTimeout(() => {
-                        if (data.user.isAdmin) window.location.href = '/admin.html';
-                        else window.location.href = '/dashboard.html';
-                    }, 2000);
-                } else {
-                    Swal.fire('Error', data.error || 'Invalid verification code', 'error');
-                }
-            } catch (error) {
-                Swal.fire('Error', 'Verification failed. Please try again.', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
-        async function resendVerification() {
-            showLoading(true);
-            try {
-                const response = await fetch(`${API_URL}/api/resend-verification`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: pendingUserEmail })
-                });
-                const data = await response.json();
-                
-                if (data.success) {
-                    Swal.fire('Success', 'New verification code sent to your email!', 'success');
-                } else {
-                    Swal.fire('Error', data.error || 'Failed to resend code', 'error');
-                }
-            } catch (error) {
-                Swal.fire('Error', 'Failed to resend code', 'error');
-            } finally {
-                showLoading(false);
-            }
-        }
-
         async function handleLogin() {
-            const identifier = document.getElementById('loginIdentifier').value;
+            const identifier = document.getElementById('loginIdentifier').value.trim();
             const password = document.getElementById('loginPassword').value;
             
             if (!identifier || !password) {
@@ -1373,20 +1038,14 @@
                     localStorage.setItem('user', JSON.stringify(data.user));
                     Swal.fire({
                         icon: 'success',
-                        title: 'Login Successful!',
-                        text: 'Redirecting to dashboard...',
+                        title: '✅ Login Successful!',
+                        text: 'Welcome back! Redirecting...',
                         timer: 1500,
                         showConfirmButton: false
                     });
                     setTimeout(() => {
-                        if (data.user.isAdmin) window.location.href = '/admin.html';
-                        else window.location.href = '/dashboard.html';
+                        window.location.href = data.user.isAdmin ? '/admin.html' : '/dashboard.html';
                     }, 1500);
-                } else if (data.requiresVerification) {
-                    pendingUserEmail = data.email;
-                    document.getElementById('verifyEmail').textContent = data.email;
-                    document.getElementById('loginPanel').style.display = 'none';
-                    document.getElementById('verificationPanel').style.display = 'block';
                 } else {
                     Swal.fire('Error', data.error || 'Login failed', 'error');
                 }
@@ -1398,7 +1057,7 @@
         }
 
         async function sendResetCode() {
-            const email = document.getElementById('resetEmail').value;
+            const email = document.getElementById('resetEmail').value.trim();
             if (!email) {
                 Swal.fire('Error', 'Please enter your email', 'error');
                 return;
