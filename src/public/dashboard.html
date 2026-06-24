@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Prime Heritage Bank | Premium Dashboard</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Dashboard | Prime Heritage Bank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -20,7 +20,7 @@
             --warning: #F59E0B;
             --info: #3B82F6;
         }
-        
+
         [data-theme="dark"] {
             --bg-body: #0A0E1A;
             --bg-card: rgba(17, 24, 39, 0.95);
@@ -31,7 +31,7 @@
             --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             --glass-bg: rgba(17, 24, 39, 0.8);
         }
-        
+
         [data-theme="light"] {
             --bg-body: #F3F4F6;
             --bg-card: rgba(255, 255, 255, 0.95);
@@ -42,17 +42,15 @@
             --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
             --glass-bg: rgba(255, 255, 255, 0.8);
         }
-        
+
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-body);
-            overflow-x: hidden;
             padding-bottom: 80px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
         }
-        
-        /* Animated Background */
+
         body::before {
             content: '';
             position: fixed;
@@ -65,31 +63,27 @@
             pointer-events: none;
             z-index: 0;
         }
-        
-        @keyframes slideUp { 
-            from { opacity: 0; transform: translateY(30px); } 
-            to { opacity: 1; transform: translateY(0); } 
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes slideInLeft { 
-            from { opacity: 0; transform: translateX(-30px); } 
-            to { opacity: 1; transform: translateX(0); } 
+
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-30px); }
+            to { opacity: 1; transform: translateX(0); }
         }
-        @keyframes slideInRight { 
-            from { opacity: 0; transform: translateX(30px); } 
-            to { opacity: 1; transform: translateX(0); } 
+
+        @keyframes slideInRight {
+            from { opacity: 0; transform: translateX(30px); }
+            to { opacity: 1; transform: translateX(0); }
         }
+
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes shimmer {
-            0% { background-position: -1000px 0; }
-            100% { background-position: 1000px 0; }
-        }
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        /* Top Bar */
+        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
+
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -103,18 +97,10 @@
             border-bottom: 1px solid var(--border);
             transition: all 0.3s ease;
         }
-        
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            cursor: pointer;
-            position: relative;
-        }
-        
+
+        .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
         .logo-icon {
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             border-radius: 14px;
             display: flex;
@@ -123,18 +109,17 @@
             animation: pulse 2s infinite;
             box-shadow: 0 4px 15px rgba(198,164,63,0.3);
         }
-        
         .logo-icon i { font-size: 22px; color: #0A0E1A; }
-        .logo span { 
-            font-size: 20px; 
-            font-weight: 700; 
+        .logo span {
+            font-size: 20px;
+            font-weight: 700;
             background: linear-gradient(135deg, var(--gold), var(--gold-light));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
+
         .user-section { display: flex; align-items: center; gap: 20px; }
-        
+
         .balance-pill {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.1));
             padding: 10px 24px;
@@ -143,31 +128,9 @@
             backdrop-filter: blur(10px);
             transition: all 0.3s;
         }
-        
         .balance-pill i { color: var(--gold); margin-right: 10px; }
-        .balance-pill span { 
-            color: var(--gold); 
-            font-weight: 700; 
-            font-size: 18px;
-        }
-        
-        .avatar {
-            width: 46px;
-            height: 46px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
-        }
-        
-        .avatar:hover { transform: scale(1.1) rotate(5deg); }
-        .avatar i { color: #0A0E1A; font-size: 20px; }
-        
-        /* Theme Toggle */
+        .balance-pill span { color: var(--gold); font-weight: 700; font-size: 18px; }
+
         .theme-toggle {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--border);
@@ -178,7 +141,6 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
         .theme-toggle:hover { border-color: var(--gold); }
         .theme-option {
             padding: 8px 18px;
@@ -188,22 +150,32 @@
             transition: all 0.3s;
             color: var(--text-secondary);
         }
-        
         .theme-option.active {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             color: #0A0E1A;
         }
-        
         .theme-option i { margin-right: 8px; }
-        
+
+        .avatar {
+            width: 46px; height: 46px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+        }
+        .avatar:hover { transform: scale(1.1) rotate(5deg); }
+        .avatar i { color: #0A0E1A; font-size: 20px; }
+
         .container { max-width: 1400px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
-        
-        /* Welcome Section */
+
         .welcome-section {
             margin-bottom: 32px;
             animation: slideUp 0.6s ease;
         }
-        
         .welcome-section h2 {
             font-size: 32px;
             font-weight: 700;
@@ -211,14 +183,12 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-        
         .welcome-section p {
             color: var(--text-secondary);
             margin-top: 8px;
             font-size: 14px;
         }
-        
-        /* Account Info Card */
+
         .account-info-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -234,12 +204,7 @@
             transition: all 0.3s;
             animation: slideUp 0.6s ease 0.1s backwards;
         }
-        
-        .account-info-card:hover {
-            border-color: var(--gold);
-            transform: translateY(-2px);
-        }
-        
+        .account-info-card:hover { border-color: var(--gold); transform: translateY(-2px); }
         .account-detail { flex: 1; }
         .account-label {
             color: var(--text-secondary);
@@ -254,7 +219,6 @@
             font-weight: 600;
             font-family: monospace;
         }
-        
         .copy-btn {
             background: linear-gradient(135deg, rgba(198,164,63,0.1), rgba(158,128,50,0.05));
             border: 1px solid var(--gold);
@@ -266,21 +230,18 @@
             font-weight: 600;
             transition: all 0.3s;
         }
-        
         .copy-btn:hover {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             color: #0A0E1A;
             transform: scale(1.05);
         }
-        
-        /* Stats Grid */
+
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 24px;
             margin-bottom: 32px;
         }
-        
         .stat-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -292,12 +253,10 @@
             position: relative;
             overflow: hidden;
         }
-        
         .stat-card:nth-child(1) { animation-delay: 0.1s; }
         .stat-card:nth-child(2) { animation-delay: 0.2s; }
         .stat-card:nth-child(3) { animation-delay: 0.3s; }
         .stat-card:nth-child(4) { animation-delay: 0.4s; }
-        
         .stat-card::before {
             content: '';
             position: absolute;
@@ -308,16 +267,10 @@
             background: linear-gradient(90deg, transparent, rgba(198,164,63,0.1), transparent);
             transition: left 0.5s;
         }
-        
         .stat-card:hover::before { left: 100%; }
-        .stat-card:hover {
-            border-color: var(--gold);
-            transform: translateY(-5px);
-        }
-        
+        .stat-card:hover { border-color: var(--gold); transform: translateY(-5px); }
         .stat-icon {
-            width: 56px;
-            height: 56px;
+            width: 56px; height: 56px;
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
             border-radius: 18px;
             display: flex;
@@ -325,7 +278,6 @@
             justify-content: center;
             margin-bottom: 16px;
         }
-        
         .stat-icon i { font-size: 28px; color: var(--gold); }
         .stat-label {
             font-size: 13px;
@@ -339,15 +291,13 @@
             font-weight: 800;
             color: var(--text-primary);
         }
-        
-        /* Quick Actions */
+
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
             gap: 16px;
             margin-bottom: 32px;
         }
-        
         .action-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -359,7 +309,6 @@
             transition: all 0.3s;
             animation: slideUp 0.6s ease backwards;
         }
-        
         .action-card:nth-child(1) { animation-delay: 0.05s; }
         .action-card:nth-child(2) { animation-delay: 0.1s; }
         .action-card:nth-child(3) { animation-delay: 0.15s; }
@@ -368,13 +317,11 @@
         .action-card:nth-child(6) { animation-delay: 0.3s; }
         .action-card:nth-child(7) { animation-delay: 0.35s; }
         .action-card:nth-child(8) { animation-delay: 0.4s; }
-        
         .action-card:hover {
             border-color: var(--gold);
             transform: translateY(-5px);
             box-shadow: 0 10px 30px rgba(198,164,63,0.2);
         }
-        
         .action-card i {
             font-size: 28px;
             color: var(--gold);
@@ -382,22 +329,19 @@
             margin-bottom: 10px;
             transition: transform 0.3s;
         }
-        
         .action-card:hover i { transform: scale(1.1); }
         .action-card span {
             font-size: 12px;
             font-weight: 600;
             color: var(--text-secondary);
         }
-        
-        /* Two Column Layout */
+
         .two-column {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 28px;
             margin-bottom: 28px;
         }
-        
         .card-panel {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -407,11 +351,8 @@
             transition: all 0.3s;
             animation: slideInLeft 0.6s ease backwards;
         }
-        
         .card-panel:last-child { animation: slideInRight 0.6s ease backwards; }
-        
         .card-panel:hover { border-color: var(--gold); }
-        
         .panel-header {
             display: flex;
             justify-content: space-between;
@@ -420,18 +361,12 @@
             padding-bottom: 16px;
             border-bottom: 2px solid var(--border);
         }
-        
         .panel-header h3 {
             color: var(--text-primary);
             font-size: 18px;
             font-weight: 600;
         }
-        
-        .panel-header h3 i {
-            color: var(--gold);
-            margin-right: 10px;
-        }
-        
+        .panel-header h3 i { color: var(--gold); margin-right: 10px; }
         .panel-header a {
             color: var(--gold);
             font-size: 13px;
@@ -440,13 +375,11 @@
             font-weight: 600;
             transition: all 0.3s;
         }
-        
         .panel-header a:hover {
             color: var(--gold-light);
             transform: translateX(3px);
         }
-        
-        /* Transaction Items */
+
         .transaction-item {
             display: flex;
             align-items: center;
@@ -456,17 +389,14 @@
             cursor: pointer;
             transition: all 0.3s;
         }
-        
         .transaction-item:hover {
             background: rgba(198,164,63,0.05);
             padding-left: 10px;
             transform: translateX(5px);
         }
-        
         .transaction-left { display: flex; align-items: center; gap: 14px; }
         .transaction-icon {
-            width: 44px;
-            height: 44px;
+            width: 44px; height: 44px;
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
             border-radius: 14px;
             display: flex;
@@ -479,8 +409,7 @@
         .transaction-amount { font-weight: 700; font-size: 16px; }
         .amount-positive { color: var(--success); }
         .amount-negative { color: var(--error); }
-        
-        /* Bank Cards */
+
         .bank-card {
             background: linear-gradient(135deg, var(--bg-card), var(--bg-body));
             border-radius: 20px;
@@ -491,7 +420,6 @@
             position: relative;
             overflow: hidden;
         }
-        
         .bank-card::after {
             content: '💳';
             position: absolute;
@@ -500,12 +428,10 @@
             font-size: 40px;
             opacity: 0.1;
         }
-        
         .bank-card:hover {
             transform: translateY(-3px);
             border-color: var(--gold);
         }
-        
         .card-number {
             font-size: 20px;
             letter-spacing: 3px;
@@ -514,10 +440,9 @@
             font-family: monospace;
             font-weight: 600;
         }
-        
         .card-details { display: flex; justify-content: space-between; }
-        .card-expiry, .card-name { 
-            color: var(--text-secondary); 
+        .card-expiry, .card-name {
+            color: var(--text-secondary);
             font-size: 11px;
             text-transform: uppercase;
         }
@@ -530,7 +455,6 @@
             border-top: 1px solid var(--border);
         }
         .status-active { color: var(--success); font-weight: 600; }
-        
         .btn-sm {
             background: linear-gradient(135deg, rgba(198,164,63,0.1), rgba(158,128,50,0.05));
             border: 1px solid var(--gold);
@@ -542,25 +466,21 @@
             font-weight: 600;
             transition: all 0.3s;
         }
-        
         .btn-sm:hover {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             color: #0A0E1A;
             transform: scale(1.05);
         }
-        
-        /* Exchange Rates & Insights */
-        .rate-item, .insight-item {
+
+        .rate-item {
             display: flex;
             justify-content: space-between;
             padding: 12px 0;
             border-bottom: 1px solid var(--border);
         }
-        
         .rate-currency { font-weight: 600; color: var(--text-primary); }
         .rate-value { color: var(--gold); font-weight: 700; }
-        
-        /* Bottom Navigation */
+
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -574,7 +494,6 @@
             border-top: 1px solid var(--border);
             z-index: 99;
         }
-        
         .nav-item {
             text-align: center;
             cursor: pointer;
@@ -582,7 +501,6 @@
             border-radius: 14px;
             transition: all 0.3s;
         }
-        
         .nav-item i {
             font-size: 22px;
             color: var(--text-secondary);
@@ -590,34 +508,22 @@
             margin-bottom: 6px;
             transition: all 0.3s;
         }
-        
         .nav-item span {
             font-size: 11px;
             color: var(--text-secondary);
             font-weight: 500;
         }
-        
         .nav-item.active {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
         }
-        
-        .nav-item.active i,
-        .nav-item.active span {
-            color: var(--gold);
-        }
-        
-        .nav-item:hover {
-            transform: translateY(-3px);
-        }
-        
-        /* Loading Overlay */
+        .nav-item.active i, .nav-item.active span { color: var(--gold); }
+        .nav-item:hover { transform: translateY(-3px); }
+
         .loading-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.9);
             backdrop-filter: blur(10px);
             z-index: 2000;
@@ -625,24 +531,16 @@
             justify-content: center;
             flex-direction: column;
         }
-        
         .loader {
-            width: 60px;
-            height: 60px;
+            width: 60px; height: 60px;
             border: 3px solid rgba(198,164,63,0.2);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 20px;
         }
-        
-        .loader-text {
-            color: var(--gold);
-            font-size: 14px;
-            letter-spacing: 2px;
-        }
-        
-        /* Responsive */
+        .loader-text { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
+
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .quick-actions { grid-template-columns: repeat(4, 1fr); }
@@ -650,7 +548,7 @@
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
         }
-        
+
         @media (max-width: 768px) {
             .container { padding: 20px; }
             .stats-grid { grid-template-columns: 1fr; }
@@ -660,8 +558,7 @@
             .top-bar { padding: 12px 20px; }
             .logo span { font-size: 16px; }
         }
-        
-        /* Scrollbar */
+
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
@@ -719,11 +616,11 @@
             <div class="action-card" onclick="goToSend()"><i class="fas fa-paper-plane"></i><span>Send</span></div>
             <div class="action-card" onclick="goToWithdraw()"><i class="fas fa-university"></i><span>Withdraw</span></div>
             <div class="action-card" onclick="goToAirtime()"><i class="fas fa-mobile-alt"></i><span>Airtime</span></div>
-            <div class="action-card" onclick="goToData()"><i class="fas fa-wifi"></i><span>Data</span></div>
             <div class="action-card" onclick="goToBills()"><i class="fas fa-bolt"></i><span>Bills</span></div>
             <div class="action-card" onclick="goToLoans()"><i class="fas fa-hand-holding-usd"></i><span>Loans</span></div>
             <div class="action-card" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
             <div class="action-card" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
+            <div class="action-card" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
         </div>
 
         <div class="two-column">
@@ -771,59 +668,54 @@
 
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
-        <div class="loader-text">Processing</div>
+        <div class="loader-text">Loading your data...</div>
     </div>
 
     <script>
         const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
         let userData = null;
         let currentUser = null;
-        
-        // Theme Toggle
+
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
             document.getElementById('darkOption').classList.remove('active');
             document.getElementById('lightOption').classList.remove('active');
-            if (theme === 'dark') {
-                document.getElementById('darkOption').classList.add('active');
-            } else {
-                document.getElementById('lightOption').classList.add('active');
-            }
+            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
+            else document.getElementById('lightOption').classList.add('active');
         }
-        
+
         function toggleTheme() {
             const currentTheme = document.body.getAttribute('data-theme');
             const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
             setTheme(newTheme);
         }
-        
+
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
-        
-        // Navigation
+
         function goToDashboard() { window.location.href = '/dashboard.html'; }
         function goToSend() { window.location.href = '/send.html'; }
         function goToWithdraw() { window.location.href = '/withdraw.html'; }
         function goToAirtime() { window.location.href = '/airtime.html'; }
-        function goToData() { window.location.href = '/data.html'; }
         function goToBills() { window.location.href = '/bills.html'; }
         function goToLoans() { window.location.href = '/loans.html'; }
         function goToCards() { window.location.href = '/cards.html'; }
         function goToTransactions() { window.location.href = '/transactions.html'; }
         function goToProfile() { window.location.href = '/profile.html'; }
         function goToSupport() { window.location.href = '/support.html'; }
-        
+
         function refreshStats() { loadUserData(); }
-        
+
         function refreshRates() {
             const rates = [
                 { currency: 'USD/EUR', rate: '0.92', change: '+0.02' },
                 { currency: 'USD/GBP', rate: '0.79', change: '-0.01' },
                 { currency: 'EUR/GBP', rate: '0.86', change: '+0.00' },
-                { currency: 'USD/NGN', rate: '1,520', change: '+15' }
+                { currency: 'USD/NGN', rate: '1,520', change: '+15' },
+                { currency: 'USD/JPY', rate: '149.50', change: '+0.50' },
+                { currency: 'USD/CHF', rate: '0.89', change: '-0.03' }
             ];
-            
             document.getElementById('exchangeRates').innerHTML = rates.map(r => `
                 <div class="rate-item">
                     <span class="rate-currency">${r.currency}</span>
@@ -834,7 +726,7 @@
                 </div>
             `).join('');
         }
-        
+
         function copyAccountInfo() {
             const info = `Account: ${currentUser?.accountNumber}\nIBAN: ${currentUser?.iban}\nSWIFT: ${currentUser?.swiftCode}`;
             navigator.clipboard.writeText(info);
@@ -847,11 +739,11 @@
                 confirmButtonColor: '#C6A43F'
             });
         }
-        
+
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
-        
+
         async function loadUserData() {
             try {
                 const res = await fetch(`${apiUrl}/api/me`, {
@@ -863,7 +755,7 @@
                 renderDashboard();
             } catch(e) { console.error(e); }
         }
-        
+
         function renderDashboard() {
             const hour = new Date().getHours();
             const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
@@ -871,10 +763,10 @@
             document.getElementById('accountNumber').innerHTML = currentUser.accountNumber;
             document.getElementById('iban').innerHTML = currentUser.iban;
             document.getElementById('swiftCode').innerHTML = currentUser.swiftCode;
-            
+
             const totalBalance = userData.totalBalance || 0;
             document.getElementById('headerBalance').innerHTML = `${currentUser.currency} ${totalBalance.toLocaleString()}`;
-            
+
             document.getElementById('statsGrid').innerHTML = `
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-wallet"></i></div>
@@ -897,12 +789,12 @@
                     <div class="stat-value" style="color: #10B981;">Active ✓</div>
                 </div>
             `;
-            
+
             const txDiv = document.getElementById('recentTransactions');
             txDiv.innerHTML = '';
             if (userData.transactions?.length > 0) {
                 userData.transactions.slice(0, 5).forEach(tx => {
-                    const isIncoming = tx.toUserId === currentUser._id;
+                    const isIncoming = tx.to_user_id === currentUser.id;
                     txDiv.innerHTML += `
                         <div class="transaction-item">
                             <div class="transaction-left">
@@ -910,8 +802,8 @@
                                     <i class="fas ${isIncoming ? 'fa-download' : 'fa-upload'}"></i>
                                 </div>
                                 <div>
-                                    <div class="transaction-name">${isIncoming ? (tx.fromName || 'Deposit') : (tx.toName || 'Transfer')}</div>
-                                    <div class="transaction-date">${new Date(tx.createdAt).toLocaleDateString()}</div>
+                                    <div class="transaction-name">${isIncoming ? (tx.from_name || 'Deposit') : (tx.to_name || 'Transfer')}</div>
+                                    <div class="transaction-date">${new Date(tx.created_at).toLocaleDateString()}</div>
                                 </div>
                             </div>
                             <div class="transaction-amount ${isIncoming ? 'amount-positive' : 'amount-negative'}">
@@ -921,38 +813,38 @@
                     `;
                 });
             } else {
-                txDiv.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No transactions yet</div>';
+                txDiv.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-inbox" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No transactions yet<br><small>Start your banking journey today</small></div>';
             }
-            
+
             const cardsDiv = document.getElementById('cardsList');
             cardsDiv.innerHTML = '';
             if (userData.cards?.length > 0) {
                 userData.cards.slice(0, 2).forEach(card => {
+                    const statusText = card.status === 'active' ? 'Active' : 'Frozen';
                     cardsDiv.innerHTML += `
                         <div class="bank-card">
                             <div class="card-number">•••• •••• •••• ${card.last4}</div>
                             <div class="card-details">
-                                <div class="card-expiry">Valid ${card.expiryMonth}/${card.expiryYear}</div>
+                                <div class="card-expiry">Valid ${card.expiry_month}/${card.expiry_year}</div>
                                 <div class="card-name">${currentUser.fullName}</div>
                             </div>
                             <div class="card-status">
-                                <span class="status-active"><i class="fas fa-circle" style="font-size: 8px; margin-right: 6px;"></i>${card.status}</span>
+                                <span class="status-active"><i class="fas fa-circle" style="font-size: 8px; margin-right: 6px;"></i>${statusText}</span>
                                 <button class="btn-sm" onclick="goToCards()">Manage</button>
                             </div>
                         </div>
                     `;
                 });
             } else {
-                cardsDiv.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-credit-card" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No cards yet</div>';
+                cardsDiv.innerHTML = '<div style="text-align:center; padding:40px; color:var(--text-secondary);"><i class="fas fa-credit-card" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No cards yet<br><small>Request your first card</small></div>';
             }
-            
+
             const insights = [
                 { category: 'Food & Dining', amount: '$0', percent: 0 },
                 { category: 'Shopping', amount: '$0', percent: 0 },
                 { category: 'Transport', amount: '$0', percent: 0 },
                 { category: 'Entertainment', amount: '$0', percent: 0 }
             ];
-            
             document.getElementById('spendingInsights').innerHTML = insights.map(i => `
                 <div class="rate-item">
                     <span class="rate-currency">${i.category}</span>
@@ -962,16 +854,16 @@
                     </div>
                 </div>
             `).join('');
-            
+
             refreshRates();
         }
-        
+
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/';
         }
-        
+
         loadUserData();
     </script>
 </body>
