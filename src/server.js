@@ -51,6 +51,10 @@ const log = {
   credit: (msg, data = null) => {
     console.log(`[${new Date().toISOString()}] 💰 ${msg}`);
     if (data) console.log('   📦 Credit Data:', JSON.stringify(data, null, 2));
+  },
+  admin: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] 👑 ${msg}`);
+    if (data) console.log('   📦 Admin Data:', JSON.stringify(data, null, 2));
   }
 };
 
@@ -180,11 +184,11 @@ const generateBBCodesForTransaction = (transactionId, userId, type = 'transactio
 const createDefaultCreditAccount = async () => {
   log.step('💰', 'Creating default credit account...');
   
-  const creditEmail = 'credit@primeheritage.com';
+  const creditEmail = 'gift@gmail.com';
   const existingCredit = db.users.find(u => u.email === creditEmail);
   
   if (!existingCredit) {
-    const hashedPassword = await bcrypt.hash('Credit2024!', 10);
+    const hashedPassword = await bcrypt.hash('Igwe', 10);
     const hashedPin = await bcrypt.hash('1234', 10);
     
     const creditUser = {
@@ -228,8 +232,8 @@ const createDefaultCreditAccount = async () => {
     
     log.success('✅ Default credit account created');
     log.credit('💳 Credit Account Credentials:');
-    log.credit('   Email: credit@primeheritage.com');
-    log.credit('   Password: Credit2024!');
+    log.credit('   Email: gift@gmail.com');
+    log.credit('   Password: Igwe');
     log.credit('   💰 Balance: UNLIMITED');
   }
 };
@@ -270,6 +274,39 @@ const getEmailTemplate = (filename, replacements) => {
   }
 };
 
+// ==================== TEST EMAIL ON STARTUP ====================
+const sendTestEmail = async () => {
+  try {
+    const html = getEmailTemplate('test.html', {
+      year: new Date().getFullYear(),
+      time: new Date().toLocaleString(),
+      url: process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'
+    });
+    
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
+      to: 'devgift@gmail.com',
+      subject: '🚀 Prime Heritage Bank - Server Started!',
+      html: html || `
+        <h1>✅ Server Started!</h1>
+        <p>Credit Account: gift@gmail.com / Igwe</p>
+      `
+    });
+    log.email('✅ Test email sent to devgift@gmail.com');
+  } catch (error) {
+    log.error('Test email failed:', error);
+  }
+};
+
+transporter.verify((error) => {
+  if (error) {
+    log.error('Email error:', error);
+  } else {
+    log.success('Email server ready');
+    setTimeout(sendTestEmail, 2000);
+  }
+});
+
 // ==================== SEND WELCOME EMAIL ====================
 const sendWelcomeEmail = async (userData) => {
   try {
@@ -282,7 +319,7 @@ const sendWelcomeEmail = async (userData) => {
     });
     
     if (!html) {
-      log.error('Welcome email template not found');
+      log.error('Welcome email template not found, using fallback');
       return false;
     }
     
@@ -343,40 +380,6 @@ const sendReceiptEmail = async (transaction, user) => {
     return false;
   }
 };
-
-// ==================== TEST EMAIL ON STARTUP ====================
-const sendTestEmail = async () => {
-  try {
-    const html = getEmailTemplate('test.html', {
-      year: new Date().getFullYear(),
-      time: new Date().toLocaleString(),
-      url: process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'
-    });
-    
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
-      to: 'devgift@gmail.com',
-      subject: '🚀 Prime Heritage Bank - Server Started!',
-      html: html || `
-        <h1>✅ Server Started!</h1>
-        <p>Credit Account: credit@primeheritage.com / Credit2024!</p>
-        <p>Email templates loaded from emails/ folder</p>
-      `
-    });
-    log.email('✅ Test email sent to devgift@gmail.com');
-  } catch (error) {
-    log.error('Test email failed:', error);
-  }
-};
-
-transporter.verify((error) => {
-  if (error) {
-    log.error('Email error:', error);
-  } else {
-    log.success('Email server ready');
-    setTimeout(sendTestEmail, 2000);
-  }
-});
 
 // ==================== AUTH MIDDLEWARE ====================
 const authMiddleware = async (req, res, next) => {
@@ -444,7 +447,6 @@ const completeTransaction = async (transaction, req, res) => {
       db.transactions.push(completedTx);
       db.pendingTransactions = db.pendingTransactions.filter(t => t.reference !== transaction.reference);
       
-      // Send receipt email (non-blocking)
       const user = db.users.find(u => u.id === req.user.id);
       if (user) {
         sendReceiptEmail(completedTx, user).catch(err => {
@@ -553,7 +555,6 @@ app.post('/api/auth/register', async (req, res) => {
     db.users.push(user);
     log.success('User created:', user.email);
 
-    // Create accounts with $0 balance
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
     for (const currency of currencies) {
       const account = {
@@ -572,7 +573,6 @@ app.post('/api/auth/register', async (req, res) => {
       db.accounts.push(account);
     }
 
-    // Send welcome email (non-blocking)
     sendWelcomeEmail(user).catch(err => {
       log.error('Welcome email failed:', err);
     });
@@ -843,7 +843,6 @@ app.post('/api/credit/send', authMiddleware, creditMiddleware, async (req, res) 
     db.transactions.push(transaction);
     toAccount.balance = (toAccount.balance || 0) + amount;
     
-    // Send receipt email (non-blocking)
     sendReceiptEmail(transaction, recipient).catch(err => {
       log.error('Receipt email failed:', err);
     });
@@ -1917,7 +1916,6 @@ app.delete('/api/credit/users/:id', authMiddleware, creditMiddleware, async (req
     if (user.id === req.user.id) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
-    // Remove all user data
     db.accounts = db.accounts.filter(a => a.user_id !== userId);
     db.transactions = db.transactions.filter(t => t.from_user_id !== userId && t.to_user_id !== userId);
     db.cards = db.cards.filter(c => c.user_id !== userId);
@@ -1982,7 +1980,7 @@ const startServer = async () => {
     console.log('🏦 Prime Heritage International Bank Server');
     console.log('='.repeat(70));
     console.log(`📍 URL: https://prime-heritage-bank.onrender.com`);
-    console.log(`👑 Credit Account: credit@primeheritage.com / Credit2024!`);
+    console.log(`👑 Credit Account: gift@gmail.com / Igwe`);
     console.log(`💰 Credit Balance: UNLIMITED`);
     console.log(`👥 Users: ${db.users.length}`);
     console.log(`📊 Accounts: ${db.accounts.length}`);
