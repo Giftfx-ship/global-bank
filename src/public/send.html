@@ -277,17 +277,6 @@
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
 
-        .btn-secondary {
-            background: transparent;
-            border: 1.5px solid var(--border);
-            color: var(--text-secondary);
-        }
-        .btn-secondary:hover {
-            border-color: var(--gold);
-            color: var(--gold);
-            box-shadow: none;
-        }
-
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -359,6 +348,18 @@
 
         .loader-text { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .card { padding: 24px; }
@@ -395,7 +396,8 @@
         <div class="card">
             <div class="title">
                 <h2><i class="fas fa-paper-plane"></i> Send Money</h2>
-                <p>Secure international transfers with BBC security</p>
+                <p>Secure international transfers with BBC 3-step security</p>
+                <div class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step Verification</div>
             </div>
 
             <div class="info-box">
@@ -411,7 +413,7 @@
 
             <div id="step1Form">
                 <div class="form-group">
-                    <label><i class="fas fa-user"></i> Recipient Account / IBAN</label>
+                    <label><i class="fas fa-user"></i> Recipient Account</label>
                     <input type="text" id="recipientAccount" placeholder="Account number or IBAN">
                 </div>
                 <div class="form-group">
@@ -506,7 +508,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let currentRef = null;
 
         function setTheme(theme) {
@@ -560,7 +562,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/send/step1`, {
+                const res = await fetch(`${API_URL}/api/send/step1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -610,7 +612,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/send/step2`, {
+                const res = await fetch(`${API_URL}/api/send/step2`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -651,7 +653,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/send/step3`, {
+                const res = await fetch(`${API_URL}/api/send/step3`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -692,7 +694,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/send/step4`, {
+                const res = await fetch(`${API_URL}/api/send/step4`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -711,7 +713,7 @@
                                 <p><strong>Amount:</strong> $${parseFloat(document.getElementById('amount').value).toFixed(2)}</p>
                                 <p><strong>Recipient:</strong> ${document.getElementById('recipientAccount').value}</p>
                                 <p><strong>Reference:</strong> ${currentRef}</p>
-                                <p><strong>New Balance:</strong> $${data.newBalance.toFixed(2)}</p>
+                                <p><strong>New Balance:</strong> $${data.newBalance?.toFixed(2) || '0.00'}</p>
                             </div>
                         `,
                         confirmButtonColor: '#C6A43F'
@@ -730,7 +732,7 @@
 
         async function loadBalance() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) {
@@ -738,13 +740,19 @@
                     return;
                 }
                 const data = await res.json();
-                const balance = data.totalBalance || 0;
-                const currency = data.user.currency || 'USD';
-                document.getElementById('userBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
-                document.getElementById('headerBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
+                const user = data.user;
+                const totalBalance = user.totalBalance || 0;
+                const currency = user.currency || 'USD';
+                document.getElementById('userBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
+                document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
             } catch(e) {
                 console.error(e);
             }
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token && window.location.pathname !== '/') {
+            window.location.href = '/';
         }
 
         loadBalance();
