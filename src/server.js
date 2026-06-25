@@ -237,7 +237,7 @@ const createDefaultAdmin = async () => {
 // ==================== EMAIL SETUP ====================
 log.step('📧', 'Setting up Nodemailer with Gmail...');
 
-const emailSecure = process.env.EMAIL_SECURE !== 'false';
+
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
