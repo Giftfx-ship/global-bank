@@ -1,0 +1,126 @@
+// emails/welcomeTemplate.js
+
+const getWelcomeTemplate = (userData) => {
+  const { full_name, email, account_level } = userData;
+  
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to Prime Heritage Bank</title>
+      <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+          font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+          background: #0A0E1A;
+          margin: 0;
+          padding: 0;
+          -webkit-font-smoothing: antialiased;
+        }
+        .container {
+          max-width: 600px;
+          margin: 40px auto;
+          background: #0F1622;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+          border: 1px solid rgba(198, 164, 63, 0.15);
+        }
+        .header {
+          background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%);
+          padding: 40px 30px 30px;
+          text-align: center;
+          position: relative;
+          border-bottom: 1px solid rgba(198, 164, 63, 0.2);
+        }
+        .header::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F);
+          background-size: 200% 100%;
+          animation: shimmer 3s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        .header .logo { font-size: 48px; display: block; margin-bottom: 8px; }
+        .header h1 { color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; }
+        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 3px; text-transform: uppercase; margin-top: 4px; font-weight: 300; }
+        .content { padding: 40px 35px; background: #0F1622; }
+        .greeting { font-size: 24px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; }
+        .greeting .highlight { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .greeting .wave { display: inline-block; animation: wave 2s infinite; }
+        @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-10deg); } }
+        .message { color: rgba(255,255,255,0.7); line-height: 1.8; font-size: 15px; margin: 16px 0 24px; }
+        .message strong { color: #FFFFFF; font-weight: 600; }
+        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+        .feature { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 16px 18px; border-radius: 16px; }
+        .feature .icon { font-size: 28px; display: block; margin-bottom: 6px; }
+        .feature .label { font-weight: 700; color: #FFFFFF; font-size: 13px; display: block; }
+        .feature .desc { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
+        .account-details { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px 24px; margin: 24px 0; }
+        .account-details .title { color: rgba(255,255,255,0.3); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 12px 0; font-weight: 600; }
+        .account-details .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .account-details .row:last-child { border-bottom: none; }
+        .account-details .label { color: rgba(255,255,255,0.4); }
+        .account-details .value { color: #FFFFFF; font-weight: 600; font-family: 'Courier New', monospace; }
+        .account-details .value.gold { color: #C6A43F; }
+        .btn { display: inline-block; background: linear-gradient(135deg, #C6A43F, #9E8032); color: #0A0E1A; padding: 14px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; margin: 10px 0 5px; box-shadow: 0 4px 15px rgba(198,164,63,0.3); }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(198,164,63,0.4); }
+        .btn-secondary { display: inline-block; background: transparent; color: rgba(255,255,255,0.7); padding: 12px 30px; text-decoration: none; border-radius: 12px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); margin: 5px 0; }
+        .btn-secondary:hover { border-color: #C6A43F; color: #C6A43F; }
+        .text-center { text-align: center; }
+        .footer { background: rgba(255,255,255,0.02); padding: 30px 35px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer p { color: rgba(255,255,255,0.3); font-size: 12px; margin: 4px 0; line-height: 1.6; }
+        .footer .brand { color: rgba(255,255,255,0.5); font-weight: 600; }
+        @media (max-width: 480px) { .features { grid-template-columns: 1fr; } .content { padding: 25px 20px; } .header h1 { font-size: 22px; } .greeting { font-size: 20px; } .account-details .row { flex-direction: column; padding: 10px 0; gap: 4px; } }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <span class="logo">🏦</span>
+          <h1>Prime Heritage <span class="gold">Bank</span></h1>
+          <div class="subtitle">INTERNATIONAL BANKING</div>
+        </div>
+        <div class="content">
+          <div class="greeting"><span class="wave">👋</span> Hello, <span class="highlight">${full_name}</span>!</div>
+          <div class="message"><strong>Welcome to Prime Heritage International Bank!</strong><br>Your global banking journey begins now. We're thrilled to have you join our community of international banking. Your account has been successfully created.</div>
+          <div class="account-details">
+            <div class="title">📋 Account Summary</div>
+            <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
+            <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
+            <div class="row"><span class="label">Account Level</span><span class="value gold">${account_level || 'Standard'}</span></div>
+            <div class="row"><span class="label">Status</span><span class="value" style="color: #34D399;">✓ Active</span></div>
+          </div>
+          <div class="features">
+            <div class="feature"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD, EUR, GBP, NGN</span></div>
+            <div class="feature"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa & Mastercard</span></div>
+            <div class="feature"><span class="icon">🔐</span><span class="label">BBC Security</span><span class="desc">3-Step Verification</span></div>
+            <div class="feature"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT & SEPA Ready</span></div>
+          </div>
+          <div class="text-center">
+            <a href="https://prime-heritage-bank.onrender.com/dashboard.html" class="btn">🚀 Go to Dashboard</a>
+            <br>
+            <a href="https://prime-heritage-bank.onrender.com/login.html" class="btn-secondary">🔐 Sign In</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} <span class="brand">Prime Heritage International Bank</span>. All rights reserved.</p>
+          <p>This email was sent to <strong style="color: rgba(255,255,255,0.4);">${email}</strong></p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+module.exports = { getWelcomeTemplate };
