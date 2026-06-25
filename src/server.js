@@ -9,11 +9,6 @@ const { v4: uuidv4 } = require('uuid');
 const path = require('path');
 require('dotenv').config();
 
-// ==================== IMPORT EMAIL TEMPLATES ====================
-const { getWelcomeTemplate } = require('./emails/welcomeTemplate');
-const { getReceiptTemplate } = require('./emails/receiptTemplate');
-const { getTestTemplate } = require('./emails/testTemplate');
-
 const app = express();
 
 // ==================== LOGGING SETUP ====================
@@ -259,15 +254,393 @@ const transporter = nodemailer.createTransport({
 
 log.debug(`📧 Email Config: Host=${process.env.EMAIL_HOST || 'smtp.gmail.com'}, Port=${parseInt(process.env.EMAIL_PORT) || 465}, Secure=${emailSecure}`);
 
-// ==================== SEND WELCOME EMAIL ====================
+// ==================== ULTRA-PREMIUM EMAIL TEMPLATES ====================
+
+// ---------- WELCOME EMAIL (DOPE & PROFESSIONAL) ----------
+const getWelcomeTemplate = (userData) => {
+  const { full_name, email, account_level } = userData;
+  const year = new Date().getFullYear();
+  
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #060A14;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .email-wrapper {
+      max-width: 620px;
+      margin: 40px auto;
+      background: #0B1120;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(198,164,63,0.08);
+      position: relative;
+    }
+    .email-wrapper::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      right: -40%;
+      width: 80%;
+      height: 80%;
+      background: radial-gradient(circle, rgba(198,164,63,0.04) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header {
+      background: linear-gradient(165deg, #060A14 0%, #0F1A2E 50%, #0B1120 100%);
+      padding: 48px 44px 32px;
+      text-align: center;
+      position: relative;
+      border-bottom: 2px solid rgba(198,164,63,0.12);
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 15%;
+      right: 15%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent);
+      background-size: 200% 100%;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .header .logo-icon { font-size: 52px; display: block; margin-bottom: 8px; filter: drop-shadow(0 4px 20px rgba(198,164,63,0.2)); }
+    .header h1 { font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 30px; font-weight: 900; letter-spacing: 1.5px; margin: 0; }
+    .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #E8D07A, #C6A43F); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: goldShine 4s ease-in-out infinite; }
+    @keyframes goldShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .header .tagline { color: rgba(255,255,255,0.2); font-size: 10px; letter-spacing: 6px; text-transform: uppercase; margin-top: 6px; font-weight: 300; }
+    .header .badge { display: inline-block; margin-top: 14px; padding: 5px 22px; background: rgba(198,164,63,0.1); border: 1px solid rgba(198,164,63,0.2); border-radius: 50px; color: #C6A43F; font-size: 9px; letter-spacing: 2.5px; text-transform: uppercase; font-weight: 600; }
+    .body-content { padding: 44px 44px 32px; background: #0B1120; position: relative; }
+    .greeting { font-size: 26px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; font-family: 'Playfair Display', serif; }
+    .greeting .highlight { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .greeting .wave { display: inline-block; animation: wave 2.5s infinite; }
+    @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(18deg); } 75% { transform: rotate(-8deg); } }
+    .message-text { color: rgba(255,255,255,0.7); line-height: 1.9; font-size: 15px; margin: 14px 0 24px; font-weight: 300; }
+    .message-text strong { color: #FFFFFF; font-weight: 600; }
+    .divider-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(198,164,63,0.15), transparent); margin: 24px 0; }
+    .account-card { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 20px; padding: 22px 26px; margin: 20px 0 24px; }
+    .account-card .card-title { color: rgba(255,255,255,0.25); font-size: 9px; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 14px; font-weight: 600; }
+    .account-card .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); font-size: 13px; }
+    .account-card .row:last-child { border-bottom: none; }
+    .account-card .label { color: rgba(255,255,255,0.35); font-weight: 400; }
+    .account-card .value { color: #FFFFFF; font-weight: 500; font-family: 'Inter', monospace; }
+    .account-card .value.golden { color: #C6A43F; }
+    .account-card .value.status { color: #34D399; }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 20px 0; }
+    .feature-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 16px 14px; text-align: center; transition: all 0.3s; }
+    .feature-item:hover { border-color: rgba(198,164,63,0.15); background: rgba(198,164,63,0.02); }
+    .feature-item .icon { font-size: 28px; display: block; margin-bottom: 6px; }
+    .feature-item .label { font-weight: 600; color: #FFFFFF; font-size: 12px; display: block; }
+    .feature-item .desc { color: rgba(255,255,255,0.3); font-size: 10px; margin-top: 2px; }
+    .btn-wrap { text-align: center; margin: 28px 0 8px; }
+    .btn-primary { display: inline-block; background: linear-gradient(135deg, #C6A43F, #A8882E); color: #060A14; padding: 16px 52px; text-decoration: none; border-radius: 60px; font-weight: 700; font-size: 15px; font-family: 'Inter', sans-serif; letter-spacing: 0.3px; box-shadow: 0 8px 32px rgba(198,164,63,0.3); transition: all 0.3s ease; border: none; cursor: pointer; }
+    .btn-primary:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 48px rgba(198,164,63,0.45); }
+    .btn-secondary { display: inline-block; background: transparent; color: rgba(255,255,255,0.5); padding: 12px 36px; text-decoration: none; border-radius: 60px; font-weight: 500; font-size: 13px; font-family: 'Inter', sans-serif; border: 1px solid rgba(255,255,255,0.06); margin-top: 10px; transition: all 0.3s ease; }
+    .btn-secondary:hover { border-color: rgba(198,164,63,0.3); color: #C6A43F; }
+    .footer-section { background: rgba(255,255,255,0.01); padding: 28px 44px 24px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); }
+    .footer-section .brand-name { color: rgba(255,255,255,0.4); font-weight: 600; font-size: 13px; letter-spacing: 1px; }
+    .footer-section p { color: rgba(255,255,255,0.15); font-size: 10px; margin: 4px 0; line-height: 1.8; font-weight: 300; }
+    .footer-section .social-icons { margin: 12px 0 8px; display: flex; justify-content: center; gap: 14px; }
+    .footer-section .social-icons span { color: rgba(255,255,255,0.08); font-size: 18px; transition: all 0.3s; }
+    .footer-section .social-icons span:hover { color: #C6A43F; }
+    .footer-section .disclaimer { font-size: 9px; color: rgba(255,255,255,0.06); margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.03); }
+    @media (max-width: 520px) {
+      .email-wrapper { margin: 20px 12px; border-radius: 24px; }
+      .header { padding: 32px 20px 24px; }
+      .header h1 { font-size: 24px; }
+      .body-content { padding: 28px 20px 20px; }
+      .greeting { font-size: 22px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .account-card { padding: 16px 18px; }
+      .account-card .row { flex-direction: column; gap: 2px; padding: 10px 0; }
+      .btn-primary { padding: 14px 32px; font-size: 14px; width: 100%; }
+      .btn-secondary { width: 100%; }
+      .footer-section { padding: 20px; }
+    }
+    @media (prefers-color-scheme: light) {
+      body { background: #f0f2f5; }
+      .email-wrapper { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); }
+      .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); }
+      .header h1 { color: #0A0E1A; }
+      .header .tagline { color: rgba(0,0,0,0.2); }
+      .body-content { background: #ffffff; }
+      .greeting { color: #0A0E1A; }
+      .message-text { color: rgba(0,0,0,0.65); }
+      .message-text strong { color: #0A0E1A; }
+      .account-card { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.05); }
+      .account-card .value { color: #0A0E1A; }
+      .account-card .label { color: rgba(0,0,0,0.4); }
+      .feature-item { background: rgba(0,0,0,0.02); border-color: rgba(0,0,0,0.04); }
+      .feature-item .label { color: #0A0E1A; }
+      .btn-secondary { color: rgba(0,0,0,0.4); border-color: rgba(0,0,0,0.06); }
+      .btn-secondary:hover { border-color: #C6A43F; color: #C6A43F; }
+      .footer-section { border-color: rgba(0,0,0,0.04); }
+      .footer-section .brand-name { color: rgba(0,0,0,0.4); }
+      .footer-section p { color: rgba(0,0,0,0.15); }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="header">
+      <span class="logo-icon">🏛️</span>
+      <h1>Prime Heritage <span class="gold">Bank</span></h1>
+      <div class="tagline">International Banking Excellence</div>
+      <div class="badge">✦ Private Banking ✦</div>
+    </div>
+    <div class="body-content">
+      <div class="greeting"><span class="wave">👋</span> Welcome, <span class="highlight">${full_name}</span></div>
+      <div class="message-text">
+        <strong>Your global banking journey begins now.</strong><br>
+        We are honored to welcome you to Prime Heritage International Bank. Your account has been meticulously prepared with the highest standards of security and service excellence.
+      </div>
+      <div class="divider-line"></div>
+      <div class="account-card">
+        <div class="card-title">📋 Account Summary</div>
+        <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
+        <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
+        <div class="row"><span class="label">Account Level</span><span class="value golden">${account_level || 'Standard'}</span></div>
+        <div class="row"><span class="label">Status</span><span class="value status">✓ Active</span></div>
+      </div>
+      <div class="features-grid">
+        <div class="feature-item"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD • EUR • GBP • NGN</span></div>
+        <div class="feature-item"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa • Mastercard • AMEX</span></div>
+        <div class="feature-item"><span class="icon">🔐</span><span class="label">BBC Security</span><span class="desc">3-Step Verification</span></div>
+        <div class="feature-item"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT • SEPA • ACH</span></div>
+      </div>
+      <div class="btn-wrap">
+        <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/dashboard.html" class="btn-primary">🚀 Access Your Dashboard</a>
+        <br>
+        <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/login.html" class="btn-secondary">🔐 Secure Sign In</a>
+      </div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+      <div class="social-icons"><span>📱</span><span>🌐</span><span>🔒</span><span>⚡</span></div>
+      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
+      <p style="font-size: 9px;">This email was sent to <strong style="color: rgba(255,255,255,0.2);">${email}</strong></p>
+      <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+// ---------- RECEIPT EMAIL (DOPE & PROFESSIONAL) ----------
+const getReceiptTemplate = (transaction, user) => {
+  const receiptUrl = `${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/receipt.html?ref=${transaction.reference}`;
+  const year = new Date().getFullYear();
+  const txDate = new Date(transaction.created_at || Date.now());
+  const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt | Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #060A14;
+      margin: 0;
+      padding: 0;
+      -webkit-font-smoothing: antialiased;
+    }
+    .email-wrapper {
+      max-width: 620px;
+      margin: 40px auto;
+      background: #0B1120;
+      border-radius: 32px;
+      overflow: hidden;
+      box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(198,164,63,0.08);
+      position: relative;
+    }
+    .email-wrapper::before {
+      content: '';
+      position: absolute;
+      top: -60%;
+      right: -40%;
+      width: 80%;
+      height: 80%;
+      background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .header {
+      background: linear-gradient(165deg, #060A14 0%, #0F1A2E 50%, #0B1120 100%);
+      padding: 36px 44px 28px;
+      text-align: center;
+      border-bottom: 2px solid rgba(198,164,63,0.12);
+      position: relative;
+    }
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 15%;
+      right: 15%;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent);
+      background-size: 200% 100%;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+    .header .logo-icon { font-size: 40px; display: block; margin-bottom: 4px; }
+    .header h1 { font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 24px; font-weight: 700; letter-spacing: 1.5px; }
+    .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .header .subtitle { color: rgba(255,255,255,0.15); font-size: 9px; letter-spacing: 5px; text-transform: uppercase; margin-top: 2px; font-weight: 300; }
+    .body-content { padding: 32px 44px 24px; background: #0B1120; }
+    .receipt-id { display: inline-block; padding: 5px 20px; background: rgba(198,164,63,0.08); border: 1px solid rgba(198,164,63,0.12); border-radius: 50px; color: #C6A43F; font-size: 11px; font-weight: 600; font-family: 'Inter', monospace; letter-spacing: 0.5px; }
+    .status-badge { display: inline-block; padding: 4px 16px; border-radius: 50px; font-size: 10px; font-weight: 600; background: rgba(16,185,129,0.1); color: #34D399; border: 1px solid rgba(16,185,129,0.15); margin: 10px 0 16px; }
+    .amount-section { text-align: center; padding: 16px 0; margin: 12px 0; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .amount-section .amount-label { color: rgba(255,255,255,0.2); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
+    .amount-section .amount { font-size: 38px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; }
+    .amount-section .amount .currency { color: #C6A43F; }
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { color: rgba(255,255,255,0.3); font-size: 11px; font-weight: 400; }
+    .detail-value { color: #FFFFFF; font-weight: 500; font-size: 12px; text-align: right; }
+    .detail-value .gold-text { color: #C6A43F; }
+    .detail-value.mono { font-family: 'Inter', monospace; font-size: 11px; letter-spacing: 0.3px; }
+    .btn-wrap { text-align: center; margin: 22px 0 6px; }
+    .view-btn { display: inline-block; background: linear-gradient(135deg, #C6A43F, #A8882E); color: #060A14; padding: 14px 44px; text-decoration: none; border-radius: 60px; font-weight: 700; font-size: 14px; font-family: 'Inter', sans-serif; box-shadow: 0 8px 32px rgba(198,164,63,0.25); transition: all 0.3s ease; border: none; cursor: pointer; }
+    .view-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 48px rgba(198,164,63,0.4); }
+    .footer-section { background: rgba(255,255,255,0.01); padding: 24px 44px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); }
+    .footer-section .brand-name { color: rgba(255,255,255,0.3); font-weight: 500; font-size: 12px; letter-spacing: 0.5px; }
+    .footer-section p { color: rgba(255,255,255,0.12); font-size: 10px; margin: 3px 0; line-height: 1.6; }
+    @media (max-width: 520px) {
+      .email-wrapper { margin: 20px 12px; border-radius: 24px; }
+      .header { padding: 28px 20px 20px; }
+      .header h1 { font-size: 20px; }
+      .body-content { padding: 24px 20px 16px; }
+      .amount-section .amount { font-size: 28px; }
+      .detail-row { flex-direction: column; gap: 2px; padding: 10px 0; }
+      .detail-value { text-align: left; }
+      .view-btn { padding: 12px 28px; font-size: 13px; width: 100%; }
+      .footer-section { padding: 16px 20px; }
+    }
+    @media (prefers-color-scheme: light) {
+      body { background: #f0f2f5; }
+      .email-wrapper { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); }
+      .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); }
+      .header h1 { color: #0A0E1A; }
+      .body-content { background: #ffffff; }
+      .amount-section .amount { color: #0A0E1A; }
+      .detail-value { color: #0A0E1A; }
+      .detail-label { color: rgba(0,0,0,0.35); }
+      .footer-section { border-color: rgba(0,0,0,0.04); }
+      .footer-section .brand-name { color: rgba(0,0,0,0.3); }
+      .footer-section p { color: rgba(0,0,0,0.12); }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="header">
+      <span class="logo-icon">🏛️</span>
+      <h1>Prime Heritage <span class="gold">Bank</span></h1>
+      <div class="subtitle">International Banking</div>
+    </div>
+    <div class="body-content">
+      <div style="text-align:center;margin-bottom:8px;"><span class="receipt-id">#${transaction.reference || 'N/A'}</span></div>
+      <div style="text-align:center;"><span class="status-badge">✅ COMPLETED</span></div>
+      <div class="amount-section">
+        <div class="amount-label">Total Amount</div>
+        <div class="amount"><span class="currency">${transaction.currency || 'USD'}</span> ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      </div>
+      <div class="detail-row"><span class="detail-label">Transaction Type</span><span class="detail-value">${transaction.type || 'Transaction'}</span></div>
+      <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${transaction.description || transaction.purpose || 'N/A'}</span></div>
+      <div class="detail-row"><span class="detail-label">Date</span><span class="detail-value">${dateStr}</span></div>
+      <div class="detail-row"><span class="detail-label">Time</span><span class="detail-value">${timeStr}</span></div>
+      <div class="detail-row"><span class="detail-label">Reference</span><span class="detail-value mono">${transaction.reference || 'N/A'}</span></div>
+      <div class="btn-wrap"><a href="${receiptUrl}" class="view-btn">🧾 View Full Receipt</a></div>
+      <div style="text-align:center;font-size:10px;color:rgba(255,255,255,0.12);margin-top:10px;">This is an automated receipt for your transaction.</div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>© ${year} Prime Heritage International Bank</p>
+      <p style="font-size:9px;">Sent to ${user.email}</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+// ---------- TEST EMAIL ----------
+const getTestTemplate = () => {
+  const year = new Date().getFullYear();
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Started</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Inter', -apple-system, sans-serif; background: #060A14; padding: 20px; color: #FFFFFF; }
+    .container { max-width: 560px; margin: 0 auto; background: #0B1120; border-radius: 28px; padding: 32px; border: 1px solid rgba(198,164,63,0.06); box-shadow: 0 30px 80px rgba(0,0,0,0.6); }
+    .header { background: linear-gradient(135deg, #060A14, #0F1A2E); padding: 28px; text-align: center; border-radius: 16px 16px 0 0; margin: -32px -32px 20px -32px; border-bottom: 2px solid rgba(198,164,63,0.12); }
+    .header h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+    .header .gold { color: #C6A43F; }
+    .header .sub { color: rgba(255,255,255,0.2); font-size: 10px; letter-spacing: 4px; text-transform: uppercase; margin-top: 4px; }
+    .success-box { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.12); color: #34D399; padding: 16px 20px; border-radius: 14px; border-left: 3px solid #10B981; margin: 16px 0; }
+    .info-box { background: rgba(59,130,246,0.04); border: 1px solid rgba(59,130,246,0.08); color: #60A5FA; padding: 16px 20px; border-radius: 14px; border-left: 3px solid #3B82F6; margin: 14px 0; }
+    .admin-box { background: rgba(198,164,63,0.06); border: 1px solid rgba(198,164,63,0.1); color: #C6A43F; padding: 16px 20px; border-radius: 14px; border-left: 3px solid #C6A43F; margin: 14px 0; }
+    .admin-box code { background: rgba(198,164,63,0.08); padding: 2px 12px; border-radius: 6px; font-size: 12px; color: #C6A43F; font-weight: 600; }
+    .footer { margin-top: 20px; text-align: center; color: rgba(255,255,255,0.08); font-size: 10px; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 18px; letter-spacing: 0.5px; }
+    .emoji-big { font-size: 42px; display: block; margin-bottom: 4px; }
+    @media (max-width: 480px) { .container { padding: 20px; margin: 10px; } .header { margin: -20px -20px 16px -20px; padding: 20px; } .header h1 { font-size: 20px; } }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="emoji-big">🏛️</span>
+      <h1>Prime Heritage <span class="gold">Bank</span></h1>
+      <div class="sub">International Banking Excellence</div>
+    </div>
+    <h2 style="font-weight:700;font-size:20px;margin-bottom:4px;">✅ Server Started Successfully!</h2>
+    <div class="success-box"><strong>✓ Email System is Working!</strong><br>Your server is running and emails are sending correctly.</div>
+    <div class="info-box"><strong>📋 Server Details:</strong><br>• Time: ${new Date().toLocaleString()}<br>• Environment: production<br>• URL: ${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}</div>
+    <div class="admin-box"><strong>👑 Admin Access:</strong><br>Email: <code>devgift@gmail.com</code><br>Password: <code>Igwe</code></div>
+    <div class="footer">© ${year} Prime Heritage International Bank</div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+// ==================== SEND EMAIL FUNCTIONS ====================
+
 const sendWelcomeEmail = async (userData) => {
   try {
     const html = getWelcomeTemplate(userData);
-    
     const result = await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: userData.email,
-      subject: '🎉 Welcome to Prime Heritage International Bank!',
+      subject: '🎉 Welcome to Prime Heritage International Bank',
       html: html
     });
     log.email('✅ Welcome email sent to:', userData.email);
@@ -279,11 +652,9 @@ const sendWelcomeEmail = async (userData) => {
   }
 };
 
-// ==================== SEND RECEIPT EMAIL ====================
 const sendReceiptEmail = async (transaction, user) => {
   try {
     const html = getReceiptTemplate(transaction, user);
-    
     const result = await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: user.email,
@@ -299,11 +670,9 @@ const sendReceiptEmail = async (transaction, user) => {
   }
 };
 
-// ==================== TEST EMAIL ON STARTUP ====================
 const sendTestEmail = async () => {
   try {
     const html = getTestTemplate();
-    
     const result = await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: 'devgift@gmail.com',
@@ -317,7 +686,6 @@ const sendTestEmail = async () => {
   }
 };
 
-// Verify email connection first, then send test
 transporter.verify((error, success) => {
   if (error) {
     log.error('Email configuration error:', error);
@@ -372,7 +740,6 @@ app.use('/api', limiter);
 // ==================== CONSTANTS ====================
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
 const JWT_EXPIRE = '7d';
-const BBC_EXPIRY_MINUTES = 15;
 
 // ==================== COMPLETE TRANSACTION ====================
 const completeTransaction = async (transaction, req, res) => {
@@ -684,11 +1051,9 @@ app.get('/api/transactions', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== API: GET ALL TRANSACTIONS (View All) ====================
+// ==================== API: GET ALL TRANSACTIONS ====================
 app.get('/api/transactions/all', authMiddleware, async (req, res) => {
   try {
-    log.info('All transactions requested for user:', req.user.email);
-    
     const transactions = db.transactions
       .filter(t => t.from_user_id === req.user.id || t.to_user_id === req.user.id)
       .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
@@ -703,7 +1068,6 @@ app.get('/api/transactions/all', authMiddleware, async (req, res) => {
       };
     });
     
-    log.success(`Retrieved ${enrichedTransactions.length} transactions`);
     res.json({
       success: true,
       transactions: enrichedTransactions,
@@ -715,7 +1079,7 @@ app.get('/api/transactions/all', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== API: GET RECEIPT DATA ====================
+// ==================== API: GET RECEIPT ====================
 app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
     const { reference } = req.params;
@@ -756,7 +1120,7 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== API: GET RECEIPT FOR ADMIN ====================
+// ==================== ADMIN API: GET RECEIPT ====================
 app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { reference } = req.params;
@@ -790,8 +1154,6 @@ app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async 
 app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, currency, senderName, note } = req.body;
-    
-    log.admin(`Sending money: ${amount} ${currency} to ${toAccountNumber} from ${senderName}`);
     
     const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
     if (!toAccount) {
@@ -828,8 +1190,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       log.error('Receipt email failed:', err);
     });
     
-    log.admin(`✅ Admin transfer completed: ${amount} ${currency} to ${recipient.email}`);
-    
     res.json({
       success: true,
       message: `Sent ${amount} ${currency} to ${recipient.full_name}`,
@@ -850,7 +1210,7 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
 
 // ==================== BBC SECURED TRANSACTIONS ====================
 
-// === 1. SEND MONEY ===
+// === SEND MONEY ===
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
@@ -1053,7 +1413,7 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === 2. AIRTIME ===
+// === AIRTIME ===
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
@@ -1245,7 +1605,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === 3. BILLS ===
+// === BILLS ===
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
@@ -1438,7 +1798,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === 4. DATA ===
+// === DATA ===
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
@@ -1632,7 +1992,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === 5. WITHDRAW ===
+// === WITHDRAW ===
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
@@ -2011,7 +2371,7 @@ const startServer = async () => {
     console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`👥 Users: ${db.users.length}`);
     console.log(`📊 Accounts: ${db.accounts.length}`);
-    console.log(`📧 Email Templates: Loaded from src/emails/ folder`);
+    console.log(`📧 Email Templates: INLINE (No external files needed)`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
     console.log(`📧 Test email will be sent to devgift@gmail.com`);
     console.log(`💡 New users start with $0 balance`);
