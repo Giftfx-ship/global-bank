@@ -18,7 +18,12 @@
     "bbc-codes",
     "multi-currency",
     "admin-dashboard",
-    "security"
+    "security",
+    "airtime",
+    "bills",
+    "data-bundle",
+    "withdraw",
+    "send-money"
   ],
   "author": "Prime Heritage International Bank",
   "license": "ISC",
