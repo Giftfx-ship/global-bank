@@ -366,6 +366,18 @@
             margin-bottom: 20px;
         }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .support-card { padding: 24px; }
@@ -386,7 +398,8 @@
     <div class="top-bar">
         <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage Bank</span>
+            <span>Prime Heritage</span>
+            <span class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step</span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
@@ -469,7 +482,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
 
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
@@ -502,9 +515,7 @@
                 toast: true,
                 position: 'top-end',
                 showConfirmButton: false,
-                timer: 2500,
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#111827' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#1e293b'
+                timer: 2500
             });
         }
 
@@ -519,7 +530,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/support`, {
+                const res = await fetch(`${API_URL}/api/support`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -550,7 +561,7 @@
 
         async function loadTickets() {
             try {
-                const res = await fetch(`${apiUrl}/api/support/tickets`, {
+                const res = await fetch(`${API_URL}/api/support`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) {
