@@ -4,20 +4,120 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { createClient } = require('@supabase/supabase-js');
-const { v4: uuidv4 } = require('uuid');
 const nodemailer = require('nodemailer');
+const { v4: uuidv4 } = require('uuid');
+const path = require('path');
 require('dotenv').config();
 
 const app = express();
 
-// ==================== SUPABASE SETUP ====================
-const supabase = createClient(
-  process.env.SUPABASE_URL || 'https://locubftytnfyxacfberj.supabase.co',
-  process.env.SUPABASE_ANON_KEY || 'sb_publishable_AsPMmqBAtex3C_zfofY8sw_GGJ_nxyk'
-);
+// ==================== LOGGING SETUP ====================
+const log = {
+  info: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] ℹ️ ${msg}`);
+    if (data) console.log('   📦 Data:', JSON.stringify(data, null, 2));
+  },
+  success: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] ✅ ${msg}`);
+    if (data) console.log('   📦 Data:', JSON.stringify(data, null, 2));
+  },
+  error: (msg, error = null) => {
+    console.log(`[${new Date().toISOString()}] ❌ ${msg}`);
+    if (error) {
+      console.log('   📦 Error:', error.message || error);
+      if (error.stack) console.log('   📦 Stack:', error.stack);
+    }
+  },
+  warn: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] ⚠️ ${msg}`);
+    if (data) console.log('   📦 Data:', JSON.stringify(data, null, 2));
+  },
+  debug: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] 🔍 ${msg}`);
+    if (data) console.log('   📦 Data:', JSON.stringify(data, null, 2));
+  },
+  step: (step, msg) => {
+    console.log(`[${new Date().toISOString()}] 📍 ${step}: ${msg}`);
+  },
+  email: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] 📧 ${msg}`);
+    if (data) console.log('   📦 Email Data:', JSON.stringify(data, null, 2));
+  },
+  bbc: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] 🔐 BBC: ${msg}`);
+    if (data) console.log('   📦 BBC Data:', JSON.stringify(data, null, 2));
+  },
+  admin: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] 👑 ${msg}`);
+    if (data) console.log('   📦 Admin Data:', JSON.stringify(data, null, 2));
+  },
+  test: (msg, data = null) => {
+    console.log(`[${new Date().toISOString()}] 🧪 ${msg}`);
+    if (data) console.log('   📦 Test Data:', JSON.stringify(data, null, 2));
+  }
+};
+
+log.info('🚀 Starting Prime Heritage International Bank Server...');
+
+// ==================== IN-MEMORY DATABASE ====================
+const db = {
+  users: [],
+  accounts: [],
+  transactions: [],
+  cards: [],
+  loans: [],
+  supportTickets: [],
+  bbcCodes: [],
+  pendingTransactions: [],
+  auditLogs: []
+};
+
+// ==================== CREATE DEFAULT ADMIN ====================
+const createDefaultAdmin = async () => {
+  log.step('ADMIN', 'Creating default admin account...');
+  
+  const adminEmail = 'admin@primeheritagebank.com';
+  const existingAdmin = db.users.find(u => u.email === adminEmail);
+  
+  if (!existingAdmin) {
+    const hashedPassword = await bcrypt.hash('Admin@2024!', 10);
+    const hashedPin = await bcrypt.hash('1234', 10);
+    
+    const admin = {
+      id: uuidv4(),
+      full_name: 'System Administrator',
+      first_name: 'System',
+      last_name: 'Admin',
+      email: adminEmail,
+      phone: '+1234567890',
+      password: hashedPassword,
+      transaction_pin: hashedPin,
+      passport_number: 'ADMIN001',
+      nationality: 'Global',
+      country_of_residence: 'Global',
+      date_of_birth: '1990-01-01',
+      account_level: 'admin',
+      is_active: true,
+      is_verified: true,
+      is_admin: true,
+      is_super_admin: true,
+      login_count: 0,
+      created_at: new Date().toISOString()
+    };
+    
+    db.users.push(admin);
+    log.success('✅ Default admin created');
+    log.admin('👑 Admin Credentials:');
+    log.admin('   Email: admin@primeheritagebank.com');
+    log.admin('   Password: Admin@2024!');
+  } else {
+    log.info('Admin already exists');
+  }
+};
 
 // ==================== EMAIL SETUP ====================
+log.step('📧', 'Setting up Nodemailer with Gmail...');
+
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -26,136 +126,453 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// Verify email connection
+// ==================== TEST EMAIL ON STARTUP ====================
+const sendTestEmail = async () => {
+  log.step('🧪', 'Sending test email to devvgift@gmail.com...');
+  
+  try {
+    const testResult = await transporter.sendMail({
+      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
+      to: 'devvgift@gmail.com',
+      subject: '🚀 Prime Heritage Bank - Server Started Successfully!',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; background: #0A0E1A; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; padding: 30px; border: 1px solid rgba(198,164,63,0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+            .header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px; text-align: center; border-radius: 16px 16px 0 0; margin: -30px -30px 20px -30px; border-bottom: 3px solid #C6A43F; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .header .gold { color: #C6A43F; }
+            .success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34D399; padding: 15px; border-radius: 12px; border-left: 4px solid #10B981; margin: 15px 0; }
+            .info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #60A5FA; padding: 15px; border-radius: 12px; border-left: 4px solid #3B82F6; margin: 15px 0; }
+            .admin-box { background: rgba(198,164,63,0.1); border: 1px solid rgba(198,164,63,0.2); color: #C6A43F; padding: 15px; border-radius: 12px; border-left: 4px solid #C6A43F; margin: 15px 0; }
+            .footer { margin-top: 20px; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
+            code { background: rgba(255,255,255,0.05); padding: 2px 10px; border-radius: 6px; font-size: 13px; color: #C6A43F; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🏦 Prime Heritage <span class="gold">Bank</span></h1>
+              <p style="color: rgba(255,255,255,0.5); margin: 5px 0 0;">INTERNATIONAL BANKING</p>
+            </div>
+            <h2 style="color: white;">✅ Server Started Successfully!</h2>
+            <div class="success">
+              <strong>✓ Email System is Working!</strong><br>
+              Your server is running and emails are sending correctly.
+            </div>
+            <div class="info">
+              <strong>📋 Server Details:</strong><br>
+              • Time: ${new Date().toLocaleString()}<br>
+              • Environment: ${process.env.NODE_ENV || 'development'}<br>
+              • Users in DB: ${db.users.length}<br>
+              • Email: ${process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com'}
+            </div>
+            <div class="admin-box">
+              <strong>👑 Admin Access:</strong><br>
+              Email: <code>admin@primeheritagebank.com</code><br>
+              Password: <code>Admin@2024!</code>
+            </div>
+            <div class="info">
+              <strong>✅ Features Available:</strong><br>
+              • User Registration ✓<br>
+              • User Login ✓<br>
+              • Admin Dashboard ✓<br>
+              • BBC 3-Step Security ✓<br>
+              • Account Creation ✓<br>
+              • Welcome Emails ✓<br>
+              • Transaction Processing ✓<br>
+              • Card Management ✓<br>
+              • Loan Applications ✓
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
+              <p>This is an automated test email to confirm your server is running.</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+    
+    log.email('✅ Test email sent successfully to devvgift@gmail.com!');
+    log.email(`📧 Message ID: ${testResult.messageId}`);
+    log.success('Email system is fully operational');
+    return true;
+  } catch (error) {
+    log.error('❌ Failed to send test email:', error);
+    log.warn('Email will still work for registration, but test failed');
+    return false;
+  }
+};
+
+// Verify email connection first, then send test
 transporter.verify((error, success) => {
   if (error) {
-    console.log('❌ Email configuration error:', error);
+    log.error('Email configuration error:', error);
+    log.warn('Email may not work properly. Check Gmail App Password.');
   } else {
-    console.log('✅ Email server is ready');
+    log.success('Email server is ready (Gmail)');
+    // Send test email after verification
+    setTimeout(() => {
+      sendTestEmail();
+    }, 2000);
   }
 });
 
 // ==================== MIDDLEWARE ====================
+log.step('🛡️', 'Setting up middleware...');
+
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
 }));
+log.debug('Helmet middleware configured');
+
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', '*'],
+  origin: ['http://localhost:3000', 'http://127.0.0.1:3000', 'https://prime-heritage-bank.onrender.com', '*'],
   credentials: true
 }));
+log.debug('CORS middleware configured');
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+log.debug('JSON, URL-encoded, and static middleware configured');
 
-// Rate Limiting
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
-  message: { error: 'Too many requests, please try again later.' }
+  message: { error: 'Too many requests, try again later.' }
 });
 app.use('/api', limiter);
+log.debug('Rate limiter configured');
 
 // ==================== CONSTANTS ====================
-const JWT_SECRET = process.env.JWT_SECRET || 'your_super_secret_jwt_key_change_this';
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
 const JWT_EXPIRE = '7d';
 const BBC_EXPIRY_MINUTES = 15;
 
+log.debug(`JWT configured - Expire: ${JWT_EXPIRE}`);
+
+// ==================== BBC CODE GENERATION ====================
+// Each BBC code has a hidden security purpose that the user doesn't know
+const generateBBCode = (step) => {
+  const prefixes = {
+    1: 'ALPHA',  // Step 1: Currency Exchange / Initial Verification
+    2: 'BETA',   // Step 2: Transfer Authorization / Second Check
+    3: 'GAMMA'   // Step 3: Final Security / Completion Code
+  };
+  
+  const purposes = {
+    1: 'Currency Exchange / Initial Verification',
+    2: 'Transfer Authorization / Second Check',
+    3: 'Final Security / Completion Code'
+  };
+  
+  const securityFlags = {
+    1: 'AMOUNT_VERIFIED',
+    2: 'ACCOUNT_VALIDATED',
+    3: 'TRANSACTION_AUTHORIZED'
+  };
+  
+  const hiddenActions = {
+    1: 'Verifying currency exchange rates and initial transaction details',
+    2: 'Validating recipient account and transfer authorization',
+    3: 'Authorizing final transfer completion and settlement'
+  };
+  
+  const code = prefixes[step] + '-' + 
+               Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + 
+               Math.random().toString(36).substring(2, 6).toUpperCase();
+  
+  return {
+    code,
+    step,
+    purpose: purposes[step],
+    security_flag: securityFlags[step],
+    display_message: step === 1 ? '🔑 Enter BBC Authorization Code' :
+                     step === 2 ? '🔒 Enter BBC Security Code' :
+                     '🛡️ Enter BBC Final Code',
+    hidden_action: hiddenActions[step]
+  };
+};
+
+// ==================== GENERATE BBC CODES ====================
+const generateBBCodesForUser = (userId, step, quantity = 1, expiryDays = 30) => {
+  const codes = [];
+  const expiryDate = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+  
+  for (let i = 0; i < quantity; i++) {
+    const bbcData = generateBBCode(step);
+    const bbc = {
+      id: uuidv4(),
+      code: bbcData.code,
+      step: bbcData.step,
+      purpose: bbcData.purpose,
+      security_flag: bbcData.security_flag,
+      display_message: bbcData.display_message,
+      hidden_action: bbcData.hidden_action,
+      user_id: userId,
+      is_used: false,
+      used_at: null,
+      expires_at: expiryDate.toISOString(),
+      created_at: new Date().toISOString()
+    };
+    db.bbcCodes.push(bbc);
+    codes.push(bbc);
+    
+    log.bbc(`Generated BBC Step ${step} for user ${userId}`, {
+      code: bbc.code,
+      purpose: bbc.purpose,
+      hidden_action: bbc.hidden_action
+    });
+  }
+  
+  return codes;
+};
+
+// ==================== GENERATE BBC FOR TRANSACTION ====================
+const generateBBCodesForTransaction = (transactionId, userId) => {
+  const bbcCodes = [];
+  const steps = [1, 2, 3];
+  
+  for (const step of steps) {
+    const bbcData = generateBBCode(step);
+    const bbc = {
+      id: uuidv4(),
+      code: bbcData.code,
+      step: bbcData.step,
+      purpose: bbcData.purpose,
+      security_flag: bbcData.security_flag,
+      display_message: bbcData.display_message,
+      hidden_action: bbcData.hidden_action,
+      transaction_id: transactionId,
+      user_id: userId,
+      is_used: false,
+      used_at: null,
+      expires_at: new Date(Date.now() + BBC_EXPIRY_MINUTES * 60000).toISOString(),
+      created_at: new Date().toISOString()
+    };
+    db.bbcCodes.push(bbc);
+    bbcCodes.push(bbc);
+    
+    log.bbc(`Generated BBC Step ${step} for transaction ${transactionId}`, {
+      code: bbc.code,
+      purpose: bbc.purpose,
+      hidden_action: bbc.hidden_action
+    });
+  }
+  
+  return bbcCodes;
+};
+
 // ==================== UTILITY FUNCTIONS ====================
 const generateAccountNumber = () => {
-  return 'IB' + Date.now().toString().slice(-10) + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const account = 'IB' + Date.now().toString().slice(-10) + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  log.debug('Generated account number:', account);
+  return account;
 };
 
 const generateIBAN = () => {
   const countryCode = ['GB', 'DE', 'FR', 'US', 'NG', 'KE', 'ZA', 'AE', 'CH', 'SG'][Math.floor(Math.random() * 10)];
-  return countryCode + Math.floor(Math.random() * 10 ** 10).toString().padStart(10, '0') + 
+  const iban = countryCode + Math.floor(Math.random() * 10 ** 10).toString().padStart(10, '0') + 
          Math.floor(Math.random() * 10 ** 8).toString().padStart(8, '0');
-};
-
-const generateBBCode = (step) => {
-  const prefix = ['ALPHA', 'BETA', 'GAMMA'][step - 1];
-  return prefix + '-' + Math.random().toString(36).substring(2, 6).toUpperCase() + 
-         '-' + Math.random().toString(36).substring(2, 6).toUpperCase();
-};
-
-const generateCardNumber = () => {
-  let num = '4';
-  for (let i = 0; i < 15; i++) {
-    num += Math.floor(Math.random() * 10);
-  }
-  return num;
+  log.debug('Generated IBAN:', iban);
+  return iban;
 };
 
 const generateReference = () => {
-  return 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + 
+  const ref = 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + 
          Math.random().toString(36).substring(2, 6).toUpperCase();
+  log.debug('Generated reference:', ref);
+  return ref;
 };
 
-// ==================== WELCOME EMAIL TEMPLATE ====================
-const generateWelcomeEmail = (userData) => {
+// ==================== DOPE EMAIL TEMPLATE ====================
+const generateWelcomeEmailHTML = (userData) => {
+  log.debug('Generating welcome email for:', userData.email);
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Welcome to Prime Heritage Bank</title>
       <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 10px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; text-align: center; }
-        .header h1 { color: white; margin: 0; font-size: 24px; }
-        .content { padding: 30px; }
-        .greeting { font-size: 22px; color: #333; margin-bottom: 10px; }
-        .message { color: #666; line-height: 1.6; margin-bottom: 20px; }
-        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .feature { background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; }
-        .feature .icon { font-size: 20px; }
-        .feature .label { font-weight: bold; color: #333; }
-        .feature .desc { color: #666; font-size: 12px; }
-        .btn { display: inline-block; background: #667eea; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; margin-top: 20px; }
-        .footer { background: #f8f9fa; padding: 20px; text-align: center; color: #666; font-size: 12px; }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          background: #0A0E1A;
+          margin: 0;
+          padding: 0;
+          -webkit-font-smoothing: antialiased;
+        }
+        
+        .email-container {
+          max-width: 600px;
+          margin: 40px auto;
+          background: #0F1622;
+          border-radius: 24px;
+          overflow: hidden;
+          box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+          border: 1px solid rgba(198, 164, 63, 0.15);
+        }
+        
+        .header {
+          background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%);
+          padding: 40px 30px 30px;
+          text-align: center;
+          position: relative;
+          border-bottom: 1px solid rgba(198, 164, 63, 0.2);
+        }
+        
+        .header::after {
+          content: '';
+          position: absolute;
+          bottom: 0;
+          left: 0;
+          right: 0;
+          height: 3px;
+          background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F);
+          background-size: 200% 100%;
+          animation: shimmer 3s ease-in-out infinite;
+        }
+        
+        @keyframes shimmer {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+        
+        .header .logo-icon { font-size: 48px; margin-bottom: 8px; }
+        .header h1 { color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; }
+        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 6px; letter-spacing: 3px; text-transform: uppercase; font-weight: 300; }
+        .header .badge { display: inline-block; margin-top: 12px; padding: 6px 18px; background: rgba(198, 164, 63, 0.15); border: 1px solid rgba(198, 164, 63, 0.3); border-radius: 50px; color: #C6A43F; font-size: 11px; font-weight: 600; letter-spacing: 1px; }
+        
+        .content { padding: 40px 35px; background: #0F1622; }
+        
+        .greeting { font-size: 24px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; }
+        .greeting .highlight { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .greeting .wave { display: inline-block; animation: wave 2s infinite; }
+        
+        @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-10deg); } }
+        
+        .message { color: rgba(255,255,255,0.7); line-height: 1.8; font-size: 15px; margin: 16px 0 24px; }
+        .message strong { color: #FFFFFF; font-weight: 600; }
+        
+        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+        .feature { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 16px 18px; border-radius: 16px; transition: all 0.3s; }
+        .feature .icon { font-size: 28px; display: block; margin-bottom: 6px; }
+        .feature .label { font-weight: 700; color: #FFFFFF; font-size: 13px; display: block; }
+        .feature .desc { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
+        
+        .account-details { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px 24px; margin: 24px 0; }
+        .account-details .title { color: rgba(255,255,255,0.3); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 12px 0; font-weight: 600; }
+        .account-details .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .account-details .row:last-child { border-bottom: none; }
+        .account-details .label { color: rgba(255,255,255,0.4); }
+        .account-details .value { color: #FFFFFF; font-weight: 600; font-family: 'Courier New', monospace; }
+        .account-details .value.gold { color: #C6A43F; }
+        
+        .btn-primary { display: inline-block; background: linear-gradient(135deg, #C6A43F, #9E8032); color: #0A0E1A; padding: 14px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; margin: 10px 0 5px; transition: all 0.3s; box-shadow: 0 4px 15px rgba(198,164,63,0.3); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(198,164,63,0.4); }
+        .btn-secondary { display: inline-block; background: transparent; color: rgba(255,255,255,0.7); padding: 12px 30px; text-decoration: none; border-radius: 12px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); margin: 5px 0; transition: all 0.3s; }
+        .btn-secondary:hover { border-color: #C6A43F; color: #C6A43F; }
+        .text-center { text-align: center; }
+        
+        .footer { background: rgba(255,255,255,0.02); padding: 30px 35px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer p { color: rgba(255,255,255,0.3); font-size: 12px; margin: 4px 0; line-height: 1.6; }
+        .footer .brand { color: rgba(255,255,255,0.5); font-weight: 600; }
+        
+        @media (max-width: 480px) {
+          .features { grid-template-columns: 1fr; }
+          .content { padding: 25px 20px; }
+          .header h1 { font-size: 22px; }
+          .greeting { font-size: 20px; }
+          .account-details .row { flex-direction: column; padding: 10px 0; gap: 4px; }
+        }
       </style>
     </head>
     <body>
-      <div class="container">
+      <div class="email-container">
         <div class="header">
-          <h1>🏦 Prime Heritage International Bank</h1>
+          <div class="logo-icon">🏦</div>
+          <h1>Prime Heritage <span class="gold">Bank</span></h1>
+          <div class="subtitle">INTERNATIONAL BANKING</div>
+          <div class="badge">✦ PREMIUM ACCOUNT ✦</div>
         </div>
+        
         <div class="content">
-          <div class="greeting">Hello, ${userData.full_name}! 👋</div>
-          <div class="message">
-            Welcome to Prime Heritage International Bank! Your global banking journey begins now.
-            We're thrilled to have you join our community of international banking.
+          <div class="greeting">
+            <span class="wave">👋</span> Hello, <span class="highlight">${userData.full_name}</span>!
           </div>
+          
+          <div class="message">
+            <strong>Welcome to Prime Heritage International Bank!</strong><br>
+            Your global banking journey begins now. We're thrilled to have you join our community 
+            of international banking. Your account has been successfully created with premium features.
+          </div>
+
+          <div class="account-details">
+            <div class="title">📋 Account Summary</div>
+            <div class="row">
+              <span class="label">Account Holder</span>
+              <span class="value">${userData.full_name}</span>
+            </div>
+            <div class="row">
+              <span class="label">Email Address</span>
+              <span class="value">${userData.email}</span>
+            </div>
+            <div class="row">
+              <span class="label">Account Level</span>
+              <span class="value gold">${userData.account_level || 'Standard'}</span>
+            </div>
+            <div class="row">
+              <span class="label">Status</span>
+              <span class="value" style="color: #34D399;">✓ Active</span>
+            </div>
+          </div>
+
           <div class="features">
             <div class="feature">
-              <div class="icon">🌍</div>
-              <div class="label">Multi-Currency</div>
-              <div class="desc">USD, EUR, GBP, NGN</div>
+              <span class="icon">🌍</span>
+              <span class="label">Multi-Currency</span>
+              <span class="desc">USD, EUR, GBP, NGN</span>
             </div>
             <div class="feature">
-              <div class="icon">💳</div>
-              <div class="label">Global Cards</div>
-              <div class="desc">Visa & Mastercard</div>
+              <span class="icon">💳</span>
+              <span class="label">Global Cards</span>
+              <span class="desc">Visa & Mastercard</span>
             </div>
             <div class="feature">
-              <div class="icon">🔒</div>
-              <div class="label">BBC Security</div>
-              <div class="desc">3-Step verification</div>
+              <span class="icon">🔐</span>
+              <span class="label">BBC Security</span>
+              <span class="desc">3-Step Verification</span>
             </div>
             <div class="feature">
-              <div class="icon">⚡</div>
-              <div class="label">Instant Transfers</div>
-              <div class="desc">SWIFT & SEPA ready</div>
+              <span class="icon">⚡</span>
+              <span class="label">Instant Transfers</span>
+              <span class="desc">SWIFT & SEPA Ready</span>
             </div>
           </div>
-          <div style="text-align: center;">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}" class="btn">🚀 Go to Dashboard</a>
+
+          <div class="text-center">
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" class="btn-primary">🚀 Go to Dashboard</a>
+            <br>
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" class="btn-secondary">🔐 Sign In to Your Account</a>
           </div>
         </div>
+
         <div class="footer">
-          <p>© ${new Date().getFullYear()} Prime Heritage International Bank. All rights reserved.</p>
-          <p>This email was sent to ${userData.email}</p>
+          <p>© ${new Date().getFullYear()} <span class="brand">Prime Heritage International Bank</span>. All rights reserved.</p>
+          <p>This email was sent to <strong style="color: rgba(255,255,255,0.4);">${userData.email}</strong></p>
+          <p style="font-size: 11px; opacity: 0.5;">Prime Heritage International Bank - Global Banking Excellence</p>
         </div>
       </div>
     </body>
@@ -165,19 +582,25 @@ const generateWelcomeEmail = (userData) => {
 
 // ==================== SEND WELCOME EMAIL ====================
 const sendWelcomeEmail = async (userData) => {
+  log.email(`Sending welcome email to: ${userData.email}`);
+  
   try {
-    const htmlContent = generateWelcomeEmail(userData);
+    const htmlContent = generateWelcomeEmailHTML(userData);
+    
     const mailOptions = {
-      from: '"Prime Heritage International Bank" <primeheritageinternationalbank@gmail.com>',
+      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: userData.email,
       subject: '🎉 Welcome to Prime Heritage International Bank!',
       html: htmlContent
     };
-    await transporter.sendMail(mailOptions);
-    console.log('✅ Welcome email sent to:', userData.email);
+    
+    const result = await transporter.sendMail(mailOptions);
+    
+    log.email(`✅ Welcome email sent successfully to: ${userData.email}`);
+    log.email(`📧 Message ID: ${result.messageId}`);
     return true;
   } catch (error) {
-    console.error('❌ Error sending welcome email:', error);
+    log.error(`❌ Failed to send welcome email to: ${userData.email}`, error);
     return false;
   }
 };
@@ -189,15 +612,18 @@ const authMiddleware = async (req, res, next) => {
     if (!token) {
       return res.status(401).json({ error: 'No token provided' });
     }
+    
     const decoded = jwt.verify(token, JWT_SECRET);
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('id', decoded.userId)
-      .single();
-    if (error || !user) {
+    const user = db.users.find(u => u.id === decoded.userId);
+    
+    if (!user) {
       return res.status(401).json({ error: 'Invalid token' });
     }
+    
+    if (!user.is_active) {
+      return res.status(401).json({ error: 'Account is deactivated' });
+    }
+    
     req.user = user;
     next();
   } catch (error) {
@@ -205,20 +631,34 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-// ==================== AUTH ROUTES ====================
+// ==================== ADMIN MIDDLEWARE ====================
+const adminMiddleware = (req, res, next) => {
+  if (!req.user || !req.user.is_admin) {
+    log.warn('Admin access denied for:', req.user?.email || 'Unknown');
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  log.admin('Admin access granted for:', req.user.email);
+  next();
+};
 
-// Health Check
+// ==================== HEALTH CHECK ====================
 app.get('/api/health', (req, res) => {
+  log.info('Health check requested');
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    message: 'Prime Heritage International Bank API is running!'
+    message: 'Prime Heritage International Bank API is running!',
+    users: db.users.length,
+    accounts: db.accounts.length,
+    transactions: db.transactions.length,
+    bbcCodes: db.bbcCodes.length
   });
 });
 
-// Test endpoint
+// ==================== TEST ENDPOINT ====================
 app.get('/api/test', (req, res) => {
+  log.info('Test endpoint called');
   res.json({
     success: true,
     message: 'API is working!',
@@ -231,15 +671,24 @@ app.get('/api/test', (req, res) => {
       'GET /api/cards',
       'GET /api/loans',
       'GET /api/exchange-rates',
-      'GET /api/support'
+      'GET /api/support',
+      'GET /api/admin/users',
+      'GET /api/admin/users/:id',
+      'PUT /api/admin/users/:id',
+      'DELETE /api/admin/users/:id',
+      'GET /api/admin/stats',
+      'GET /api/admin/bbc/:userId',
+      'POST /api/admin/generate-bbc',
+      'POST /api/admin/send'
     ]
   });
 });
 
-// REGISTER
+// ==================== REGISTER ====================
 app.post('/api/auth/register', async (req, res) => {
   try {
-    console.log('📝 Registration request received:', req.body.email);
+    log.step('📝', 'Registration request received');
+    log.info(`📝 Email: ${req.body.email}`);
     
     const { 
       full_name, first_name, last_name, email, phone, 
@@ -247,83 +696,79 @@ app.post('/api/auth/register', async (req, res) => {
       country_of_residence, date_of_birth 
     } = req.body;
 
-    // Validation
     if (!full_name || !first_name || !last_name || !email || !phone || !password || !transaction_pin) {
+      log.warn('Missing required fields');
       return res.status(400).json({ error: 'All required fields must be filled' });
     }
 
-    // Check if user exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('email')
-      .eq('email', email)
-      .single();
-
+    const existingUser = db.users.find(u => u.email === email);
     if (existingUser) {
+      log.warn('Email already registered:', email);
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // Hash password and PIN
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedPin = await bcrypt.hash(transaction_pin, 10);
 
-    // Create user
-    const { data: user, error } = await supabase
-      .from('users')
-      .insert({
-        full_name,
-        first_name,
-        last_name,
-        email,
-        phone,
-        password: hashedPassword,
-        transaction_pin: hashedPin,
-        passport_number,
-        nationality,
-        country_of_residence,
-        date_of_birth,
-        account_level: 'standard',
-        is_active: true,
-        is_verified: false,
-        is_admin: false,
-        login_count: 0,
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Supabase insert error:', error);
-      return res.status(500).json({ error: 'Failed to create user' });
-    }
-
-    console.log('✅ User created:', user.id);
+    const user = {
+      id: uuidv4(),
+      full_name,
+      first_name,
+      last_name,
+      email,
+      phone,
+      password: hashedPassword,
+      transaction_pin: hashedPin,
+      passport_number: passport_number || 'N/A',
+      nationality: nationality || 'N/A',
+      country_of_residence: country_of_residence || 'N/A',
+      date_of_birth: date_of_birth || 'N/A',
+      account_level: 'standard',
+      is_active: true,
+      is_verified: false,
+      is_admin: false,
+      is_super_admin: false,
+      login_count: 0,
+      created_at: new Date().toISOString()
+    };
+    
+    db.users.push(user);
+    log.success(`✅ User created: ${user.id} - ${user.email}`);
 
     // Create default accounts
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
     for (const currency of currencies) {
-      await supabase
-        .from('accounts')
-        .insert({
-          user_id: user.id,
-          currency,
-          account_number: generateAccountNumber(),
-          iban: generateIBAN(),
-          swift_code: 'IB' + currency + Math.floor(Math.random() * 10000),
-          balance: currency === 'USD' ? 1000.00 : 0.00,
-          is_primary: currency === 'USD',
-          account_type: 'current',
-          is_active: true,
-          created_at: new Date().toISOString()
-        });
+      const account = {
+        id: uuidv4(),
+        user_id: user.id,
+        currency,
+        account_number: generateAccountNumber(),
+        iban: generateIBAN(),
+        swift_code: 'IB' + currency + Math.floor(Math.random() * 10000),
+        balance: currency === 'USD' ? 1000.00 : 0.00,
+        is_primary: currency === 'USD',
+        account_type: 'current',
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      db.accounts.push(account);
+      log.debug(`Created ${currency} account: ${account.account_number}`);
+    }
+    log.success('✅ All accounts created successfully');
+
+    // Send welcome email
+    const emailSent = await sendWelcomeEmail(user);
+    if (emailSent) {
+      log.success('✅ Welcome email sent successfully');
+    } else {
+      log.warn('⚠️ Welcome email failed but registration continues');
     }
 
-    // Send welcome email (don't wait for it)
-    sendWelcomeEmail(user).catch(console.error);
-
-    // Generate JWT
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
+    log.success('✅ Registration complete for:', user.email);
+    log.info(`📊 Total users: ${db.users.length}`);
+    
     res.status(201).json({
       success: true,
       message: 'Registration successful! Welcome email sent.',
@@ -333,52 +778,54 @@ app.post('/api/auth/register', async (req, res) => {
         email: user.email,
         full_name: user.full_name,
         account_level: user.account_level,
-        is_verified: user.is_verified
+        is_verified: user.is_verified,
+        is_admin: user.is_admin
       }
     });
   } catch (error) {
-    console.error('Registration error:', error);
+    log.error('Registration error:', error);
     res.status(500).json({ error: 'Registration failed: ' + error.message });
   }
 });
 
-// LOGIN
+// ==================== LOGIN ====================
 app.post('/api/auth/login', async (req, res) => {
   try {
-    console.log('🔐 Login request for:', req.body.email);
+    log.step('🔐', 'Login request received');
+    log.info(`🔐 Email: ${req.body.email}`);
     
     const { email, password } = req.body;
 
     if (!email || !password) {
+      log.warn('Missing email or password');
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('*')
-      .eq('email', email)
-      .single();
-
-    if (error || !user) {
+    const user = db.users.find(u => u.email === email);
+    if (!user) {
+      log.warn('User not found:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
+    }
+
+    if (!user.is_active) {
+      log.warn('User account is inactive:', email);
+      return res.status(401).json({ error: 'Account is deactivated. Please contact support.' });
     }
 
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
+      log.warn('Invalid password for:', email);
       return res.status(401).json({ error: 'Invalid credentials' });
     }
 
-    // Update login info
-    await supabase
-      .from('users')
-      .update({
-        last_login: new Date().toISOString(),
-        login_count: user.login_count + 1
-      })
-      .eq('id', user.id);
+    user.last_login = new Date().toISOString();
+    user.login_count = (user.login_count || 0) + 1;
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
+    log.success('✅ Login successful for:', email);
+    log.info(`👤 User: ${user.full_name} (${user.is_admin ? 'Admin' : 'User'})`);
+    
     res.json({
       success: true,
       message: 'Login successful',
@@ -392,283 +839,77 @@ app.post('/api/auth/login', async (req, res) => {
         account_level: user.account_level,
         is_verified: user.is_verified,
         is_active: user.is_active,
-        is_admin: user.is_admin
+        is_admin: user.is_admin,
+        is_super_admin: user.is_super_admin || false
       }
     });
   } catch (error) {
-    console.error('Login error:', error);
+    log.error('Login error:', error);
     res.status(500).json({ error: 'Login failed' });
   }
 });
 
-// GET USER PROFILE
+// ==================== GET USER PROFILE ====================
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
-    const { data: user, error } = await supabase
-      .from('users')
-      .select('id, full_name, first_name, last_name, email, phone, passport_number, nationality, country_of_residence, date_of_birth, is_active, is_admin, is_verified, account_level, last_login, login_count, created_at')
-      .eq('id', req.user.id)
-      .single();
-
-    if (error) throw error;
-
-    res.json({ success: true, user });
+    log.info('Profile requested for user:', req.user.email);
+    const user = db.users.find(u => u.id === req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const userData = { ...user };
+    delete userData.password;
+    delete userData.transaction_pin;
+    
+    log.success('Profile retrieved for:', user.email);
+    res.json({ success: true, user: userData });
   } catch (error) {
-    console.error('Get user error:', error);
+    log.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
   }
 });
 
-// ==================== ACCOUNT ROUTES ====================
-
-// Get all accounts
+// ==================== GET ACCOUNTS ====================
 app.get('/api/accounts', authMiddleware, async (req, res) => {
   try {
-    const { data: accounts, error } = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .eq('is_active', true)
-      .order('currency');
+    log.info('Accounts requested for user:', req.user.email);
+    const accounts = db.accounts.filter(a => 
+      a.user_id === req.user.id && a.is_active === true
+    ).sort((a, b) => a.currency.localeCompare(b.currency));
 
-    if (error) throw error;
-
+    log.success(`Retrieved ${accounts.length} accounts`);
     res.json({ success: true, accounts });
   } catch (error) {
-    console.error('Get accounts error:', error);
+    log.error('Get accounts error:', error);
     res.status(500).json({ error: 'Failed to get accounts' });
   }
 });
 
-// ==================== TRANSACTION ROUTES ====================
-
-// Get all transactions
+// ==================== GET TRANSACTIONS ====================
 app.get('/api/transactions', authMiddleware, async (req, res) => {
   try {
-    const { data: transactions, error } = await supabase
-      .from('international_transactions')
-      .select('*')
-      .or(`from_user_id.eq.${req.user.id},to_user_id.eq.${req.user.id}`)
-      .order('created_at', { ascending: false })
-      .limit(100);
+    log.info('Transactions requested for user:', req.user.email);
+    const transactions = db.transactions
+      .filter(t => t.from_user_id === req.user.id || t.to_user_id === req.user.id)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      .slice(0, 100);
 
-    if (error) throw error;
-
+    log.success(`Retrieved ${transactions.length} transactions`);
     res.json({ success: true, transactions });
   } catch (error) {
-    console.error('Get transactions error:', error);
+    log.error('Get transactions error:', error);
     res.status(500).json({ error: 'Failed to get transactions' });
   }
 });
 
-// Create transaction
-app.post('/api/transactions', authMiddleware, async (req, res) => {
-  try {
-    const {
-      type, amount, currency, from_account_number, to_account_number,
-      to_account_iban, to_account_swift, to_country, to_bank_name,
-      to_bank_address, purpose, transaction_pin
-    } = req.body;
-
-    // Validation
-    if (!type || !amount || !currency || !from_account_number || !to_account_number || !to_country) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    // Verify PIN
-    const validPin = await bcrypt.compare(transaction_pin, req.user.transaction_pin);
-    if (!validPin) {
-      return res.status(401).json({ error: 'Invalid transaction PIN' });
-    }
-
-    // Get source account
-    const { data: fromAccount, error: fromError } = await supabase
-      .from('accounts')
-      .select('*')
-      .eq('account_number', from_account_number)
-      .eq('user_id', req.user.id)
-      .single();
-
-    if (fromError || !fromAccount) {
-      return res.status(404).json({ error: 'Source account not found' });
-    }
-
-    if (fromAccount.balance < amount) {
-      return res.status(400).json({ error: 'Insufficient balance' });
-    }
-
-    // Generate BBC codes for international transactions
-    let bbcCodesForUser = [];
-    if (type === 'swift' || type === 'wire' || type === 'international') {
-      for (let step = 1; step <= 3; step++) {
-        const code = generateBBCode(step);
-        const { data: bbc, error: bbcError } = await supabase
-          .from('bbc_codes')
-          .insert({
-            code,
-            user_id: req.user.id,
-            step,
-            is_used: false,
-            expires_at: new Date(Date.now() + BBC_EXPIRY_MINUTES * 60000).toISOString(),
-            created_at: new Date().toISOString()
-          })
-          .select()
-          .single();
-
-        if (bbcError) throw bbcError;
-        bbcCodesForUser.push({
-          step: bbc.step,
-          code: bbc.code,
-          expires_at: bbc.expires_at
-        });
-      }
-    }
-
-    // Create transaction
-    const reference = generateReference();
-    const { data: transaction, error } = await supabase
-      .from('international_transactions')
-      .insert({
-        reference,
-        type,
-        amount,
-        currency,
-        from_user_id: req.user.id,
-        from_account_number: fromAccount.account_number,
-        from_account_iban: fromAccount.iban,
-        from_account_swift: fromAccount.swift_code,
-        from_country: req.user.country_of_residence || 'Unknown',
-        to_account_number,
-        to_account_iban: to_account_iban || 'N/A',
-        to_account_swift: to_account_swift || 'N/A',
-        to_country,
-        to_bank_name: to_bank_name || 'Unknown Bank',
-        to_bank_address: to_bank_address || 'N/A',
-        purpose: purpose || 'International transfer',
-        status: bbcCodesForUser.length > 0 ? 'pending_bbc' : 'processing',
-        swift_code: to_account_swift || 'N/A',
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    // Deduct balance
-    await supabase
-      .from('accounts')
-      .update({ balance: fromAccount.balance - amount })
-      .eq('id', fromAccount.id);
-
-    res.status(201).json({
-      success: true,
-      message: 'Transaction created successfully',
-      transaction,
-      bbc_codes: bbcCodesForUser,
-      requires_bbc_verification: bbcCodesForUser.length > 0
-    });
-  } catch (error) {
-    console.error('Create transaction error:', error);
-    res.status(500).json({ error: 'Transaction failed' });
-  }
-});
-
-// Verify BBC code
-app.post('/api/transactions/:reference/verify-bbc', authMiddleware, async (req, res) => {
-  try {
-    const { reference } = req.params;
-    const { bbc_code } = req.body;
-
-    if (!bbc_code) {
-      return res.status(400).json({ error: 'BBC code required' });
-    }
-
-    const { data: transaction, error: txError } = await supabase
-      .from('international_transactions')
-      .select('*')
-      .eq('reference', reference)
-      .eq('from_user_id', req.user.id)
-      .single();
-
-    if (txError || !transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-
-    const { data: bbc, error: bbcError } = await supabase
-      .from('bbc_codes')
-      .select('*')
-      .eq('code', bbc_code)
-      .eq('user_id', req.user.id)
-      .eq('is_used', false)
-      .single();
-
-    if (bbcError || !bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-
-    await supabase
-      .from('bbc_codes')
-      .update({
-        is_used: true,
-        used_at: new Date().toISOString()
-      })
-      .eq('id', bbc.id);
-
-    const stepField = `bbc_step_${bbc.step}_used`;
-    await supabase
-      .from('international_transactions')
-      .update({ [stepField]: true })
-      .eq('reference', reference);
-
-    const { data: updatedTx } = await supabase
-      .from('international_transactions')
-      .select('*')
-      .eq('reference', reference)
-      .single();
-
-    const allStepsCompleted = updatedTx.bbc_step_1_used && 
-                             updatedTx.bbc_step_2_used && 
-                             updatedTx.bbc_step_3_used;
-
-    if (allStepsCompleted) {
-      await supabase
-        .from('international_transactions')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString()
-        })
-        .eq('reference', reference);
-    }
-
-    res.json({
-      success: true,
-      message: `BBC code step ${bbc.step} verified`,
-      step: bbc.step,
-      all_completed: allStepsCompleted,
-      transaction_status: allStepsCompleted ? 'completed' : 'pending_bbc'
-    });
-  } catch (error) {
-    console.error('Verify BBC error:', error);
-    res.status(500).json({ error: 'BBC verification failed' });
-  }
-});
-
-// ==================== CARD ROUTES ====================
-
-// Get all cards
+// ==================== GET CARDS ====================
 app.get('/api/cards', authMiddleware, async (req, res) => {
   try {
-    const { data: cards, error } = await supabase
-      .from('cards')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
+    log.info('Cards requested for user:', req.user.email);
+    const cards = db.cards
+      .filter(c => c.user_id === req.user.id)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
     const maskedCards = cards.map(card => ({
       ...card,
@@ -676,16 +917,18 @@ app.get('/api/cards', authMiddleware, async (req, res) => {
       cvv: '***'
     }));
 
+    log.success(`Retrieved ${cards.length} cards`);
     res.json({ success: true, cards: maskedCards });
   } catch (error) {
-    console.error('Get cards error:', error);
+    log.error('Get cards error:', error);
     res.status(500).json({ error: 'Failed to get cards' });
   }
 });
 
-// Create card
+// ==================== CREATE CARD ====================
 app.post('/api/cards', authMiddleware, async (req, res) => {
   try {
+    log.info('Card creation requested for user:', req.user.email);
     const { type, network, currency, daily_limit, monthly_limit } = req.body;
 
     const cardNumber = generateCardNumber();
@@ -694,29 +937,27 @@ app.post('/api/cards', authMiddleware, async (req, res) => {
     const expiryYear = new Date().getFullYear() + 3;
     const cvv = Math.floor(100 + Math.random() * 900).toString();
 
-    const { data: card, error } = await supabase
-      .from('cards')
-      .insert({
-        user_id: req.user.id,
-        card_number: cardNumber,
-        last4,
-        expiry_month: expiryMonth,
-        expiry_year: expiryYear,
-        cvv,
-        type: type || 'debit',
-        network: network || 'visa',
-        currency: currency || 'USD',
-        is_international: true,
-        daily_limit: daily_limit || 10000,
-        monthly_limit: monthly_limit || 50000,
-        is_active: true,
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    const card = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      card_number: cardNumber,
+      last4,
+      expiry_month: expiryMonth,
+      expiry_year: expiryYear,
+      cvv,
+      type: type || 'debit',
+      network: network || 'visa',
+      currency: currency || 'USD',
+      is_international: true,
+      daily_limit: daily_limit || 10000,
+      monthly_limit: monthly_limit || 50000,
+      is_active: true,
+      created_at: new Date().toISOString()
+    };
+    
+    db.cards.push(card);
 
-    if (error) throw error;
-
+    log.success('Card created successfully');
     res.status(201).json({
       success: true,
       message: 'Card created successfully',
@@ -727,77 +968,35 @@ app.post('/api/cards', authMiddleware, async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Create card error:', error);
+    log.error('Create card error:', error);
     res.status(500).json({ error: 'Failed to create card' });
   }
 });
 
-// Toggle card status
-app.put('/api/cards/:id/toggle', authMiddleware, async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const { data: card, error: getError } = await supabase
-      .from('cards')
-      .select('is_active')
-      .eq('id', id)
-      .eq('user_id', req.user.id)
-      .single();
-
-    if (getError || !card) {
-      return res.status(404).json({ error: 'Card not found' });
-    }
-
-    const { data: updatedCard, error } = await supabase
-      .from('cards')
-      .update({ is_active: !card.is_active })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    res.json({
-      success: true,
-      message: `Card ${updatedCard.is_active ? 'activated' : 'deactivated'}`,
-      card: {
-        ...updatedCard,
-        card_number: '****' + updatedCard.last4,
-        cvv: '***'
-      }
-    });
-  } catch (error) {
-    console.error('Toggle card error:', error);
-    res.status(500).json({ error: 'Failed to toggle card' });
-  }
-});
-
-// ==================== LOAN ROUTES ====================
-
-// Get all loans
+// ==================== GET LOANS ====================
 app.get('/api/loans', authMiddleware, async (req, res) => {
   try {
-    const { data: loans, error } = await supabase
-      .from('loans')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false });
+    log.info('Loans requested for user:', req.user.email);
+    const loans = db.loans
+      .filter(l => l.user_id === req.user.id)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    if (error) throw error;
-
+    log.success(`Retrieved ${loans.length} loans`);
     res.json({ success: true, loans });
   } catch (error) {
-    console.error('Get loans error:', error);
+    log.error('Get loans error:', error);
     res.status(500).json({ error: 'Failed to get loans' });
   }
 });
 
-// Apply for loan
+// ==================== APPLY FOR LOAN ====================
 app.post('/api/loans', authMiddleware, async (req, res) => {
   try {
+    log.info('Loan application requested for user:', req.user.email);
     const { amount, currency, purpose, tenure_months, interest_rate } = req.body;
 
     if (!amount || !currency || !purpose || !tenure_months) {
+      log.warn('Missing required fields for loan');
       return res.status(400).json({ error: 'Missing required fields' });
     }
 
@@ -806,143 +1005,466 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
                           (Math.pow(1 + rate / 100 / 12, tenure_months) - 1);
     const totalPayable = monthlyPayment * tenure_months;
 
-    const { data: loan, error } = await supabase
-      .from('loans')
-      .insert({
-        user_id: req.user.id,
-        amount,
-        currency,
-        purpose,
-        interest_rate: rate,
-        tenure_months,
-        monthly_payment: monthlyPayment,
-        total_payable: totalPayable,
-        status: 'pending',
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    const loan = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      amount,
+      currency,
+      purpose,
+      interest_rate: rate,
+      tenure_months,
+      monthly_payment: monthlyPayment,
+      total_payable: totalPayable,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    
+    db.loans.push(loan);
 
-    if (error) throw error;
-
+    log.success('Loan application submitted');
     res.status(201).json({
       success: true,
       message: 'Loan application submitted',
       loan
     });
   } catch (error) {
-    console.error('Apply loan error:', error);
+    log.error('Apply loan error:', error);
     res.status(500).json({ error: 'Loan application failed' });
   }
 });
 
-// ==================== EXCHANGE RATE ROUTES ====================
-
-// Get all exchange rates
+// ==================== GET EXCHANGE RATES ====================
 app.get('/api/exchange-rates', authMiddleware, async (req, res) => {
   try {
-    const { data: rates, error } = await supabase
-      .from('exchange_rates')
-      .select('*')
-      .order('from_currency');
+    log.info('Exchange rates requested for user:', req.user.email);
+    const rates = [
+      { from_currency: 'USD', to_currency: 'EUR', rate: 0.92, last_updated: new Date() },
+      { from_currency: 'USD', to_currency: 'GBP', rate: 0.79, last_updated: new Date() },
+      { from_currency: 'USD', to_currency: 'NGN', rate: 1540.50, last_updated: new Date() },
+      { from_currency: 'EUR', to_currency: 'USD', rate: 1.09, last_updated: new Date() },
+      { from_currency: 'GBP', to_currency: 'USD', rate: 1.27, last_updated: new Date() },
+      { from_currency: 'NGN', to_currency: 'USD', rate: 0.00065, last_updated: new Date() },
+    ];
 
-    if (error) throw error;
-
+    log.success('Exchange rates retrieved');
     res.json({ success: true, rates });
   } catch (error) {
-    console.error('Get exchange rates error:', error);
+    log.error('Get exchange rates error:', error);
     res.status(500).json({ error: 'Failed to get exchange rates' });
   }
 });
 
-// Get specific exchange rate
-app.get('/api/exchange-rate/:from/:to', authMiddleware, async (req, res) => {
-  try {
-    const { from, to } = req.params;
-
-    const { data: rate, error } = await supabase
-      .from('exchange_rates')
-      .select('*')
-      .eq('from_currency', from.toUpperCase())
-      .eq('to_currency', to.toUpperCase())
-      .single();
-
-    if (error || !rate) {
-      return res.status(404).json({ error: 'Exchange rate not found' });
-    }
-
-    res.json({
-      success: true,
-      rate: rate.rate,
-      from_currency: rate.from_currency,
-      to_currency: rate.to_currency,
-      last_updated: rate.last_updated
-    });
-  } catch (error) {
-    console.error('Get exchange rate error:', error);
-    res.status(500).json({ error: 'Failed to get exchange rate' });
-  }
-});
-
-// ==================== SUPPORT ROUTES ====================
-
-// Create support ticket
+// ==================== CREATE SUPPORT TICKET ====================
 app.post('/api/support', authMiddleware, async (req, res) => {
   try {
+    log.info('Support ticket requested for user:', req.user.email);
     const { subject, message, priority } = req.body;
 
     if (!subject || !message) {
+      log.warn('Missing subject or message for support ticket');
       return res.status(400).json({ error: 'Subject and message required' });
     }
 
-    const { data: ticket, error } = await supabase
-      .from('support_tickets')
-      .insert({
-        user_id: req.user.id,
-        name: req.user.full_name,
-        email: req.user.email,
-        subject,
-        message,
-        priority: priority || 'medium',
-        status: 'open',
-        created_at: new Date().toISOString()
-      })
-      .select()
-      .single();
+    const ticket = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      name: req.user.full_name,
+      email: req.user.email,
+      subject,
+      message,
+      priority: priority || 'medium',
+      status: 'open',
+      created_at: new Date().toISOString()
+    };
+    
+    db.supportTickets.push(ticket);
 
-    if (error) throw error;
-
+    log.success('Support ticket created');
     res.status(201).json({
       success: true,
       message: 'Support ticket created',
       ticket
     });
   } catch (error) {
-    console.error('Create support ticket error:', error);
+    log.error('Create support ticket error:', error);
     res.status(500).json({ error: 'Failed to create support ticket' });
   }
 });
 
-// Get user's support tickets
+// ==================== GET SUPPORT TICKETS ====================
 app.get('/api/support', authMiddleware, async (req, res) => {
   try {
-    const { data: tickets, error } = await supabase
-      .from('support_tickets')
-      .select('*')
-      .eq('user_id', req.user.id)
-      .order('created_at', { ascending: false });
+    log.info('Support tickets requested for user:', req.user.email);
+    const tickets = db.supportTickets
+      .filter(t => t.user_id === req.user.id)
+      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
-    if (error) throw error;
-
+    log.success(`Retrieved ${tickets.length} support tickets`);
     res.json({ success: true, tickets });
   } catch (error) {
-    console.error('Get support tickets error:', error);
+    log.error('Get support tickets error:', error);
     res.status(500).json({ error: 'Failed to get support tickets' });
+  }
+});
+
+// ==================== ADMIN: GET ALL USERS ====================
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    log.admin('Fetching all users...');
+    
+    const usersWithDetails = db.users.map(user => {
+      const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+      const userTransactions = db.transactions.filter(t => 
+        t.from_user_id === user.id || t.to_user_id === user.id
+      );
+      const userCards = db.cards.filter(c => c.user_id === user.id);
+      const userLoans = db.loans.filter(l => l.user_id === user.id);
+      const userBbcCodes = db.bbcCodes.filter(b => b.user_id === user.id);
+      const userSupportTickets = db.supportTickets.filter(s => s.user_id === user.id);
+      
+      const totalBalance = userAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+      
+      return {
+        ...user,
+        password: undefined,
+        transaction_pin: undefined,
+        accounts: userAccounts,
+        transactions: userTransactions,
+        cards: userCards,
+        loans: userLoans,
+        bbcCodes: userBbcCodes,
+        supportTickets: userSupportTickets,
+        totalBalance: totalBalance,
+        accountCount: userAccounts.length,
+        transactionCount: userTransactions.length,
+        cardCount: userCards.length,
+        loanCount: userLoans.length,
+        bbcCount: userBbcCodes.length
+      };
+    });
+    
+    log.success(`Retrieved ${usersWithDetails.length} users with full history`);
+    res.json(usersWithDetails);
+  } catch (error) {
+    log.error('Admin get users error:', error);
+    res.status(500).json({ error: 'Failed to get users' });
+  }
+});
+
+// ==================== ADMIN: GET SINGLE USER ====================
+app.get('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    log.admin(`Fetching user: ${userId}`);
+    
+    const user = db.users.find(u => u.id === userId);
+    if (!user) {
+      log.warn('User not found:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const userTransactions = db.transactions.filter(t => 
+      t.from_user_id === user.id || t.to_user_id === user.id
+    );
+    const userCards = db.cards.filter(c => c.user_id === user.id);
+    const userLoans = db.loans.filter(l => l.user_id === user.id);
+    const userBbcCodes = db.bbcCodes.filter(b => b.user_id === user.id);
+    const userSupportTickets = db.supportTickets.filter(s => s.user_id === user.id);
+    
+    const totalBalance = userAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+    
+    const userData = {
+      ...user,
+      password: undefined,
+      transaction_pin: undefined,
+      accounts: userAccounts,
+      transactions: userTransactions,
+      cards: userCards,
+      loans: userLoans,
+      bbcCodes: userBbcCodes,
+      supportTickets: userSupportTickets,
+      totalBalance: totalBalance,
+      accountCount: userAccounts.length,
+      transactionCount: userTransactions.length,
+      cardCount: userCards.length,
+      loanCount: userLoans.length,
+      bbcCount: userBbcCodes.length
+    };
+    
+    log.success(`Retrieved user: ${user.email}`);
+    res.json(userData);
+  } catch (error) {
+    log.error('Admin get user error:', error);
+    res.status(500).json({ error: 'Failed to get user' });
+  }
+});
+
+// ==================== ADMIN: DELETE USER ====================
+app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    log.admin(`Deleting user: ${userId}`);
+    
+    const userIndex = db.users.findIndex(u => u.id === userId);
+    if (userIndex === -1) {
+      log.warn('User not found for deletion:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const user = db.users[userIndex];
+    
+    // Check if trying to delete self
+    if (user.id === req.user.id) {
+      log.warn('Admin attempted to delete themselves');
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+    
+    // Remove all associated data
+    db.accounts = db.accounts.filter(a => a.user_id !== userId);
+    db.transactions = db.transactions.filter(t => 
+      t.from_user_id !== userId && t.to_user_id !== userId
+    );
+    db.cards = db.cards.filter(c => c.user_id !== userId);
+    db.loans = db.loans.filter(l => l.user_id !== userId);
+    db.supportTickets = db.supportTickets.filter(s => s.user_id !== userId);
+    db.bbcCodes = db.bbcCodes.filter(b => b.user_id !== userId);
+    
+    // Remove user
+    db.users.splice(userIndex, 1);
+    
+    log.success(`User deleted: ${user.email}`);
+    log.admin(`All associated data for ${user.email} removed`);
+    
+    res.json({
+      success: true,
+      message: `User ${user.full_name} (${user.email}) has been deleted`
+    });
+  } catch (error) {
+    log.error('Admin delete user error:', error);
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// ==================== ADMIN: TOGGLE USER STATUS ====================
+app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    log.admin(`Toggling status for user: ${userId}`);
+    
+    const user = db.users.find(u => u.id === userId);
+    if (!user) {
+      log.warn('User not found for status toggle:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    // Check if trying to toggle self
+    if (user.id === req.user.id) {
+      log.warn('Admin attempted to toggle their own status');
+      return res.status(400).json({ error: 'Cannot modify your own status' });
+    }
+    
+    user.is_active = !user.is_active;
+    
+    log.success(`User ${user.email} status toggled to: ${user.is_active ? 'Active' : 'Frozen'}`);
+    
+    res.json({
+      success: true,
+      message: `User ${user.full_name} has been ${user.is_active ? 'activated' : 'frozen'}`,
+      is_active: user.is_active
+    });
+  } catch (error) {
+    log.error('Admin toggle status error:', error);
+    res.status(500).json({ error: 'Failed to toggle user status' });
+  }
+});
+
+// ==================== ADMIN: GET BBC CODES FOR USER ====================
+app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    log.admin(`Fetching BBC codes for user: ${userId}`);
+    
+    const user = db.users.find(u => u.id === userId);
+    if (!user) {
+      log.warn('User not found for BBC fetch:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const bbcCodes = db.bbcCodes.filter(b => b.user_id === userId);
+    
+    log.success(`Retrieved ${bbcCodes.length} BBC codes for user`);
+    res.json(bbcCodes);
+  } catch (error) {
+    log.error('Admin get BBC codes error:', error);
+    res.status(500).json({ error: 'Failed to get BBC codes' });
+  }
+});
+
+// ==================== ADMIN: GENERATE BBC CODES ====================
+app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId, step, quantity = 1, expiryDays = 30 } = req.body;
+    log.admin(`Generating BBC codes for user: ${userId}, Step: ${step}, Quantity: ${quantity}`);
+    
+    const user = db.users.find(u => u.id === userId);
+    if (!user) {
+      log.warn('User not found for BBC generation:', userId);
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const codes = generateBBCodesForUser(userId, parseInt(step), parseInt(quantity), parseInt(expiryDays));
+    
+    log.success(`Generated ${codes.length} BBC codes for user ${user.email}`);
+    res.json({
+      success: true,
+      message: `Generated ${codes.length} BBC Step ${step} codes for ${user.full_name}`,
+      codes: codes.map(c => ({
+        code: c.code,
+        step: c.step,
+        purpose: c.purpose,
+        expires_at: c.expires_at
+      }))
+    });
+  } catch (error) {
+    log.error('Admin generate BBC error:', error);
+    res.status(500).json({ error: 'Failed to generate BBC codes' });
+  }
+});
+
+// ==================== ADMIN: SEND MONEY ====================
+app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { toAccountNumber, amount, currency, senderName, note } = req.body;
+    log.admin(`Sending money: ${amount} ${currency} to ${toAccountNumber}`);
+    
+    // Find recipient account
+    const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
+    if (!toAccount) {
+      log.warn('Recipient account not found:', toAccountNumber);
+      return res.status(404).json({ error: 'Recipient account not found' });
+    }
+    
+    const recipient = db.users.find(u => u.id === toAccount.user_id);
+    if (!recipient) {
+      log.warn('Recipient user not found for account:', toAccountNumber);
+      return res.status(404).json({ error: 'Recipient user not found' });
+    }
+    
+    // Find sender's admin account (USD)
+    const fromAccount = db.accounts.find(a => 
+      a.user_id === req.user.id && a.currency === currency
+    );
+    
+    if (!fromAccount) {
+      log.warn('Admin account not found for currency:', currency);
+      return res.status(404).json({ error: 'Admin account not found' });
+    }
+    
+    if (fromAccount.balance < amount) {
+      log.warn('Insufficient admin balance:', { balance: fromAccount.balance, requested: amount });
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+    
+    // Create transaction
+    const reference = generateReference();
+    const transaction = {
+      id: uuidv4(),
+      reference,
+      type: 'admin_transfer',
+      amount,
+      currency,
+      from_user_id: req.user.id,
+      to_user_id: recipient.id,
+      from_account_number: fromAccount.account_number,
+      to_account_number: toAccount.account_number,
+      description: note || 'Admin transfer',
+      status: 'completed',
+      created_at: new Date().toISOString()
+    };
+    
+    db.transactions.push(transaction);
+    
+    // Update balances
+    fromAccount.balance -= amount;
+    toAccount.balance += amount;
+    
+    log.success(`Admin transfer completed: ${amount} ${currency} to ${recipient.email}`);
+    
+    res.json({
+      success: true,
+      message: `Sent ${amount} ${currency} to ${recipient.full_name}`,
+      transaction: {
+        reference,
+        amount,
+        currency,
+        recipient: recipient.full_name,
+        recipientEmail: recipient.email
+      }
+    });
+  } catch (error) {
+    log.error('Admin send money error:', error);
+    res.status(500).json({ error: 'Failed to send money' });
+  }
+});
+
+// ==================== ADMIN: GET STATS ====================
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    log.admin('Fetching system stats...');
+    
+    const totalUsers = db.users.length;
+    const activeUsers = db.users.filter(u => u.is_active).length;
+    const totalAccounts = db.accounts.length;
+    const totalTransactions = db.transactions.length;
+    const totalBbcCodes = db.bbcCodes.length;
+    const totalCards = db.cards.length;
+    const totalLoans = db.loans.length;
+    const totalSupportTickets = db.supportTickets.length;
+    
+    const totalBalance = db.accounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
+    const totalBbcUsed = db.bbcCodes.filter(b => b.is_used).length;
+    
+    const stats = {
+      users: {
+        total: totalUsers,
+        active: activeUsers,
+        inactive: totalUsers - activeUsers
+      },
+      accounts: {
+        total: totalAccounts,
+        totalBalance: totalBalance
+      },
+      transactions: {
+        total: totalTransactions
+      },
+      bbcCodes: {
+        total: totalBbcCodes,
+        used: totalBbcUsed,
+        unused: totalBbcCodes - totalBbcUsed
+      },
+      cards: {
+        total: totalCards
+      },
+      loans: {
+        total: totalLoans
+      },
+      support: {
+        total: totalSupportTickets
+      }
+    };
+    
+    log.success('Stats fetched successfully');
+    res.json(stats);
+  } catch (error) {
+    log.error('Admin get stats error:', error);
+    res.status(500).json({ error: 'Failed to get stats' });
   }
 });
 
 // ==================== 404 HANDLER ====================
 app.use((req, res) => {
+  log.warn('404 - Endpoint not found:', req.method, req.url);
   res.status(404).json({
     error: 'Endpoint not found',
     code: 'NOT_FOUND',
@@ -954,22 +1476,28 @@ app.use((req, res) => {
       'GET /api/auth/me',
       'GET /api/accounts',
       'GET /api/transactions',
-      'POST /api/transactions',
       'GET /api/cards',
       'POST /api/cards',
       'GET /api/loans',
       'POST /api/loans',
       'GET /api/exchange-rates',
-      'GET /api/exchange-rate/:from/:to',
       'GET /api/support',
-      'POST /api/support'
+      'POST /api/support',
+      'GET /api/admin/users',
+      'GET /api/admin/users/:id',
+      'DELETE /api/admin/users/:id',
+      'POST /api/admin/toggle-status',
+      'GET /api/admin/bbc/:userId',
+      'POST /api/admin/generate-bbc',
+      'POST /api/admin/send',
+      'GET /api/admin/stats'
     ]
   });
 });
 
 // ==================== ERROR HANDLER ====================
 app.use((err, req, res, next) => {
-  console.error('Global error:', err);
+  log.error('Global error:', err);
   res.status(500).json({
     error: 'Internal server error',
     message: process.env.NODE_ENV === 'development' ? err.message : undefined
@@ -978,18 +1506,48 @@ app.use((err, req, res, next) => {
 
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, '0.0.0.0', () => {
-  console.log('🚀 Prime Heritage International Bank Server');
-  console.log(`📍 Running on: http://localhost:${PORT}`);
-  console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log('🗄️  Supabase: Connected ✅');
-  console.log('📧 Email: primeheritageinternationalbank@gmail.com ✅');
-  console.log('\n📋 Available Endpoints:');
-  console.log(`  GET  http://localhost:${PORT}/api/health`);
-  console.log(`  GET  http://localhost:${PORT}/api/test`);
-  console.log(`  POST http://localhost:${PORT}/api/auth/register`);
-  console.log(`  POST http://localhost:${PORT}/api/auth/login`);
-  console.log(`  GET  http://localhost:${PORT}/api/auth/me (requires token)`);
+
+// Initialize admin before starting server
+createDefaultAdmin().then(() => {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log('\n' + '='.repeat(70));
+    console.log('🚀 Prime Heritage International Bank Server');
+    console.log('='.repeat(70));
+    console.log(`📍 Running on: http://localhost:${PORT}`);
+    console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📧 Email: ${process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com'}`);
+    console.log(`👥 Users in DB: ${db.users.length}`);
+    console.log(`👑 Admin: admin@primeheritagebank.com / Admin@2024!`);
+    console.log(`🔐 BBC Security: 3-Step Verification Active`);
+    console.log('='.repeat(70));
+    console.log('\n📋 Available Endpoints:');
+    console.log(`  GET  http://localhost:${PORT}/api/health`);
+    console.log(`  GET  http://localhost:${PORT}/api/test`);
+    console.log(`  POST http://localhost:${PORT}/api/auth/register`);
+    console.log(`  POST http://localhost:${PORT}/api/auth/login`);
+    console.log(`  GET  http://localhost:${PORT}/api/auth/me (requires token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/accounts (requires token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/transactions (requires token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/cards (requires token)`);
+    console.log(`  POST http://localhost:${PORT}/api/cards (requires token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/loans (requires token)`);
+    console.log(`  POST http://localhost:${PORT}/api/loans (requires token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/exchange-rates (requires token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/support (requires token)`);
+    console.log(`  POST http://localhost:${PORT}/api/support (requires token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/admin/users (requires admin token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/admin/users/:id (requires admin token)`);
+    console.log(`  DELETE http://localhost:${PORT}/api/admin/users/:id (requires admin token)`);
+    console.log(`  POST http://localhost:${PORT}/api/admin/toggle-status (requires admin token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/admin/bbc/:userId (requires admin token)`);
+    console.log(`  POST http://localhost:${PORT}/api/admin/generate-bbc (requires admin token)`);
+    console.log(`  POST http://localhost:${PORT}/api/admin/send (requires admin token)`);
+    console.log(`  GET  http://localhost:${PORT}/api/admin/stats (requires admin token)`);
+    console.log('\n' + '='.repeat(70));
+    console.log('✅ Server is ready! Waiting for requests...');
+    console.log('📧 Test email will be sent to devvgift@gmail.com');
+    console.log('='.repeat(70) + '\n');
+  });
 });
 
 module.exports = app;
