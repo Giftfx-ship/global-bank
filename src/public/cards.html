@@ -474,6 +474,18 @@
             margin-bottom: 20px;
         }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
+
         @media (max-width: 768px) {
             .container { padding: 20px; }
             .cards-grid { grid-template-columns: 1fr; }
@@ -494,7 +506,8 @@
     <div class="top-bar">
         <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage Bank</span>
+            <span>Prime Heritage</span>
+            <span class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step</span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
@@ -583,7 +596,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let userData = null;
         let currentUser = null;
         let pendingRequests = JSON.parse(localStorage.getItem('cardRequests') || '[]');
@@ -625,13 +638,13 @@
 
         async function loadUserData() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) { window.location.href = '/'; return; }
                 userData = await res.json();
                 currentUser = userData.user;
-                document.getElementById('headerBalance').innerHTML = `${currentUser.currency} ${(userData.totalBalance || 0).toLocaleString()}`;
+                document.getElementById('headerBalance').innerHTML = `${currentUser.currency || 'USD'} ${(userData.totalBalance || 0).toLocaleString()}`;
                 renderCards();
             } catch(e) { console.error(e); }
         }
@@ -649,21 +662,21 @@
 
             if (userData.cards && userData.cards.length > 0) {
                 for (let card of userData.cards) {
-                    const statusClass = card.status === 'active' ? 'status-active' : 'status-frozen';
-                    const statusText = card.status === 'active' ? 'Active' : 'Frozen';
+                    const statusClass = card.is_active ? 'status-active' : 'status-frozen';
+                    const statusText = card.is_active ? 'Active' : 'Frozen';
                     container.innerHTML += `
                         <div class="card-preview">
                             <div class="card-chip"><i class="fas fa-microchip"></i></div>
                             <div class="card-number">4532 ${card.last4.slice(0,4)} ${card.last4.slice(4,8)} ${card.last4.slice(8,12)}</div>
                             <div class="card-details">
                                 <div class="card-expiry">VALID THRU<br>${card.expiry_month}/${card.expiry_year}</div>
-                                <div class="card-name">${currentUser.fullName.toUpperCase()}</div>
+                                <div class="card-name">${currentUser.full_name.toUpperCase()}</div>
                             </div>
                             <div class="card-network"><i class="fab fa-cc-visa"></i></div>
                             <div class="card-actions">
-                                <span class="card-status ${statusClass}"><i class="fas ${card.status === 'active' ? 'fa-check-circle' : 'fa-snowflake'}"></i> ${statusText}</span>
-                                <button class="card-btn" onclick="toggleCardStatus('${card.id}', '${card.status}')">
-                                    <i class="fas ${card.status === 'active' ? 'fa-temperature-low' : 'fa-play'}"></i> ${card.status === 'active' ? 'Freeze' : 'Unfreeze'}
+                                <span class="card-status ${statusClass}"><i class="fas ${card.is_active ? 'fa-check-circle' : 'fa-snowflake'}"></i> ${statusText}</span>
+                                <button class="card-btn" onclick="toggleCardStatus('${card.id}', '${card.is_active ? 'active' : 'inactive'}')">
+                                    <i class="fas ${card.is_active ? 'fa-temperature-low' : 'fa-play'}"></i> ${card.is_active ? 'Freeze' : 'Unfreeze'}
                                 </button>
                                 <button class="card-btn" onclick="viewCardDetails('${card.id}')">
                                     <i class="fas fa-info-circle"></i> Details
@@ -683,7 +696,7 @@
                             <div class="card-number">•••• •••• •••• ••••</div>
                             <div class="card-details">
                                 <div class="card-expiry">PENDING APPROVAL</div>
-                                <div class="card-name">${currentUser.fullName.toUpperCase()}</div>
+                                <div class="card-name">${currentUser.full_name.toUpperCase()}</div>
                             </div>
                             <div class="card-network"><i class="fab fa-cc-visa"></i></div>
                             <div class="card-actions">
@@ -731,41 +744,45 @@
             }
 
             showLoading(true);
-            setTimeout(() => {
-                const newRequest = {
-                    id: Date.now(),
-                    type: type,
-                    design: design,
-                    limit: limit,
-                    fee: fee,
-                    date: new Date().toLocaleString(),
-                    status: 'pending'
-                };
-                pendingRequests.push(newRequest);
-                localStorage.setItem('cardRequests', JSON.stringify(pendingRequests));
-
-                showLoading(false);
-                Swal.fire({
-                    icon: 'success',
-                    title: 'Card Request Submitted! 🎉',
-                    html: `
-                        <div style="text-align: left;">
-                            <p><strong>✅ $${fee} deducted</strong> from your account</p>
-                            <p><strong>💳 Card:</strong> ${design} ${type}</p>
-                            <p><strong>💰 Daily Limit:</strong> $${limit}</p>
-                            <p><strong>⏰ Status:</strong> Pending Approval (24-48 hours)</p>
-                        </div>
-                    `,
-                    confirmButtonColor: '#C6A43F'
+            try {
+                const res = await fetch(`${API_URL}/api/cards`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        type,
+                        design,
+                        daily_limit: parseInt(limit),
+                        currency: 'USD'
+                    })
                 });
-                closeModal('cardModal');
-                renderCards();
-                document.getElementById('cardType').value = 'virtual';
-                document.getElementById('cardDesign').value = 'Classic Heritage';
-                document.getElementById('cardLimit').value = '5000';
-                document.querySelectorAll('.pin-inputs input').forEach(i => i.value = '');
-                loadUserData();
-            }, 1500);
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Card Request Submitted! 🎉',
+                        html: `
+                            <div style="text-align: left;">
+                                <p><strong>✅ $${fee} deducted</strong> from your account</p>
+                                <p><strong>💳 Card:</strong> ${design} ${type}</p>
+                                <p><strong>💰 Daily Limit:</strong> $${limit}</p>
+                                <p><strong>⏰ Status:</strong> Pending Approval (24-48 hours)</p>
+                            </div>
+                        `,
+                        confirmButtonColor: '#C6A43F'
+                    });
+                    closeModal('cardModal');
+                    loadUserData();
+                } else {
+                    Swal.fire('Error', data.error || 'Request failed', 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
         }
 
         async function toggleCardStatus(cardId, currentStatus) {
@@ -780,10 +797,10 @@
                 if (result.isConfirmed) {
                     showLoading(true);
                     try {
-                        const res = await fetch(`${apiUrl}/api/cards/toggle`, {
+                        const res = await fetch(`${API_URL}/api/cards/toggle`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                            body: JSON.stringify({ cardId, transactionPin: '0000' })
+                            body: JSON.stringify({ cardId })
                         });
                         const data = await res.json();
                         if (data.success) {
@@ -803,13 +820,18 @@
                     <div style="text-align: left;">
                         <p><strong>Card Number:</strong> 4532 **** **** ${card.last4}</p>
                         <p><strong>Expiry Date:</strong> ${card.expiry_month}/${card.expiry_year}</p>
-                        <p><strong>Status:</strong> ${card.status.toUpperCase()}</p>
+                        <p><strong>Status:</strong> ${card.is_active ? 'ACTIVE' : 'FROZEN'}</p>
                         <p><strong>Daily Limit:</strong> $${card.daily_limit || '5,000'}</p>
                         <p><strong>Card Type:</strong> ${card.type || 'Virtual'}</p>
                     </div>
                 `,
                 confirmButtonColor: '#C6A43F'
             });
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token && window.location.pathname !== '/') {
+            window.location.href = '/';
         }
 
         loadUserData();
