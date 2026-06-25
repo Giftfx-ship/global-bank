@@ -276,52 +276,6 @@
         .status-active { color: var(--success); font-weight: 600; }
         .status-inactive { color: var(--error); font-weight: 600; }
 
-        .bbc-grid {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin-top: 20px;
-            max-height: 500px;
-            overflow-y: auto;
-            padding: 5px;
-        }
-        .bbc-code-item {
-            background: var(--input-bg);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 14px 18px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            transition: all 0.3s;
-            width: calc(33.33% - 12px);
-            min-width: 280px;
-        }
-        .bbc-code-item:hover {
-            border-color: var(--gold);
-            transform: translateY(-3px);
-            box-shadow: 0 10px 25px rgba(198,164,63,0.1);
-        }
-        .bbc-code-number {
-            font-family: monospace;
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--gold);
-            letter-spacing: 3px;
-        }
-        .bbc-step {
-            font-size: 10px;
-            background: linear-gradient(135deg, rgba(198,164,63,0.2), rgba(158,128,50,0.1));
-            padding: 4px 10px;
-            border-radius: 20px;
-            color: var(--gold);
-            font-weight: 600;
-        }
-        .bbc-expiry { font-size: 10px; color: var(--text-secondary); }
-        .bbc-status { font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
-        .status-used { background: rgba(239,68,68,0.2); color: var(--error); }
-        .status-unused { background: rgba(16,185,129,0.2); color: var(--success); }
-
         .modal {
             display: none;
             position: fixed;
@@ -444,12 +398,10 @@
 
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2,1fr); }
-            .bbc-code-item { width: calc(50% - 12px); }
         }
 
         @media (max-width: 768px) {
             .stats-grid { grid-template-columns: 1fr; }
-            .bbc-code-item { width: 100%; }
             table { font-size: 12px; }
             th, td { padding: 10px 8px; }
             .btn-sm { padding: 4px 8px; font-size: 10px; }
@@ -497,8 +449,8 @@
                             <th>Account Details</th>
                             <th>Balance</th>
                             <th>Status</th>
-                            <th>BBC</th>
                             <th>Actions</th>
+                            <th>Receipt</th>
                         </tr>
                     </thead>
                     <tbody id="usersBody"></tbody>
@@ -525,7 +477,7 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-dollar-sign"></i> Amount</label>
-                <input type="number" id="sendAmount" placeholder="0.00">
+                <input type="number" id="sendAmount" placeholder="0.00" step="0.01">
             </div>
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Currency</label>
@@ -544,58 +496,18 @@
         </div>
     </div>
 
-    <!-- View BBC Modal -->
-    <div id="bbcModal" class="modal">
+    <!-- View Receipt Modal -->
+    <div id="receiptModal" class="modal">
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <h3><i class="fas fa-key"></i> BBC Codes - <span id="bbcUserName">User</span></h3>
-                <button class="close-modal" onclick="closeModal('bbcModal')">&times;</button>
+                <h3><i class="fas fa-receipt"></i> Transaction Receipt - <span id="receiptUser">User</span></h3>
+                <button class="close-modal" onclick="closeModal('receiptModal')">&times;</button>
             </div>
-            <div class="form-group">
-                <label><i class="fas fa-filter"></i> Filter by Step:</label>
-                <select id="bbcStepFilter" onchange="filterBBCodes()" style="width: 100%;">
-                    <option value="all">📋 All Steps</option>
-                    <option value="1">🔑 Step 1 - Authorization</option>
-                    <option value="2">🔒 Step 2 - Security</option>
-                    <option value="3">🛡️ Step 3 - Final</option>
-                </select>
-            </div>
-            <div id="bbcCodesList" class="bbc-grid"></div>
+            <div id="receiptContent"></div>
             <div style="margin-top: 24px; display: flex; gap: 12px;">
-                <button class="btn-gold" style="flex:1;" onclick="openGenerateForUser()"><i class="fas fa-plus"></i> Generate New</button>
-                <button class="btn" style="flex:1; background: rgba(100,100,100,0.3);" onclick="closeModal('bbcModal')">Close</button>
+                <button class="btn-gold" style="flex:1;" onclick="openReceiptInNewTab()"><i class="fas fa-external-link-alt"></i> Open in New Tab</button>
+                <button class="btn" style="flex:1; background: rgba(100,100,100,0.3);" onclick="closeModal('receiptModal')">Close</button>
             </div>
-        </div>
-    </div>
-
-    <!-- Generate BBC Modal (FIXED - Fully Functional) -->
-    <div id="generateBBCModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-key"></i> Generate BBC Codes</h3>
-                <button class="close-modal" onclick="closeModal('generateBBCModal')">&times;</button>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-user"></i> Select User</label>
-                <select id="bbcUserId" style="width:100%;"></select>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-layer-group"></i> BBC Step</label>
-                <select id="bbcStep">
-                    <option value="1">🔑 Step 1 - Authorization Code</option>
-                    <option value="2">🔒 Step 2 - Security Code</option>
-                    <option value="3">🛡️ Step 3 - Final Code</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-hashtag"></i> Quantity</label>
-                <input type="number" id="bbcQuantity" value="5" min="1" max="100">
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-calendar"></i> Expiry (days)</label>
-                <input type="number" id="bbcExpiryDays" value="30" min="1" max="365">
-            </div>
-            <button class="btn" onclick="generateBBCodes()"><i class="fas fa-dice-d6"></i> Generate Codes</button>
         </div>
     </div>
 
@@ -607,8 +519,7 @@
     <script>
         const API_URL = 'https://prime-heritage-bank.onrender.com';
         let users = [];
-        let currentBbcUserId = null;
-        let allBbcCodes = [];
+        let currentReceiptRef = null;
 
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
@@ -646,13 +557,14 @@
             tbody.innerHTML = '';
             for (let u of userList) {
                 const isAdmin = u.is_admin;
-                const bbcCount = u.bbcCount || 0;
+                const receiptCount = u.receiptCount || 0;
                 tbody.innerHTML += `
                     <tr>
                         <td>
                             <strong>${u.full_name}</strong><br>
                             <small style="color:var(--text-secondary)">${u.email}</small>
                             ${isAdmin ? '<span class="badge">Admin</span>' : ''}
+                            ${u.is_unlimited ? '<span class="badge" style="background:#EF4444;">Unlimited</span>' : ''}
                         </td>
                         <td>
                             <small><i class="fas fa-hashtag" style="color:var(--gold);"></i> ${u.account_number}</small><br>
@@ -662,7 +574,6 @@
                         <td class="${u.is_active ? 'status-active' : 'status-inactive'}">
                             <i class="fas ${u.is_active ? 'fa-check-circle' : 'fa-ban'}"></i> ${u.is_active ? 'Active' : 'Frozen'}
                         </td>
-                        <td><span class="btn-sm" onclick="viewBBCodes('${u.id}', '${u.full_name}')"><i class="fas fa-key"></i> ${bbcCount}</span></td>
                         <td>
                             <button class="btn-sm" onclick="openSendModal('${u.id}', '${u.full_name}', '${u.account_number}')">
                                 <i class="fas fa-paper-plane"></i> Send
@@ -673,6 +584,11 @@
                             </button>` : ''}
                             <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}')">
                                 <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <button class="btn-sm" onclick="viewUserReceipts('${u.id}', '${u.full_name}')">
+                                <i class="fas fa-receipt"></i> ${receiptCount}
                             </button>
                         </td>
                     </tr>
@@ -704,19 +620,6 @@
                     <div class="label">Active Users</div>
                 </div>
             `;
-        }
-
-        function populateUserSelect() {
-            const select = document.getElementById('bbcUserId');
-            select.innerHTML = '';
-            for (let u of users) {
-                if (!u.is_admin) {
-                    select.innerHTML += `<option value="${u.id}">${u.full_name} (${u.account_number})</option>`;
-                }
-            }
-            if (select.innerHTML === '') {
-                select.innerHTML = '<option value="">No users available</option>';
-            }
         }
 
         function openSendModal(id, name, acc) {
@@ -754,20 +657,33 @@
                         toAccountNumber: user.account_number,
                         amount,
                         currency,
-                        senderName: senderName,
+                        senderName,
                         note
                     })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire('Success!', data.message, 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✅ Money Sent!',
+                        html: `
+                            <div style="text-align:left;">
+                                <p><strong>Amount:</strong> ${currency} ${amount.toFixed(2)}</p>
+                                <p><strong>Recipient:</strong> ${user.full_name}</p>
+                                <p><strong>Sender:</strong> ${senderName}</p>
+                                <p><strong>Reference:</strong> ${data.transaction?.reference || 'N/A'}</p>
+                            </div>
+                        `,
+                        confirmButtonColor: '#C6A43F'
+                    });
                     closeModal('sendModal');
                     loadUsers();
                 } else {
-                    Swal.fire('Error', data.error, 'error');
+                    Swal.fire('Error', data.error || 'Failed to send money', 'error');
                 }
             } catch(e) {
-                Swal.fire('Error', 'Failed to send money', 'error');
+                console.error('Send money error:', e);
+                Swal.fire('Error', 'Failed to send money. Please try again.', 'error');
             } finally {
                 showLoading(false);
             }
@@ -842,137 +758,138 @@
             });
         }
 
-        async function viewBBCodes(userId, userName) {
-            currentBbcUserId = userId;
-            document.getElementById('bbcUserName').innerHTML = userName;
-            await loadBBCodes(userId);
-            openModal('bbcModal');
-        }
-
-        async function loadBBCodes(userId) {
-            showLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/api/admin/bbc/${userId}`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                allBbcCodes = await res.json();
-                filterBBCodes();
-            } catch(e) { console.error(e); } finally { showLoading(false); }
-        }
-
-        function filterBBCodes() {
-            const stepFilter = document.getElementById('bbcStepFilter').value;
-            let filtered = allBbcCodes;
-            if (stepFilter !== 'all') filtered = allBbcCodes.filter(c => c.step == stepFilter);
-
-            const container = document.getElementById('bbcCodesList');
-            if (filtered.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);"><i class="fas fa-key" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No BBC codes found.</div>';
+        async function viewUserReceipts(userId, userName) {
+            document.getElementById('receiptUser').textContent = userName;
+            const user = users.find(u => u.id === userId);
+            
+            if (!user || !user.transactions || user.transactions.length === 0) {
+                document.getElementById('receiptContent').innerHTML = `
+                    <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                        <i class="fas fa-receipt" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.3;"></i>
+                        <p>No transactions found for this user.</p>
+                    </div>
+                `;
+                openModal('receiptModal');
                 return;
             }
 
-            container.innerHTML = '';
-            for (let code of filtered) {
-                const expiryDate = code.expires_at ? new Date(code.expires_at).toLocaleDateString() : 'No expiry';
-                const stepName = code.step == 1 ? 'Authorization' : code.step == 2 ? 'Security' : 'Final';
-                const stepIcon = code.step == 1 ? '🔑' : code.step == 2 ? '🔒' : '🛡️';
-                const statusClass = code.is_used ? 'status-used' : 'status-unused';
-                const statusText = code.is_used ? 'USED' : 'ACTIVE';
-
-                container.innerHTML += `
-                    <div class="bbc-code-item">
-                        <div class="bbc-code-number">${code.code}</div>
-                        <div class="bbc-step">${stepIcon} Step ${code.step}</div>
-                        <div class="bbc-expiry"><i class="fas fa-calendar"></i> ${expiryDate}</div>
-                        <div class="bbc-status ${statusClass}">${statusText}</div>
+            let html = '<div style="max-height:400px;overflow-y:auto;">';
+            user.transactions.slice(0, 20).forEach(tx => {
+                const isIncoming = tx.to_user_id === userId;
+                const amount = tx.amount || 0;
+                const currency = tx.currency || 'USD';
+                const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent';
+                const ref = tx.reference || tx.id;
+                
+                html += `
+                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
+                        <div>
+                            <div style="color:var(--text-primary);font-weight:600;font-size:13px;">
+                                ${isIncoming ? '📥 Received' : '📤 Sent'}
+                                ${tx.type ? ` - ${tx.type}` : ''}
+                            </div>
+                            <div style="color:var(--text-secondary);font-size:11px;">${date}</div>
+                            <div style="color:var(--text-secondary);font-size:10px;font-family:monospace;">${ref}</div>
+                        </div>
+                        <div style="text-align:right;">
+                            <div style="font-weight:700;color:${isIncoming ? 'var(--success)' : 'var(--error)'};">
+                                ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
+                            </div>
+                            <button class="btn-sm" onclick="viewReceipt('${ref}')" style="margin-top:4px;">
+                                <i class="fas fa-receipt"></i> View
+                            </button>
+                        </div>
                     </div>
                 `;
-            }
+            });
+            html += '</div>';
+            
+            document.getElementById('receiptContent').innerHTML = html;
+            openModal('receiptModal');
+        }
+
+        function viewReceipt(ref) {
+            window.open(`/receipt.html?ref=${ref}&admin=true`, '_blank');
+        }
+
+        function openReceiptInNewTab() {
+            // This will be handled by individual receipt buttons
         }
 
         function openGenerateBBCModal() {
-            populateUserSelect();
-            openModal('generateBBCModal');
-        }
-
-        function openGenerateForUser() {
-            const select = document.getElementById('bbcUserId');
-            select.innerHTML = `<option value="${currentBbcUserId}">Current User (${document.getElementById('bbcUserName').innerText})</option>`;
-            closeModal('bbcModal');
-            openModal('generateBBCModal');
-        }
-
-        // ============================================================
-        // FIXED: BBC CODE GENERATION (FULLY FUNCTIONAL)
-        // ============================================================
-        async function generateBBCodes() {
-            const userId = document.getElementById('bbcUserId').value;
-            const step = document.getElementById('bbcStep').value;
-            const quantity = parseInt(document.getElementById('bbcQuantity').value);
-            const expiryDays = parseInt(document.getElementById('bbcExpiryDays').value);
-
-            if (!userId) {
-                Swal.fire('Error', 'Please select a user', 'error');
-                return;
-            }
-
-            showLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/api/admin/generate-bbc`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ 
-                        userId: userId, 
-                        step: parseInt(step), 
-                        quantity: quantity, 
-                        expiryDays: expiryDays 
-                    })
-                });
-
-                const data = await res.json();
-
-                if (data.success) {
-                    // Show success with code preview
-                    const codeList = data.codes.map(c => 
+            Swal.fire({
+                title: 'Generate BBC Codes',
+                html: `
+                    <div class="form-group">
+                        <label>Select User</label>
+                        <select id="bbcUserId" style="width:100%;padding:12px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
+                            ${users.filter(u => !u.is_admin).map(u => `<option value="${u.id}">${u.full_name} (${u.account_number})</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Step</label>
+                        <select id="bbcStep" style="width:100%;padding:12px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
+                            <option value="1">Step 1 - Authorization</option>
+                            <option value="2">Step 2 - Security</option>
+                            <option value="3">Step 3 - Final</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Quantity</label>
+                        <input type="number" id="bbcQuantity" value="5" min="1" max="100" style="width:100%;padding:12px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
+                    </div>
+                    <div class="form-group">
+                        <label>Expiry (days)</label>
+                        <input type="number" id="bbcExpiryDays" value="30" min="1" max="365" style="width:100%;padding:12px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
+                    </div>
+                `,
+                confirmButtonText: 'Generate Codes',
+                confirmButtonColor: '#C6A43F',
+                preConfirm: async () => {
+                    const userId = document.getElementById('bbcUserId').value;
+                    const step = document.getElementById('bbcStep').value;
+                    const quantity = parseInt(document.getElementById('bbcQuantity').value);
+                    const expiryDays = parseInt(document.getElementById('bbcExpiryDays').value);
+                    
+                    if (!userId) {
+                        Swal.showValidationMessage('Please select a user');
+                        return;
+                    }
+                    
+                    try {
+                        const res = await fetch(`${API_URL}/api/admin/generate-bbc`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({ userId, step, quantity, expiryDays })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            return data;
+                        } else {
+                            Swal.showValidationMessage(data.error || 'Failed to generate');
+                        }
+                    } catch(e) {
+                        Swal.showValidationMessage('Network error');
+                    }
+                }
+            }).then((result) => {
+                if (result.isConfirmed && result.value) {
+                    const codes = result.value.codes.map(c => 
                         `<div style="background:rgba(198,164,63,0.1);padding:6px 12px;border-radius:8px;margin:4px 0;font-family:monospace;color:var(--gold);font-size:13px;">${c.code} <span style="color:var(--text-secondary);font-size:10px;">(Step ${c.step})</span></div>`
                     ).join('');
-
+                    
                     Swal.fire({
                         icon: 'success',
                         title: '✅ BBC Codes Generated!',
-                        html: `
-                            <div style="text-align:left;">
-                                <p><strong>Generated:</strong> ${quantity} codes for Step ${step}</p>
-                                <p><strong>Expires:</strong> ${expiryDays} days</p>
-                                <div style="max-height:200px;overflow-y:auto;margin-top:12px;padding:8px;background:rgba(255,255,255,0.03);border-radius:12px;">
-                                    ${codeList}
-                                </div>
-                            </div>
-                        `,
+                        html: `<div style="max-height:200px;overflow-y:auto;">${codes}</div>`,
                         confirmButtonColor: '#C6A43F'
                     });
-
-                    closeModal('generateBBCModal');
-                    
-                    // Refresh BBC list if viewing same user
-                    if (currentBbcUserId === userId) {
-                        await loadBBCodes(userId);
-                    }
-                    
-                    // Refresh user list to update BBC counts
                     loadUsers();
-                } else {
-                    Swal.fire('Error', data.error || 'Failed to generate BBC codes', 'error');
                 }
-            } catch(e) {
-                console.error('Generate BBC error:', e);
-                Swal.fire('Error', 'Failed to generate BBC codes. Please try again.', 'error');
-            } finally {
-                showLoading(false);
-            }
+            });
         }
 
         async function loadUsers() {
@@ -987,32 +904,17 @@
                     return;
                 }
                 users = await res.json();
-
-                // Get BBC counts for each user
-                for (let u of users) {
-                    try {
-                        const bbcRes = await fetch(`${API_URL}/api/admin/bbc/${u.id}`, {
-                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                        });
-                        const bbcCodes = await bbcRes.json();
-                        u.bbcCount = bbcCodes.length;
-                    } catch(e) {
-                        u.bbcCount = 0;
-                    }
-                }
                 
-                renderUsers();
-                
-                // Get stats
                 const statsRes = await fetch(`${API_URL}/api/admin/stats`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 const stats = await statsRes.json();
+                
+                renderUsers();
                 updateStats(stats);
-                populateUserSelect();
             } catch(e) {
                 console.error(e);
-                Swal.fire('Error', 'Failed to load users', 'error');
+                Swal.fire('Error', 'Failed to load data', 'error');
             } finally {
                 showLoading(false);
             }
@@ -1024,7 +926,6 @@
             window.location.href = '/';
         }
 
-        // Check token on load
         if (!localStorage.getItem('token')) {
             window.location.href = '/';
         }
