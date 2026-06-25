@@ -1,7 +1,7 @@
 {
-  "name": "prime-heritage-international-bank",
+  "name": "prime-heritage-bank",
   "version": "1.0.0",
-  "description": "Prime Heritage International Bank - Complete Banking System with BBC Security",
+  "description": "Prime Heritage International Bank - Full Banking Platform",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
@@ -10,23 +10,14 @@
   },
   "keywords": [
     "banking",
-    "international-bank",
     "finance",
+    "international",
+    "transfer",
     "payment",
-    "swift",
-    "sepa",
-    "bbc-codes",
-    "multi-currency",
-    "admin-dashboard",
-    "security",
-    "airtime",
-    "bills",
-    "data-bundle",
-    "withdraw",
-    "send-money"
+    "bbc-security"
   ],
   "author": "Prime Heritage International Bank",
-  "license": "ISC",
+  "license": "MIT",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
@@ -40,8 +31,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  },
-  "engines": {
-    "node": ">=14.0.0"
   }
 }
