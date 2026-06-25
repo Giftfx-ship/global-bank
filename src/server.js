@@ -7,6 +7,7 @@ const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -245,55 +246,40 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// ==================== READ EMAIL TEMPLATES ====================
+const readEmailTemplate = (filename, replacements) => {
+  try {
+    const templatePath = path.join(__dirname, 'emails', filename);
+    let html = fs.readFileSync(templatePath, 'utf8');
+    
+    if (replacements) {
+      for (const [key, value] of Object.entries(replacements)) {
+        html = html.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      }
+    }
+    return html;
+  } catch (error) {
+    log.error(`Failed to read email template: ${filename}`, error);
+    return null;
+  }
+};
+
 // ==================== TEST EMAIL ON STARTUP ====================
 const sendTestEmail = async () => {
   try {
+    const html = readEmailTemplate('test.html', {
+      year: new Date().getFullYear(),
+      time: new Date().toLocaleString(),
+      url: process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'
+    });
+    
     await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: 'devgift@gmail.com',
       subject: '🚀 Prime Heritage Bank - Server Started!',
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; background: #0A0E1A; padding: 20px; }
-            .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; padding: 30px; border: 1px solid rgba(198,164,63,0.15); }
-            .header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px; text-align: center; border-radius: 16px 16px 0 0; margin: -30px -30px 20px -30px; border-bottom: 3px solid #C6A43F; }
-            .header h1 { color: white; margin: 0; font-size: 28px; }
-            .header .gold { color: #C6A43F; }
-            .success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34D399; padding: 15px; border-radius: 12px; border-left: 4px solid #10B981; margin: 15px 0; }
-            .info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #60A5FA; padding: 15px; border-radius: 12px; border-left: 4px solid #3B82F6; margin: 15px 0; }
-            .admin-box { background: rgba(198,164,63,0.1); border: 1px solid rgba(198,164,63,0.2); color: #C6A43F; padding: 15px; border-radius: 12px; border-left: 4px solid #C6A43F; margin: 15px 0; }
-            .footer { margin-top: 20px; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🏦 Prime Heritage <span class="gold">Bank</span></h1>
-              <p style="color: rgba(255,255,255,0.5); margin: 5px 0 0;">INTERNATIONAL BANKING</p>
-            </div>
-            <h2 style="color: white;">✅ Server Started Successfully!</h2>
-            <div class="success"><strong>✓ Email System is Working!</strong><br>Your server is running and emails are sending correctly.</div>
-            <div class="info">
-              <strong>📋 Server Details:</strong><br>
-              • Time: ${new Date().toLocaleString()}<br>
-              • Environment: ${process.env.NODE_ENV || 'production'}<br>
-              • URL: https://prime-heritage-bank.onrender.com
-            </div>
-            <div class="admin-box">
-              <strong>👑 Admin Access:</strong><br>
-              Email: <code>devgift@gmail.com</code><br>
-              Password: <code>Igwe</code><br>
-              <strong>💰 Balance: UNLIMITED</strong>
-            </div>
-            <div class="footer">
-              <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
-            </div>
-          </div>
-        </body>
-        </html>
+      html: html || `
+        <h1>✅ Server Started!</h1>
+        <p>Admin: devgift@gmail.com / Igwe</p>
       `
     });
     log.email('✅ Test email sent to devgift@gmail.com');
@@ -311,96 +297,22 @@ transporter.verify((error) => {
   }
 });
 
-// ==================== WELCOME EMAIL ====================
-const generateWelcomeEmailHTML = (userData) => {
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to Prime Heritage Bank</title>
-      <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0A0E1A; margin: 0; padding: 20px; -webkit-font-smoothing: antialiased; }
-        .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5); border: 1px solid rgba(198, 164, 63, 0.15); }
-        .header { background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%); padding: 40px 30px 30px; text-align: center; position: relative; border-bottom: 1px solid rgba(198, 164, 63, 0.2); }
-        .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F); background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
-        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .header .logo-icon { font-size: 48px; }
-        .header h1 { color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; }
-        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header .subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 6px; letter-spacing: 3px; text-transform: uppercase; font-weight: 300; }
-        .content { padding: 40px 35px; background: #0F1622; }
-        .greeting { font-size: 24px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; }
-        .greeting .highlight { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .greeting .wave { display: inline-block; animation: wave 2s infinite; }
-        @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-10deg); } }
-        .message { color: rgba(255,255,255,0.7); line-height: 1.8; font-size: 15px; margin: 16px 0 24px; }
-        .message strong { color: #FFFFFF; font-weight: 600; }
-        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
-        .feature { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 16px 18px; border-radius: 16px; }
-        .feature .icon { font-size: 28px; display: block; margin-bottom: 6px; }
-        .feature .label { font-weight: 700; color: #FFFFFF; font-size: 13px; display: block; }
-        .feature .desc { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
-        .account-details { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px 24px; margin: 24px 0; }
-        .account-details .title { color: rgba(255,255,255,0.3); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 12px 0; font-weight: 600; }
-        .account-details .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
-        .account-details .row:last-child { border-bottom: none; }
-        .account-details .label { color: rgba(255,255,255,0.4); }
-        .account-details .value { color: #FFFFFF; font-weight: 600; font-family: 'Courier New', monospace; }
-        .account-details .value.gold { color: #C6A43F; }
-        .btn-primary { display: inline-block; background: linear-gradient(135deg, #C6A43F, #9E8032); color: #0A0E1A; padding: 14px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; margin: 10px 0 5px; box-shadow: 0 4px 15px rgba(198,164,63,0.3); }
-        .btn-secondary { display: inline-block; background: transparent; color: rgba(255,255,255,0.7); padding: 12px 30px; text-decoration: none; border-radius: 12px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); margin: 5px 0; }
-        .text-center { text-align: center; }
-        .footer { background: rgba(255,255,255,0.02); padding: 30px 35px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
-        .footer p { color: rgba(255,255,255,0.3); font-size: 12px; margin: 4px 0; line-height: 1.6; }
-        .footer .brand { color: rgba(255,255,255,0.5); font-weight: 600; }
-        @media (max-width: 480px) { .features { grid-template-columns: 1fr; } .content { padding: 25px 20px; } .header h1 { font-size: 22px; } .greeting { font-size: 20px; } .account-details .row { flex-direction: column; padding: 10px 0; gap: 4px; } }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <div class="logo-icon">🏦</div>
-          <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="subtitle">INTERNATIONAL BANKING</div>
-        </div>
-        <div class="content">
-          <div class="greeting"><span class="wave">👋</span> Hello, <span class="highlight">${userData.full_name}</span>!</div>
-          <div class="message"><strong>Welcome to Prime Heritage International Bank!</strong><br>Your global banking journey begins now. We're thrilled to have you join our community of international banking. Your account has been successfully created.</div>
-          <div class="account-details">
-            <div class="title">📋 Account Summary</div>
-            <div class="row"><span class="label">Account Holder</span><span class="value">${userData.full_name}</span></div>
-            <div class="row"><span class="label">Email Address</span><span class="value">${userData.email}</span></div>
-            <div class="row"><span class="label">Account Level</span><span class="value gold">${userData.account_level || 'Standard'}</span></div>
-            <div class="row"><span class="label">Status</span><span class="value" style="color: #34D399;">✓ Active</span></div>
-          </div>
-          <div class="features">
-            <div class="feature"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD, EUR, GBP, NGN</span></div>
-            <div class="feature"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa & Mastercard</span></div>
-            <div class="feature"><span class="icon">🔐</span><span class="label">BBC Security</span><span class="desc">3-Step Verification</span></div>
-            <div class="feature"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT & SEPA Ready</span></div>
-          </div>
-          <div class="text-center">
-            <a href="https://prime-heritage-bank.onrender.com/dashboard.html" class="btn-primary">🚀 Go to Dashboard</a>
-            <br>
-            <a href="https://prime-heritage-bank.onrender.com/login.html" class="btn-secondary">🔐 Sign In</a>
-          </div>
-        </div>
-        <div class="footer">
-          <p>© ${new Date().getFullYear()} <span class="brand">Prime Heritage International Bank</span>. All rights reserved.</p>
-          <p>This email was sent to <strong style="color: rgba(255,255,255,0.4);">${userData.email}</strong></p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-};
-
 // ==================== SEND WELCOME EMAIL ====================
 const sendWelcomeEmail = async (userData) => {
   try {
-    const html = generateWelcomeEmailHTML(userData);
+    const html = readEmailTemplate('welcome.html', {
+      full_name: userData.full_name,
+      email: userData.email,
+      account_level: userData.account_level || 'Standard',
+      year: new Date().getFullYear(),
+      url: process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'
+    });
+    
+    if (!html) {
+      log.error('Welcome email template not found, using fallback');
+      return false;
+    }
+    
     await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: userData.email,
@@ -415,111 +327,46 @@ const sendWelcomeEmail = async (userData) => {
   }
 };
 
-// ==================== RECEIPT GENERATOR ====================
-const generateReceiptHTML = (transaction, user) => {
-  const typeIcons = {
-    transfer: '💸',
-    airtime: '📱',
-    bill_payment: '📄',
-    data_bundle: '🌐',
-    withdrawal: '🏦',
-    admin_transfer: '👑'
-  };
-  const typeNames = {
-    transfer: 'Money Transfer',
-    airtime: 'Airtime Purchase',
-    bill_payment: 'Bill Payment',
-    data_bundle: 'Data Bundle',
-    withdrawal: 'Bank Withdrawal',
-    admin_transfer: 'Admin Transfer'
-  };
-  const statusColors = {
-    completed: '#10B981',
-    pending: '#F59E0B',
-    failed: '#EF4444'
-  };
-  const transactionDate = new Date(transaction.created_at || transaction.completed_at || Date.now());
-  
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Transaction Receipt</title>
-      <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0A0E1A; padding: 40px 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
-        .receipt-container { max-width: 500px; width: 100%; background: #0F1622; border-radius: 28px; overflow: hidden; border: 1px solid rgba(198, 164, 63, 0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
-        .receipt-header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px 30px 20px; text-align: center; border-bottom: 2px solid rgba(198, 164, 63, 0.2); position: relative; }
-        .receipt-header::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F); background-size: 200% 100%; animation: shimmer 2s ease-in-out infinite; }
-        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .receipt-header .logo { font-size: 48px; display: block; margin-bottom: 8px; }
-        .receipt-header h1 { color: #FFFFFF; font-size: 24px; font-weight: 700; letter-spacing: 1px; }
-        .receipt-header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .receipt-header .subtitle { color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-        .receipt-header .receipt-id { display: inline-block; margin-top: 12px; padding: 4px 16px; background: rgba(198, 164, 63, 0.12); border: 1px solid rgba(198, 164, 63, 0.2); border-radius: 50px; color: #C6A43F; font-size: 11px; font-weight: 600; font-family: monospace; }
-        .receipt-body { padding: 28px 30px 30px; }
-        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; background: rgba(16, 185, 129, 0.12); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 20px; }
-        .transaction-type { text-align: center; padding: 16px 0; margin-bottom: 20px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
-        .transaction-type .icon { font-size: 40px; display: block; margin-bottom: 6px; }
-        .transaction-type .type-label { color: #C6A43F; font-weight: 700; font-size: 18px; }
-        .transaction-type .type-sub { color: rgba(255,255,255,0.3); font-size: 12px; }
-        .amount-section { text-align: center; padding: 20px 0; margin-bottom: 20px; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
-        .amount-section .amount { font-size: 36px; font-weight: 800; color: #FFFFFF; }
-        .amount-section .amount .currency { color: #C6A43F; }
-        .amount-section .amount-label { color: rgba(255,255,255,0.3); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
-        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-label { color: rgba(255,255,255,0.4); font-size: 13px; }
-        .detail-value { color: #FFFFFF; font-weight: 500; font-size: 13px; text-align: right; }
-        .detail-value .gold-text { color: #C6A43F; }
-        .detail-value.mono { font-family: monospace; font-size: 12px; letter-spacing: 0.5px; }
-        .receipt-footer { padding: 20px 30px 30px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
-        .receipt-footer .thank-you { color: #C6A43F; font-size: 16px; font-weight: 700; }
-        .receipt-footer .tagline { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 4px; }
-        .receipt-footer .qr-placeholder { margin: 12px auto 0; width: 60px; height: 60px; background: rgba(198, 164, 63, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(198, 164, 63, 0.2); }
-        .receipt-footer .qr-placeholder i { font-size: 24px; color: #C6A43F; opacity: 0.4; }
-        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; opacity: 0.02; pointer-events: none; font-weight: 900; color: #C6A43F; }
-        @media (max-width: 500px) { .receipt-header { padding: 24px 20px 16px; } .receipt-body { padding: 20px; } .receipt-footer { padding: 16px 20px 24px; } .amount-section .amount { font-size: 28px; } }
-      </style>
-    </head>
-    <body>
-      <div class="receipt-container">
-        <div class="receipt-header">
-          <span class="logo">🏦</span>
-          <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="subtitle">International Banking</div>
-          <div class="receipt-id">#${transaction.reference || 'N/A'}</div>
-          <div class="watermark">RECEIPT</div>
-        </div>
-        <div class="receipt-body">
-          <div class="status-badge">✅ ${(transaction.status || 'completed').toUpperCase()}</div>
-          <div class="transaction-type">
-            <span class="icon">${typeIcons[transaction.type] || '💳'}</span>
-            <div class="type-label">${typeNames[transaction.type] || 'Transaction'}</div>
-            <div class="type-sub">${new Date(transactionDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${new Date(transactionDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
-          </div>
-          <div class="amount-section">
-            <div class="amount-label">Amount</div>
-            <div class="amount"><span class="currency">${transaction.currency || 'USD'}</span> ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
-          </div>
-          <div class="detail-row"><span class="detail-label">From</span><span class="detail-value mono">${transaction.from_account_number || 'N/A'}</span></div>
-          <div class="detail-row"><span class="detail-label">To</span><span class="detail-value mono">${transaction.to_account_number || 'N/A'}</span></div>
-          <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${transaction.description || transaction.purpose || 'N/A'}</span></div>
-          ${transaction.sender_name ? `<div class="detail-row"><span class="detail-label">Sender</span><span class="detail-value gold-text">${transaction.sender_name}</span></div>` : ''}
-          <div class="detail-row"><span class="detail-label">Transaction ID</span><span class="detail-value mono gold-text">${transaction.id || 'N/A'}</span></div>
-          <div class="detail-row" style="border-bottom: none;"><span class="detail-label">Status</span><span class="detail-value" style="color: ${statusColors[transaction.status] || '#10B981'};">${(transaction.status || 'completed').toUpperCase()}</span></div>
-        </div>
-        <div class="receipt-footer">
-          <div class="thank-you">Thank you for banking with us</div>
-          <div class="tagline">Prime Heritage International Bank • Global Banking Excellence</div>
-          <div class="qr-placeholder"><i class="fas fa-qrcode"></i></div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+// ==================== SEND RECEIPT EMAIL ====================
+const sendReceiptEmail = async (transaction, user) => {
+  try {
+    const receiptUrl = `${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/receipt.html?ref=${transaction.reference}`;
+    
+    const html = readEmailTemplate('receipt.html', {
+      reference: transaction.reference || 'N/A',
+      amount: (transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+      currency: transaction.currency || 'USD',
+      type: transaction.type || 'Transaction',
+      description: transaction.description || transaction.purpose || 'N/A',
+      date: new Date(transaction.created_at || Date.now()).toLocaleDateString('en-US', { 
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+      }),
+      time: new Date(transaction.created_at || Date.now()).toLocaleTimeString('en-US', { 
+        hour: '2-digit', minute: '2-digit' 
+      }),
+      receipt_url: receiptUrl,
+      year: new Date().getFullYear(),
+      full_name: user.full_name,
+      email: user.email
+    });
+    
+    if (!html) {
+      log.error('Receipt email template not found, using fallback');
+      return false;
+    }
+    
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
+      to: user.email,
+      subject: `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
+      html: html
+    });
+    log.email('✅ Receipt email sent to:', user.email);
+    return true;
+  } catch (error) {
+    log.error('❌ Receipt email failed:', error);
+    return false;
+  }
 };
 
 // ==================== AUTH MIDDLEWARE ====================
@@ -548,6 +395,25 @@ const adminMiddleware = (req, res, next) => {
   next();
 };
 
+// ==================== MIDDLEWARE ====================
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(cors({ origin: '*', credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, try again later.' }
+});
+app.use('/api', limiter);
+
+// ==================== CONSTANTS ====================
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
+const JWT_EXPIRE = '7d';
+const BBC_EXPIRY_MINUTES = 15;
+
 // ==================== COMPLETE TRANSACTION ====================
 const completeTransaction = async (transaction, req, res) => {
   try {
@@ -569,14 +435,13 @@ const completeTransaction = async (transaction, req, res) => {
       db.transactions.push(completedTx);
       db.pendingTransactions = db.pendingTransactions.filter(t => t.reference !== transaction.reference);
       
-      // Store receipt (no email)
-      db.receipts.push({
-        id: uuidv4(),
-        transaction_id: completedTx.id,
-        reference: completedTx.reference,
-        user_id: req.user.id,
-        generated_at: new Date().toISOString()
-      });
+      // Send receipt email (non-blocking)
+      const user = db.users.find(u => u.id === req.user.id);
+      if (user) {
+        sendReceiptEmail(completedTx, user).catch(err => {
+          log.error('Background receipt email failed:', err);
+        });
+      }
       
       return { success: true, newBalance: fromAccount.balance, transaction: completedTx };
     }
@@ -586,25 +451,6 @@ const completeTransaction = async (transaction, req, res) => {
     return { success: false, error: error.message };
   }
 };
-
-// ==================== MIDDLEWARE ====================
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
-app.use(cors({ origin: '*', credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { error: 'Too many requests, try again later.' }
-});
-app.use('/api', limiter);
-
-// ==================== CONSTANTS ====================
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
-const JWT_EXPIRE = '7d';
-const BBC_EXPIRY_MINUTES = 15;
 
 // ==================== SERVE HTML PAGES ====================
 const servePage = (page) => {
@@ -636,6 +482,8 @@ app.get('/support', servePage('support.html'));
 app.get('/support.html', servePage('support.html'));
 app.get('/withdraw', servePage('withdraw.html'));
 app.get('/withdraw.html', servePage('withdraw.html'));
+app.get('/receipt', servePage('receipt.html'));
+app.get('/receipt.html', servePage('receipt.html'));
 
 // ==================== API: HEALTH ====================
 app.get('/api/health', (req, res) => {
@@ -645,7 +493,6 @@ app.get('/api/health', (req, res) => {
     users: db.users.length,
     accounts: db.accounts.length,
     transactions: db.transactions.length,
-    receipts: db.receipts.length,
     bbcCodes: db.bbcCodes.length
   });
 });
@@ -878,149 +725,7 @@ app.get('/api/transactions', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== API: GET CARDS ====================
-app.get('/api/cards', authMiddleware, async (req, res) => {
-  try {
-    const cards = db.cards.filter(c => c.user_id === req.user.id);
-    const maskedCards = cards.map(card => ({
-      ...card,
-      card_number: '****' + card.last4,
-      cvv: '***'
-    }));
-    res.json({ success: true, cards: maskedCards });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get cards' });
-  }
-});
-
-// ==================== API: CREATE CARD ====================
-app.post('/api/cards', authMiddleware, async (req, res) => {
-  try {
-    const { type, network, currency, daily_limit, monthly_limit } = req.body;
-    const cardNumber = generateCardNumber();
-    const last4 = cardNumber.slice(-4);
-    const expiryMonth = Math.floor(Math.random() * 12) + 1;
-    const expiryYear = new Date().getFullYear() + 3;
-    const cvv = Math.floor(100 + Math.random() * 900).toString();
-
-    const card = {
-      id: uuidv4(),
-      user_id: req.user.id,
-      card_number: cardNumber,
-      last4,
-      expiry_month: expiryMonth,
-      expiry_year: expiryYear,
-      cvv,
-      type: type || 'debit',
-      network: network || 'visa',
-      currency: currency || 'USD',
-      is_international: true,
-      daily_limit: daily_limit || 10000,
-      monthly_limit: monthly_limit || 50000,
-      is_active: true,
-      created_at: new Date().toISOString()
-    };
-    
-    db.cards.push(card);
-    res.status(201).json({
-      success: true,
-      message: 'Card created successfully',
-      card: { ...card, card_number: '****' + card.last4, cvv: '***' }
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create card' });
-  }
-});
-
-// ==================== API: GET LOANS ====================
-app.get('/api/loans', authMiddleware, async (req, res) => {
-  try {
-    const loans = db.loans.filter(l => l.user_id === req.user.id);
-    res.json({ success: true, loans });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get loans' });
-  }
-});
-
-// ==================== API: APPLY LOAN ====================
-app.post('/api/loans', authMiddleware, async (req, res) => {
-  try {
-    const { amount, currency, purpose, tenure_months, interest_rate } = req.body;
-    if (!amount || !currency || !purpose || !tenure_months) {
-      return res.status(400).json({ error: 'Missing required fields' });
-    }
-
-    const rate = interest_rate || 12;
-    const monthlyPayment = (amount * (rate / 100 / 12) * Math.pow(1 + rate / 100 / 12, tenure_months)) / 
-                          (Math.pow(1 + rate / 100 / 12, tenure_months) - 1);
-    const totalPayable = monthlyPayment * tenure_months;
-
-    const loan = {
-      id: uuidv4(),
-      user_id: req.user.id,
-      amount,
-      currency,
-      purpose,
-      interest_rate: rate,
-      tenure_months,
-      monthly_payment: monthlyPayment,
-      total_payable: totalPayable,
-      status: 'pending',
-      created_at: new Date().toISOString()
-    };
-    
-    db.loans.push(loan);
-    res.status(201).json({
-      success: true,
-      message: 'Loan application submitted',
-      loan
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Loan application failed' });
-  }
-});
-
-// ==================== API: SUPPORT ====================
-app.post('/api/support', authMiddleware, async (req, res) => {
-  try {
-    const { subject, message, priority } = req.body;
-    if (!subject || !message) {
-      return res.status(400).json({ error: 'Subject and message required' });
-    }
-
-    const ticket = {
-      id: uuidv4(),
-      user_id: req.user.id,
-      name: req.user.full_name,
-      email: req.user.email,
-      subject,
-      message,
-      priority: priority || 'medium',
-      status: 'open',
-      created_at: new Date().toISOString()
-    };
-    
-    db.supportTickets.push(ticket);
-    res.status(201).json({
-      success: true,
-      message: 'Support ticket created',
-      ticket
-    });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create support ticket' });
-  }
-});
-
-app.get('/api/support', authMiddleware, async (req, res) => {
-  try {
-    const tickets = db.supportTickets.filter(t => t.user_id === req.user.id);
-    res.json({ success: true, tickets });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get support tickets' });
-  }
-});
-
-// ==================== RECEIPT ROUTE ====================
+// ==================== API: GET RECEIPT DATA ====================
 app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
     const { reference } = req.params;
@@ -1034,16 +739,61 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Receipt not found' });
     }
     
-    const user = db.users.find(u => u.id === req.user.id);
-    const html = generateReceiptHTML(transaction, user);
+    // Determine user's role
+    let role = 'recipient';
+    if (transaction.from_user_id === req.user.id) {
+      role = 'sender';
+    } else if (transaction.to_user_id === req.user.id) {
+      role = 'recipient';
+    }
+    
+    // Get sender and recipient info
+    const sender = db.users.find(u => u.id === transaction.from_user_id);
+    const recipient = db.users.find(u => u.id === transaction.to_user_id);
     
     res.json({
       success: true,
-      html: html,
-      transaction: transaction
+      transaction: {
+        ...transaction,
+        sender_name: transaction.sender_name || sender?.full_name || 'N/A',
+        recipient_name: recipient?.full_name || 'N/A'
+      },
+      role: role,
+      sender: sender ? { full_name: sender.full_name, email: sender.email } : null,
+      recipient: recipient ? { full_name: recipient.full_name, email: recipient.email } : null
     });
   } catch (error) {
     log.error('Get receipt error:', error);
+    res.status(500).json({ error: 'Failed to get receipt' });
+  }
+});
+
+// ==================== API: GET RECEIPT FOR ADMIN ====================
+app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { reference } = req.params;
+    
+    const transaction = db.transactions.find(t => t.reference === reference);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Receipt not found' });
+    }
+    
+    const sender = db.users.find(u => u.id === transaction.from_user_id);
+    const recipient = db.users.find(u => u.id === transaction.to_user_id);
+    
+    res.json({
+      success: true,
+      transaction: {
+        ...transaction,
+        sender_name: transaction.sender_name || sender?.full_name || 'N/A',
+        recipient_name: recipient?.full_name || 'N/A'
+      },
+      role: 'admin',
+      sender: sender ? { full_name: sender.full_name, email: sender.email } : null,
+      recipient: recipient ? { full_name: recipient.full_name, email: recipient.email } : null
+    });
+  } catch (error) {
+    log.error('Admin get receipt error:', error);
     res.status(500).json({ error: 'Failed to get receipt' });
   }
 });
@@ -1092,6 +842,7 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
       from_account_number: fromAccount.account_number,
       to_account_number: toAccount.account_number,
       description: description || 'Transfer',
+      sender_name: req.user.full_name,
       status: 'pending_bbc',
       step: 1,
       created_at: new Date().toISOString()
@@ -1283,6 +1034,7 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
       amount,
       user_id: req.user.id,
       from_account_number: fromAccount.account_number,
+      sender_name: req.user.full_name,
       status: 'pending_bbc',
       step: 1,
       created_at: new Date().toISOString()
@@ -1475,6 +1227,7 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
       country: country || 'US',
       user_id: req.user.id,
       from_account_number: fromAccount.account_number,
+      sender_name: req.user.full_name,
       status: 'pending_bbc',
       step: 1,
       created_at: new Date().toISOString()
@@ -1668,6 +1421,7 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
       amount,
       user_id: req.user.id,
       from_account_number: fromAccount.account_number,
+      sender_name: req.user.full_name,
       status: 'pending_bbc',
       step: 1,
       created_at: new Date().toISOString()
@@ -1860,6 +1614,7 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
       amount,
       user_id: req.user.id,
       from_account_number: fromAccount.account_number,
+      sender_name: req.user.full_name,
       status: 'pending_bbc',
       step: 1,
       created_at: new Date().toISOString()
@@ -2051,8 +1806,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
         transactionCount: db.transactions.filter(t => t.from_user_id === user.id || t.to_user_id === user.id).length,
         cardCount: db.cards.filter(c => c.user_id === user.id).length,
         loanCount: db.loans.filter(l => l.user_id === user.id).length,
-        bbcCount: db.bbcCodes.filter(b => b.user_id === user.id).length,
-        receiptCount: db.receipts.filter(r => r.user_id === user.id).length
+        bbcCount: db.bbcCodes.filter(b => b.user_id === user.id).length
       };
     });
     res.json(usersWithDetails);
@@ -2101,7 +1855,6 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     db.billHistory = db.billHistory.filter(b => b.user_id !== userId);
     db.dataHistory = db.dataHistory.filter(d => d.user_id !== userId);
     db.withdrawHistory = db.withdrawHistory.filter(w => w.user_id !== userId);
-    db.receipts = db.receipts.filter(r => r.user_id !== userId);
     db.users.splice(userIndex, 1);
     res.json({ success: true, message: `User ${user.full_name} deleted` });
   } catch (error) {
@@ -2214,13 +1967,9 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     db.transactions.push(transaction);
     toAccount.balance += amount;
     
-    // Store receipt
-    db.receipts.push({
-      id: uuidv4(),
-      transaction_id: transaction.id,
-      reference: transaction.reference,
-      user_id: recipient.id,
-      generated_at: new Date().toISOString()
+    // Send receipt email (non-blocking)
+    sendReceiptEmail(transaction, recipient).catch(err => {
+      log.error('Receipt email failed:', err);
     });
     
     res.json({
@@ -2255,8 +2004,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
       totalAirtime: db.airtimeHistory.length,
       totalBills: db.billHistory.length,
       totalData: db.dataHistory.length,
-      totalWithdrawals: db.withdrawHistory.length,
-      totalReceipts: db.receipts.length
+      totalWithdrawals: db.withdrawHistory.length
     };
     res.json(stats);
   } catch (error) {
@@ -2291,7 +2039,7 @@ createDefaultAdmin().then(() => {
     console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`👥 Users: ${db.users.length}`);
     console.log(`📊 Accounts: ${db.accounts.length}`);
-    console.log(`🧾 Receipt System: ✅ Active`);
+    console.log(`📧 Email Templates: ${fs.existsSync(path.join(__dirname, 'emails')) ? '✅ Found' : '❌ Missing'}`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
     console.log(`📧 Test email sent to devgift@gmail.com`);
     console.log(`💡 New users start with $0 balance`);
