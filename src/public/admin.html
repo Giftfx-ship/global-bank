@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Admin Portal | Prime Heritage Bank</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -323,7 +323,6 @@
         .bbc-status { font-size: 10px; padding: 4px 10px; border-radius: 20px; font-weight: 600; }
         .status-used { background: rgba(239,68,68,0.2); color: var(--error); }
         .status-unused { background: rgba(16,185,129,0.2); color: var(--success); }
-        .bbc-actions { display: flex; gap: 6px; margin-left: auto; }
 
         .modal {
             display: none;
@@ -484,10 +483,13 @@
         <div class="section-card">
             <div class="section-header">
                 <h3><i class="fas fa-users"></i> User Management</h3>
-                <button class="btn-gold" onclick="openGenerateBBCModal()"><i class="fas fa-key"></i> Generate BBC Codes</button>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-gold" onclick="openGenerateBBCModal()"><i class="fas fa-key"></i> Generate BBC Codes</button>
+                    <button class="btn-gold" onclick="refreshUsers()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
             </div>
             <div class="search-bar">
-                <input type="text" id="searchInput" placeholder="🔍 Search by name, email, account number, or IBAN..." onkeyup="filterUsers()">
+                <input type="text" id="searchInput" placeholder="🔍 Search by name, email, account number..." onkeyup="filterUsers()">
             </div>
             <div style="overflow-x: auto;">
                 <table id="usersTable">
@@ -497,8 +499,8 @@
                             <th>Account Details</th>
                             <th>Balance</th>
                             <th>Status</th>
+                            <th>BBC</th>
                             <th>Actions</th>
-                            <th>BBC Codes</th>
                         </tr>
                     </thead>
                     <tbody id="usersBody"></tbody>
@@ -520,23 +522,19 @@
                 <input type="text" id="sendUserDisplay" readonly>
             </div>
             <div class="form-group">
-                <label><i class="fas fa-user-tie"></i> Sender Name</label>
-                <input type="text" id="senderName" placeholder="e.g., Admin - Prime Heritage Bank" value="System Administrator">
-            </div>
-            <div class="form-group">
                 <label><i class="fas fa-dollar-sign"></i> Amount</label>
                 <input type="number" id="sendAmount" placeholder="0.00">
             </div>
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Currency</label>
                 <select id="sendCurrency">
-                    <option value="USD">💵 USD - US Dollar</option>
-                    <option value="EUR">💶 EUR - Euro</option>
-                    <option value="GBP">💷 GBP - British Pound</option>
+                    <option value="USD">💵 USD</option>
+                    <option value="EUR">💶 EUR</option>
+                    <option value="GBP">💷 GBP</option>
                 </select>
             </div>
             <div class="form-group">
-                <label><i class="fas fa-pen"></i> Note (Optional)</label>
+                <label><i class="fas fa-pen"></i> Note</label>
                 <input type="text" id="sendNote" placeholder="Payment for...">
             </div>
             <button class="btn" onclick="sendMoney()"><i class="fas fa-paper-plane"></i> Send Money</button>
@@ -548,21 +546,21 @@
     <div id="bbcModal" class="modal">
         <div class="modal-content" style="max-width: 900px;">
             <div class="modal-header">
-                <h3><i class="fas fa-key"></i> BBC Codes Management - <span id="bbcUserName">User</span></h3>
+                <h3><i class="fas fa-key"></i> BBC Codes - <span id="bbcUserName">User</span></h3>
                 <button class="close-modal" onclick="closeModal('bbcModal')">&times;</button>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-filter"></i> Filter by Step:</label>
                 <select id="bbcStepFilter" onchange="filterBBCodes()" style="width: 100%;">
-                    <option value="all">📋 All Steps (1, 2, 3)</option>
-                    <option value="1">🔑 Step 1 - Currency Exchange / Initial Verification</option>
-                    <option value="2">🔒 Step 2 - Transfer Authorization / Second Check</option>
-                    <option value="3">🛡️ Step 3 - Final Security / Completion Code</option>
+                    <option value="all">📋 All Steps</option>
+                    <option value="1">🔑 Step 1 - Authorization</option>
+                    <option value="2">🔒 Step 2 - Security</option>
+                    <option value="3">🛡️ Step 3 - Final</option>
                 </select>
             </div>
             <div id="bbcCodesList" class="bbc-grid"></div>
             <div style="margin-top: 24px; display: flex; gap: 12px;">
-                <button class="btn-gold" style="flex:1;" onclick="openGenerateForUser()"><i class="fas fa-plus"></i> Generate New Codes</button>
+                <button class="btn-gold" style="flex:1;" onclick="openGenerateForUser()"><i class="fas fa-plus"></i> Generate New</button>
                 <button class="btn" style="flex:1; background: rgba(100,100,100,0.3);" onclick="closeModal('bbcModal')">Close</button>
             </div>
         </div>
@@ -580,53 +578,22 @@
                 <select id="bbcUserId" style="width:100%;"></select>
             </div>
             <div class="form-group">
-                <label><i class="fas fa-layer-group"></i> BBC Step</label>
+                <label><i class="fas fa-layer-group"></i> Step</label>
                 <select id="bbcStep">
-                    <option value="1">🔑 Step 1 - Currency Exchange / Initial</option>
-                    <option value="2">🔒 Step 2 - Transfer Authorization</option>
-                    <option value="3">🛡️ Step 3 - Final Security</option>
+                    <option value="1">🔑 Step 1 - Authorization</option>
+                    <option value="2">🔒 Step 2 - Security</option>
+                    <option value="3">🛡️ Step 3 - Final</option>
                 </select>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-hashtag"></i> Quantity</label>
-                <input type="number" id="bbcQuantity" value="10" min="1" max="100">
+                <input type="number" id="bbcQuantity" value="5" min="1" max="100">
             </div>
             <div class="form-group">
                 <label><i class="fas fa-calendar"></i> Expiry (days)</label>
                 <input type="number" id="bbcExpiryDays" value="30" min="1" max="365">
             </div>
-            <button class="btn" onclick="generateBBCodes()"><i class="fas fa-dice-d6"></i> Generate Codes</button>
-        </div>
-    </div>
-
-    <!-- Edit BBC Modal -->
-    <div id="editBBCModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3><i class="fas fa-edit"></i> Edit BBC Code</h3>
-                <button class="close-modal" onclick="closeModal('editBBCModal')">&times;</button>
-            </div>
-            <input type="hidden" id="editBbcId">
-            <div class="form-group">
-                <label><i class="fas fa-code"></i> BBC Code</label>
-                <input type="text" id="editBbcCode" placeholder="6-digit code" maxlength="6">
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-layer-group"></i> Step</label>
-                <select id="editBbcStep">
-                    <option value="1">Step 1 - Currency Exchange</option>
-                    <option value="2">Step 2 - Transfer Authorization</option>
-                    <option value="3">Step 3 - Final Security</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label><i class="fas fa-toggle-on"></i> Status</label>
-                <select id="editBbcStatus">
-                    <option value="false">✅ Active (Unused)</option>
-                    <option value="true">❌ Used (Inactive)</option>
-                </select>
-            </div>
-            <button class="btn" onclick="updateBBCode()"><i class="fas fa-save"></i> Update Code</button>
+            <button class="btn" onclick="generateBBCodes()"><i class="fas fa-dice-d6"></i> Generate</button>
         </div>
     </div>
 
@@ -667,8 +634,7 @@
             const filtered = users.filter(u => 
                 u.full_name?.toLowerCase().includes(search) || 
                 u.email?.toLowerCase().includes(search) || 
-                u.account_number?.toLowerCase().includes(search) ||
-                u.iban?.toLowerCase().includes(search)
+                u.account_number?.toLowerCase().includes(search)
             );
             renderUsers(filtered);
         }
@@ -678,6 +644,7 @@
             tbody.innerHTML = '';
             for (let u of userList) {
                 const isAdmin = u.is_admin;
+                const bbcCount = u.bbcCount || 0;
                 tbody.innerHTML += `
                     <tr>
                         <td>
@@ -693,6 +660,7 @@
                         <td class="${u.is_active ? 'status-active' : 'status-inactive'}">
                             <i class="fas ${u.is_active ? 'fa-check-circle' : 'fa-ban'}"></i> ${u.is_active ? 'Active' : 'Frozen'}
                         </td>
+                        <td><span class="btn-sm" onclick="viewBBCodes('${u.id}', '${u.full_name}')"><i class="fas fa-key"></i> ${bbcCount}</span></td>
                         <td>
                             <button class="btn-sm" onclick="openSendModal('${u.id}', '${u.full_name}', '${u.account_number}')">
                                 <i class="fas fa-paper-plane"></i> Send
@@ -702,12 +670,7 @@
                                 <i class="fas ${u.is_active ? 'fa-snowflake' : 'fa-play'}"></i> ${u.is_active ? 'Freeze' : 'Activate'}
                             </button>` : ''}
                             <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}')">
-                                <i class="fas fa-trash"></i> Delete
-                            </button>
-                        </td>
-                        <td>
-                            <button class="btn-sm" onclick="viewBBCodes('${u.id}', '${u.full_name}')">
-                                <i class="fas fa-key"></i> Manage (${u.bbcCount || 0})
+                                <i class="fas fa-trash"></i>
                             </button>
                         </td>
                     </tr>
@@ -733,7 +696,7 @@
                 <div class="stat-card">
                     <i class="fas fa-key"></i>
                     <div class="value">${totalBbc}</div>
-                    <div class="label">BBC Codes Generated</div>
+                    <div class="label">BBC Codes</div>
                 </div>
                 <div class="stat-card">
                     <i class="fas fa-user-check"></i>
@@ -748,11 +711,8 @@
             select.innerHTML = '';
             for (let u of users) {
                 if (!u.is_admin) {
-                    select.innerHTML += `<option value="${u.id}">${u.full_name} (${u.account_number}) - ${u.currency}</option>`;
+                    select.innerHTML += `<option value="${u.id}">${u.full_name} (${u.account_number})</option>`;
                 }
-            }
-            if (select.innerHTML === '') {
-                select.innerHTML = '<option value="">No users available</option>';
             }
         }
 
@@ -764,14 +724,13 @@
 
         async function sendMoney() {
             const userId = document.getElementById('sendUserId').value;
-            const senderName = document.getElementById('senderName').value;
             const amount = parseFloat(document.getElementById('sendAmount').value);
             const currency = document.getElementById('sendCurrency').value;
             const note = document.getElementById('sendNote').value;
             const user = users.find(u => u.id === userId);
 
-            if (!senderName || !amount || amount <= 0) {
-                Swal.fire('Error', 'Please fill all required fields correctly', 'error');
+            if (!amount || amount <= 0) {
+                Swal.fire('Error', 'Please enter a valid amount', 'error');
                 return;
             }
 
@@ -787,7 +746,7 @@
                         toAccountNumber: user.account_number,
                         amount,
                         currency,
-                        senderName,
+                        senderName: 'System Administrator',
                         note
                     })
                 });
@@ -810,20 +769,18 @@
             const user = users.find(u => u.id === userId);
             Swal.fire({
                 title: `Delete ${user.full_name}?`,
-                text: 'This will permanently delete the user and all their data!',
+                text: 'This is permanent! All user data will be lost.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#EF4444',
-                confirmButtonText: 'Yes, Delete Permanently'
+                confirmButtonText: 'Delete'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     showLoading(true);
                     try {
                         const res = await fetch(`${API_URL}/api/admin/users/${userId}`, {
                             method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            }
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                         });
                         const data = await res.json();
                         if (data.success) {
@@ -845,11 +802,10 @@
             const user = users.find(u => u.id === userId);
             Swal.fire({
                 title: `${user.is_active ? 'Freeze' : 'Activate'} ${user.full_name}?`,
-                text: user.is_active ? 'User will not be able to login or transact.' : 'User will regain full access.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: user.is_active ? '#EF4444' : '#10B981',
-                confirmButtonText: user.is_active ? 'Yes, Freeze' : 'Yes, Activate'
+                confirmButtonText: user.is_active ? 'Freeze' : 'Activate'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     showLoading(true);
@@ -864,7 +820,7 @@
                         });
                         const data = await res.json();
                         if (data.success) {
-                            Swal.fire('Success', `User ${user.is_active ? 'frozen' : 'activated'}`, 'success');
+                            Swal.fire('Success', data.message, 'success');
                             loadUsers();
                         } else {
                             Swal.fire('Error', data.error, 'error');
@@ -903,25 +859,24 @@
 
             const container = document.getElementById('bbcCodesList');
             if (filtered.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);"><i class="fas fa-key" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No BBC codes found. Generate some codes for this user.</div>';
+                container.innerHTML = '<div style="text-align:center; padding:60px; color:var(--text-secondary);"><i class="fas fa-key" style="font-size: 48px; margin-bottom: 16px; display: block;"></i>No BBC codes found.</div>';
                 return;
             }
 
             container.innerHTML = '';
             for (let code of filtered) {
                 const expiryDate = code.expires_at ? new Date(code.expires_at).toLocaleDateString() : 'No expiry';
-                const stepName = code.step == 1 ? 'Currency Exchange' : code.step == 2 ? 'Transfer Auth' : 'Final Security';
+                const stepName = code.step == 1 ? 'Authorization' : code.step == 2 ? 'Security' : 'Final';
                 const stepIcon = code.step == 1 ? '🔑' : code.step == 2 ? '🔒' : '🛡️';
                 const statusClass = code.is_used ? 'status-used' : 'status-unused';
                 const statusText = code.is_used ? 'USED' : 'ACTIVE';
-                const statusIcon = code.is_used ? '❌' : '✅';
 
                 container.innerHTML += `
                     <div class="bbc-code-item">
                         <div class="bbc-code-number">${code.code}</div>
-                        <div class="bbc-step">${stepIcon} Step ${code.step} - ${stepName}</div>
+                        <div class="bbc-step">${stepIcon} Step ${code.step}</div>
                         <div class="bbc-expiry"><i class="fas fa-calendar"></i> ${expiryDate}</div>
-                        <div class="bbc-status ${statusClass}">${statusIcon} ${statusText}</div>
+                        <div class="bbc-status ${statusClass}">${statusText}</div>
                     </div>
                 `;
             }
@@ -965,7 +920,7 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Generated!',
-                        html: `${data.codes.length} BBC codes generated for Step ${step}<br><small>Expires in ${expiryDays} days</small>`,
+                        html: `${data.codes.length} BBC codes generated`,
                         confirmButtonColor: '#C6A43F'
                     });
                     closeModal('generateBBCModal');
@@ -980,6 +935,8 @@
                 showLoading(false);
             }
         }
+
+        function refreshUsers() { loadUsers(); }
 
         async function loadUsers() {
             showLoading(true);
@@ -1021,7 +978,6 @@
             window.location.href = '/';
         }
 
-        // Check if token exists
         if (!localStorage.getItem('token')) {
             window.location.href = '/';
         }
