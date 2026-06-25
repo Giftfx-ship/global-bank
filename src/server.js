@@ -280,8 +280,7 @@ const sendTestEmail = async () => {
               <strong>📋 Server Details:</strong><br>
               • Time: ${new Date().toLocaleString()}<br>
               • Environment: ${process.env.NODE_ENV || 'production'}<br>
-              • URL: https://prime-heritage-bank.onrender.com<br>
-              • Receipt System: ✅ Active
+              • URL: https://prime-heritage-bank.onrender.com
             </div>
             <div class="admin-box">
               <strong>👑 Admin Access:</strong><br>
@@ -316,46 +315,81 @@ transporter.verify((error) => {
 const generateWelcomeEmailHTML = (userData) => {
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to Prime Heritage Bank</title>
       <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0A0E1A; padding: 20px; }
-        .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; padding: 30px; border: 1px solid rgba(198,164,63,0.15); }
-        .header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px; text-align: center; border-radius: 16px 16px 0 0; margin: -30px -30px 20px -30px; border-bottom: 3px solid #C6A43F; }
-        .header h1 { color: white; margin: 0; font-size: 28px; }
-        .header .gold { color: #C6A43F; }
-        .content { padding: 20px 0; }
-        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
-        .feature { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border-left: 3px solid #C6A43F; }
-        .feature .icon { font-size: 24px; }
-        .feature .label { font-weight: 700; color: #FFFFFF; font-size: 13px; }
-        .feature .desc { color: rgba(255,255,255,0.4); font-size: 11px; }
-        .btn { display: inline-block; background: #C6A43F; color: #0A0E1A; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 700; }
-        .footer { margin-top: 20px; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0A0E1A; margin: 0; padding: 20px; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; overflow: hidden; box-shadow: 0 25px 60px rgba(0,0,0,0.5); border: 1px solid rgba(198, 164, 63, 0.15); }
+        .header { background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%); padding: 40px 30px 30px; text-align: center; position: relative; border-bottom: 1px solid rgba(198, 164, 63, 0.2); }
+        .header::after { content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 3px; background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F); background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .header .logo-icon { font-size: 48px; }
+        .header h1 { color: #FFFFFF; margin: 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; }
+        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { color: rgba(255,255,255,0.5); font-size: 13px; margin-top: 6px; letter-spacing: 3px; text-transform: uppercase; font-weight: 300; }
+        .content { padding: 40px 35px; background: #0F1622; }
+        .greeting { font-size: 24px; font-weight: 700; color: #FFFFFF; margin-bottom: 6px; }
+        .greeting .highlight { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .greeting .wave { display: inline-block; animation: wave 2s infinite; }
+        @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(20deg); } 75% { transform: rotate(-10deg); } }
+        .message { color: rgba(255,255,255,0.7); line-height: 1.8; font-size: 15px; margin: 16px 0 24px; }
+        .message strong { color: #FFFFFF; font-weight: 600; }
+        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 24px 0; }
+        .feature { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 16px 18px; border-radius: 16px; }
+        .feature .icon { font-size: 28px; display: block; margin-bottom: 6px; }
+        .feature .label { font-weight: 700; color: #FFFFFF; font-size: 13px; display: block; }
+        .feature .desc { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
+        .account-details { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); border-radius: 16px; padding: 20px 24px; margin: 24px 0; }
+        .account-details .title { color: rgba(255,255,255,0.3); font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin: 0 0 12px 0; font-weight: 600; }
+        .account-details .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 14px; }
+        .account-details .row:last-child { border-bottom: none; }
+        .account-details .label { color: rgba(255,255,255,0.4); }
+        .account-details .value { color: #FFFFFF; font-weight: 600; font-family: 'Courier New', monospace; }
+        .account-details .value.gold { color: #C6A43F; }
+        .btn-primary { display: inline-block; background: linear-gradient(135deg, #C6A43F, #9E8032); color: #0A0E1A; padding: 14px 40px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; margin: 10px 0 5px; box-shadow: 0 4px 15px rgba(198,164,63,0.3); }
+        .btn-secondary { display: inline-block; background: transparent; color: rgba(255,255,255,0.7); padding: 12px 30px; text-decoration: none; border-radius: 12px; font-weight: 500; font-size: 14px; border: 1px solid rgba(255,255,255,0.1); margin: 5px 0; }
+        .text-center { text-align: center; }
+        .footer { background: rgba(255,255,255,0.02); padding: 30px 35px; text-align: center; border-top: 1px solid rgba(255,255,255,0.05); }
+        .footer p { color: rgba(255,255,255,0.3); font-size: 12px; margin: 4px 0; line-height: 1.6; }
+        .footer .brand { color: rgba(255,255,255,0.5); font-weight: 600; }
+        @media (max-width: 480px) { .features { grid-template-columns: 1fr; } .content { padding: 25px 20px; } .header h1 { font-size: 22px; } .greeting { font-size: 20px; } .account-details .row { flex-direction: column; padding: 10px 0; gap: 4px; } }
       </style>
     </head>
     <body>
       <div class="container">
         <div class="header">
-          <h1>🏦 Prime Heritage <span class="gold">Bank</span></h1>
-          <p style="color: rgba(255,255,255,0.5);">INTERNATIONAL BANKING</p>
+          <div class="logo-icon">🏦</div>
+          <h1>Prime Heritage <span class="gold">Bank</span></h1>
+          <div class="subtitle">INTERNATIONAL BANKING</div>
         </div>
         <div class="content">
-          <h2 style="color: white;">Hello, ${userData.full_name}! 👋</h2>
-          <p style="color: rgba(255,255,255,0.7);">Welcome to Prime Heritage International Bank! Your account has been successfully created.</p>
+          <div class="greeting"><span class="wave">👋</span> Hello, <span class="highlight">${userData.full_name}</span>!</div>
+          <div class="message"><strong>Welcome to Prime Heritage International Bank!</strong><br>Your global banking journey begins now. We're thrilled to have you join our community of international banking. Your account has been successfully created.</div>
+          <div class="account-details">
+            <div class="title">📋 Account Summary</div>
+            <div class="row"><span class="label">Account Holder</span><span class="value">${userData.full_name}</span></div>
+            <div class="row"><span class="label">Email Address</span><span class="value">${userData.email}</span></div>
+            <div class="row"><span class="label">Account Level</span><span class="value gold">${userData.account_level || 'Standard'}</span></div>
+            <div class="row"><span class="label">Status</span><span class="value" style="color: #34D399;">✓ Active</span></div>
+          </div>
           <div class="features">
             <div class="feature"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD, EUR, GBP, NGN</span></div>
             <div class="feature"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa & Mastercard</span></div>
             <div class="feature"><span class="icon">🔐</span><span class="label">BBC Security</span><span class="desc">3-Step Verification</span></div>
             <div class="feature"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT & SEPA Ready</span></div>
           </div>
-          <div style="text-align: center;">
-            <a href="https://prime-heritage-bank.onrender.com/dashboard.html" class="btn">🚀 Go to Dashboard</a>
+          <div class="text-center">
+            <a href="https://prime-heritage-bank.onrender.com/dashboard.html" class="btn-primary">🚀 Go to Dashboard</a>
+            <br>
+            <a href="https://prime-heritage-bank.onrender.com/login.html" class="btn-secondary">🔐 Sign In</a>
           </div>
         </div>
         <div class="footer">
-          <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
-          <p>Sent to ${userData.email}</p>
+          <p>© ${new Date().getFullYear()} <span class="brand">Prime Heritage International Bank</span>. All rights reserved.</p>
+          <p>This email was sent to <strong style="color: rgba(255,255,255,0.4);">${userData.email}</strong></p>
         </div>
       </div>
     </body>
@@ -363,18 +397,21 @@ const generateWelcomeEmailHTML = (userData) => {
   `;
 };
 
+// ==================== SEND WELCOME EMAIL ====================
 const sendWelcomeEmail = async (userData) => {
   try {
     const html = generateWelcomeEmailHTML(userData);
     await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: userData.email,
-      subject: '🎉 Welcome to Prime Heritage Bank!',
-      html
+      subject: '🎉 Welcome to Prime Heritage International Bank!',
+      html: html
     });
     log.email('✅ Welcome email sent to:', userData.email);
+    return true;
   } catch (error) {
-    log.error('Welcome email failed:', error);
+    log.error('❌ Welcome email failed:', error);
+    return false;
   }
 };
 
@@ -401,12 +438,8 @@ const generateReceiptHTML = (transaction, user) => {
     pending: '#F59E0B',
     failed: '#EF4444'
   };
-  const statusIcons = {
-    completed: '✅',
-    pending: '⏳',
-    failed: '❌'
-  };
   const transactionDate = new Date(transaction.created_at || transaction.completed_at || Date.now());
+  
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -461,7 +494,7 @@ const generateReceiptHTML = (transaction, user) => {
           <div class="watermark">RECEIPT</div>
         </div>
         <div class="receipt-body">
-          <div class="status-badge">${statusIcons[transaction.status] || '✅'} ${(transaction.status || 'completed').toUpperCase()}</div>
+          <div class="status-badge">✅ ${(transaction.status || 'completed').toUpperCase()}</div>
           <div class="transaction-type">
             <span class="icon">${typeIcons[transaction.type] || '💳'}</span>
             <div class="type-label">${typeNames[transaction.type] || 'Transaction'}</div>
@@ -487,42 +520,6 @@ const generateReceiptHTML = (transaction, user) => {
     </body>
     </html>
   `;
-};
-
-// ==================== SEND RECEIPT EMAIL ====================
-const sendReceiptEmail = async (transaction, user) => {
-  try {
-    const html = generateReceiptHTML(transaction, user);
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
-      to: user.email,
-      subject: `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
-      html: html
-    });
-    log.email('✅ Receipt email sent to:', user.email);
-    return true;
-  } catch (error) {
-    log.error('Receipt email failed:', error);
-    return false;
-  }
-};
-
-const generateAndSendReceipt = async (transaction, userId) => {
-  try {
-    const user = db.users.find(u => u.id === userId);
-    if (user) {
-      await sendReceiptEmail(transaction, user);
-      db.receipts.push({
-        id: uuidv4(),
-        transaction_id: transaction.id,
-        reference: transaction.reference,
-        user_id: userId,
-        generated_at: new Date().toISOString()
-      });
-    }
-  } catch (error) {
-    log.error('Generate receipt error:', error);
-  }
 };
 
 // ==================== AUTH MIDDLEWARE ====================
@@ -551,25 +548,6 @@ const adminMiddleware = (req, res, next) => {
   next();
 };
 
-// ==================== MIDDLEWARE ====================
-app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
-app.use(cors({ origin: '*', credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(express.static(path.join(__dirname, 'public')));
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { error: 'Too many requests, try again later.' }
-});
-app.use('/api', limiter);
-
-// ==================== CONSTANTS ====================
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
-const JWT_EXPIRE = '7d';
-const BBC_EXPIRY_MINUTES = 15;
-
 // ==================== COMPLETE TRANSACTION ====================
 const completeTransaction = async (transaction, req, res) => {
   try {
@@ -591,7 +569,14 @@ const completeTransaction = async (transaction, req, res) => {
       db.transactions.push(completedTx);
       db.pendingTransactions = db.pendingTransactions.filter(t => t.reference !== transaction.reference);
       
-      await generateAndSendReceipt(completedTx, req.user.id);
+      // Store receipt (no email)
+      db.receipts.push({
+        id: uuidv4(),
+        transaction_id: completedTx.id,
+        reference: completedTx.reference,
+        user_id: req.user.id,
+        generated_at: new Date().toISOString()
+      });
       
       return { success: true, newBalance: fromAccount.balance, transaction: completedTx };
     }
@@ -601,6 +586,25 @@ const completeTransaction = async (transaction, req, res) => {
     return { success: false, error: error.message };
   }
 };
+
+// ==================== MIDDLEWARE ====================
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(cors({ origin: '*', credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, try again later.' }
+});
+app.use('/api', limiter);
+
+// ==================== CONSTANTS ====================
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
+const JWT_EXPIRE = '7d';
+const BBC_EXPIRY_MINUTES = 15;
 
 // ==================== SERVE HTML PAGES ====================
 const servePage = (page) => {
@@ -694,6 +698,7 @@ app.post('/api/auth/register', async (req, res) => {
     db.users.push(user);
     log.success('User created:', user.email);
 
+    // Create accounts with $0 balance
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
     for (const currency of currencies) {
       const account = {
@@ -712,7 +717,10 @@ app.post('/api/auth/register', async (req, res) => {
       db.accounts.push(account);
     }
 
-    sendWelcomeEmail(user);
+    // Send welcome email (non-blocking)
+    sendWelcomeEmail(user).catch(err => {
+      log.error('Welcome email failed:', err);
+    });
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
@@ -1012,7 +1020,7 @@ app.get('/api/support', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== RECEIPT ROUTES ====================
+// ==================== RECEIPT ROUTE ====================
 app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
     const { reference } = req.params;
@@ -1040,33 +1048,9 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   }
 });
 
-app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const { reference } = req.params;
-    
-    const transaction = db.transactions.find(t => t.reference === reference);
-    if (!transaction) {
-      return res.status(404).json({ error: 'Receipt not found' });
-    }
-    
-    const user = db.users.find(u => u.id === transaction.from_user_id || u.id === transaction.to_user_id);
-    const html = generateReceiptHTML(transaction, user);
-    
-    res.json({
-      success: true,
-      html: html,
-      transaction: transaction,
-      user: user ? { email: user.email, full_name: user.full_name } : null
-    });
-  } catch (error) {
-    log.error('Admin get receipt error:', error);
-    res.status(500).json({ error: 'Failed to get receipt' });
-  }
-});
-
 // ==================== BBC SECURED TRANSACTIONS ====================
 
-// 1. SEND MONEY
+// === 1. SEND MONEY ===
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
@@ -1268,7 +1252,7 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// 2. AIRTIME
+// === 2. AIRTIME ===
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
@@ -1459,7 +1443,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// 3. BILLS
+// === 3. BILLS ===
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
@@ -1651,7 +1635,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// 4. DATA
+// === 4. DATA ===
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
@@ -1844,7 +1828,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// 5. WITHDRAW
+// === 5. WITHDRAW ===
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
@@ -2078,6 +2062,23 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
+app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = db.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    if (user.id === req.user.id) {
+      return res.status(400).json({ error: 'Cannot modify your own status' });
+    }
+    user.is_active = !user.is_active;
+    res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'frozen'}` });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to toggle user status' });
+  }
+});
+
 app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const userId = req.params.id;
@@ -2085,12 +2086,11 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     if (userIndex === -1) {
       return res.status(404).json({ error: 'User not found' });
     }
-    
     const user = db.users[userIndex];
     if (user.id === req.user.id) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
-    
+    // Remove all user data
     db.accounts = db.accounts.filter(a => a.user_id !== userId);
     db.transactions = db.transactions.filter(t => t.from_user_id !== userId && t.to_user_id !== userId);
     db.cards = db.cards.filter(c => c.user_id !== userId);
@@ -2103,31 +2103,9 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     db.withdrawHistory = db.withdrawHistory.filter(w => w.user_id !== userId);
     db.receipts = db.receipts.filter(r => r.user_id !== userId);
     db.users.splice(userIndex, 1);
-    
-    log.admin(`User deleted: ${user.email}`);
     res.json({ success: true, message: `User ${user.full_name} deleted` });
   } catch (error) {
-    log.error('Admin delete user error:', error);
     res.status(500).json({ error: 'Failed to delete user' });
-  }
-});
-
-app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const user = db.users.find(u => u.id === userId);
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    if (user.id === req.user.id) {
-      return res.status(400).json({ error: 'Cannot modify your own status' });
-    }
-    user.is_active = !user.is_active;
-    log.admin(`User ${user.email} status toggled to: ${user.is_active ? 'Active' : 'Frozen'}`);
-    res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'frozen'}` });
-  } catch (error) {
-    log.error('Admin toggle status error:', error);
-    res.status(500).json({ error: 'Failed to toggle user status' });
   }
 });
 
@@ -2136,7 +2114,6 @@ app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, r
     const bbcCodes = db.bbcCodes.filter(b => b.user_id === req.params.userId);
     res.json(bbcCodes);
   } catch (error) {
-    log.error('Admin get BBC codes error:', error);
     res.status(500).json({ error: 'Failed to get BBC codes' });
   }
 });
@@ -2172,10 +2149,8 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
       codes.push(bbc);
     }
     
-    log.admin(`Generated ${codes.length} BBC codes for user ${user.email}`);
     res.json({ success: true, message: `Generated ${codes.length} BBC codes`, codes });
   } catch (error) {
-    log.error('Admin generate BBC error:', error);
     res.status(500).json({ error: 'Failed to generate BBC codes' });
   }
 });
@@ -2196,11 +2171,10 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       return res.status(404).json({ error: 'Recipient user not found' });
     }
     
-    const adminAccount = db.accounts.find(a => 
+    let fromAccount = db.accounts.find(a => 
       a.user_id === req.user.id && a.currency === currency
     );
     
-    let fromAccount = adminAccount;
     if (!fromAccount) {
       const newAccount = {
         id: uuidv4(),
@@ -2217,7 +2191,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       };
       db.accounts.push(newAccount);
       fromAccount = newAccount;
-      log.admin(`Created new ${currency} account for admin`);
     }
     
     const reference = generateReference();
@@ -2241,26 +2214,18 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     db.transactions.push(transaction);
     toAccount.balance += amount;
     
-    db.auditLogs.push({
+    // Store receipt
+    db.receipts.push({
       id: uuidv4(),
-      admin_id: req.user.id,
-      admin_email: req.user.email,
-      action: 'admin_send',
-      recipient_email: recipient.email,
-      amount,
-      currency,
-      sender_name: senderName || 'System Administrator',
-      reference,
-      timestamp: new Date().toISOString()
+      transaction_id: transaction.id,
+      reference: transaction.reference,
+      user_id: recipient.id,
+      generated_at: new Date().toISOString()
     });
-    
-    await generateAndSendReceipt(transaction, recipient.id);
-    
-    log.admin(`✅ Admin transfer completed: ${amount} ${currency} to ${recipient.email} (${senderName})`);
     
     res.json({
       success: true,
-      message: `Sent ${amount} ${currency} to ${recipient.full_name} (${recipient.email}) from ${senderName || 'System Administrator'}`,
+      message: `Sent ${amount} ${currency} to ${recipient.full_name}`,
       transaction: {
         reference,
         amount,
@@ -2295,7 +2260,6 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
     };
     res.json(stats);
   } catch (error) {
-    log.error('Admin stats error:', error);
     res.status(500).json({ error: 'Failed to get stats' });
   }
 });
