@@ -355,6 +355,18 @@
             margin-bottom: 20px;
         }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .profile-card { padding: 24px; }
@@ -375,7 +387,8 @@
     <div class="top-bar">
         <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage Bank</span>
+            <span>Prime Heritage</span>
+            <span class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step</span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
@@ -488,7 +501,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let userData = null;
 
         function setTheme(theme) {
@@ -522,20 +535,24 @@
             try {
                 const token = localStorage.getItem('token');
                 if (!token) { window.location.href = '/'; return; }
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.status === 401) { logout(); return; }
                 userData = await res.json();
                 const user = userData.user;
-                document.getElementById('profileName').innerHTML = user.fullName || user.firstName + ' ' + user.lastName;
+                
+                // Get primary account
+                const primaryAccount = user.accounts?.find(a => a.is_primary) || user.accounts?.[0];
+                
+                document.getElementById('profileName').innerHTML = user.full_name || user.first_name + ' ' + user.last_name;
                 document.getElementById('profileEmail').innerHTML = user.email;
-                document.getElementById('accountNumber').innerHTML = user.accountNumber || '—';
-                document.getElementById('iban').innerHTML = user.iban || '—';
-                document.getElementById('swiftCode').innerHTML = user.swiftCode || '—';
+                document.getElementById('accountNumber').innerHTML = primaryAccount?.account_number || '—';
+                document.getElementById('iban').innerHTML = primaryAccount?.iban || '—';
+                document.getElementById('swiftCode').innerHTML = primaryAccount?.swift_code || '—';
                 document.getElementById('phoneNumber').innerHTML = user.phone || '—';
                 document.getElementById('currency').innerHTML = user.currency || 'USD';
-                document.getElementById('memberSince').innerHTML = user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
+                document.getElementById('memberSince').innerHTML = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
             } catch(e) { console.error(e); }
         }
 
@@ -559,7 +576,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/update-password`, {
+                const res = await fetch(`${API_URL}/api/auth/update-password`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -596,7 +613,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/update-pin`, {
+                const res = await fetch(`${API_URL}/api/auth/update-pin`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -626,9 +643,7 @@
                 showCancelButton: true,
                 confirmButtonColor: '#EF4444',
                 cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Logout',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#111827' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                confirmButtonText: 'Yes, Logout'
             }).then((result) => {
                 if (result.isConfirmed) { logout(); }
             });
@@ -642,9 +657,7 @@
                 showCancelButton: true,
                 confirmButtonColor: '#DC2626',
                 cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Delete My Account',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#111827' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                confirmButtonText: 'Yes, Delete My Account'
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire('Account Deleted', 'Your account has been removed.', 'info');
