@@ -466,6 +466,18 @@
             font-size: 14px;
             letter-spacing: 2px;
         }
+
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
         
         @media (max-width: 500px) {
             .container { padding: 16px; }
@@ -490,7 +502,7 @@
     <div class="top-bar">
         <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage Bank</span>
+            <span>Prime Heritage</span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
@@ -512,6 +524,7 @@
             <div class="title">
                 <h2><i class="fas fa-wifi"></i> Buy Data Bundle</h2>
                 <p>Stay connected with our data plans</p>
+                <div class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step Verification</div>
             </div>
             
             <div class="info-box">
@@ -521,7 +534,6 @@
                 </div>
             </div>
             
-            <!-- Step 1 Form -->
             <div id="step1Form">
                 <div class="form-group">
                     <label><i class="fas fa-signal"></i> Select Network</label>
@@ -571,7 +583,6 @@
                 </button>
             </div>
             
-            <!-- BBC Security Steps -->
             <div id="codeForm" style="display: none;">
                 <div id="codeStep1">
                     <div class="security-step">
@@ -650,7 +661,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let currentRef = null;
         let selectedPlan = null;
         
@@ -777,7 +788,7 @@
             
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/data/step1`, {
+                const res = await fetch(`${API_URL}/api/data/step1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -824,7 +835,7 @@
             
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/data/step2`, {
+                const res = await fetch(`${API_URL}/api/data/step2`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -859,7 +870,7 @@
             
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/data/step3`, {
+                const res = await fetch(`${API_URL}/api/data/step3`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -894,7 +905,7 @@
             
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/data/step4`, {
+                const res = await fetch(`${API_URL}/api/data/step4`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -934,7 +945,7 @@
         
         async function loadBalance() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) {
@@ -942,10 +953,11 @@
                     return;
                 }
                 const data = await res.json();
-                const balance = data.totalBalance || 0;
-                const currency = data.user.currency || 'USD';
-                document.getElementById('userBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
-                document.getElementById('headerBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
+                const user = data.user;
+                const totalBalance = user.totalBalance || 0;
+                const currency = user.currency || 'USD';
+                document.getElementById('userBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
+                document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
             } catch(e) {
                 console.error(e);
             }
@@ -953,6 +965,12 @@
         
         // Initialize
         selectNetwork('MTN');
+        
+        const token = localStorage.getItem('token');
+        if (!token && window.location.pathname !== '/') {
+            window.location.href = '/';
+        }
+        
         loadBalance();
     </script>
 </body>
