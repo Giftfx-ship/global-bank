@@ -74,35 +74,19 @@
             z-index: 0;
         }
 
-        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
 
-        /* ===== ANIMATIONS ===== */
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
-        @keyframes countUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
 
-        /* ============================================================
-                   TOP BAR
-                   ============================================================ */
+        /* ===== TOP BAR ===== */
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -218,9 +202,7 @@
         .avatar-top:hover { transform: scale(1.08) rotate(3deg); }
         .avatar-top i { color: #0A0E1A; font-size: 18px; }
 
-        /* ============================================================
-                   CONTAINER
-                   ============================================================ */
+        /* ===== CONTAINER ===== */
         .container {
             max-width: 1400px;
             margin: 0 auto;
@@ -229,9 +211,7 @@
             z-index: 1;
         }
 
-        /* ============================================================
-                   WELCOME SECTION
-                   ============================================================ */
+        /* ===== WELCOME ===== */
         .welcome-section {
             display: flex;
             justify-content: space-between;
@@ -270,9 +250,7 @@
         }
         .welcome-date i { color: var(--gold); }
 
-        /* ============================================================
-                   ACCOUNT INFO CARD
-                   ============================================================ */
+        /* ===== ACCOUNT INFO ===== */
         .account-info-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -330,9 +308,7 @@
             transform: scale(1.03);
         }
 
-        /* ============================================================
-                   STATS GRID
-                   ============================================================ */
+        /* ===== STATS ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -409,9 +385,7 @@
             margin-top: 4px;
         }
 
-        /* ============================================================
-                   QUICK ACTIONS
-                   ============================================================ */
+        /* ===== QUICK ACTIONS ===== */
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(8, 1fr);
@@ -429,14 +403,6 @@
             transition: all 0.3s;
             animation: slideUp 0.5s ease backwards;
         }
-        .action-card:nth-child(1) { animation-delay: 0.05s; }
-        .action-card:nth-child(2) { animation-delay: 0.08s; }
-        .action-card:nth-child(3) { animation-delay: 0.11s; }
-        .action-card:nth-child(4) { animation-delay: 0.14s; }
-        .action-card:nth-child(5) { animation-delay: 0.17s; }
-        .action-card:nth-child(6) { animation-delay: 0.2s; }
-        .action-card:nth-child(7) { animation-delay: 0.23s; }
-        .action-card:nth-child(8) { animation-delay: 0.26s; }
         .action-card:hover {
             border-color: var(--gold);
             transform: translateY(-5px);
@@ -456,16 +422,13 @@
             color: var(--text-secondary);
         }
 
-        /* ============================================================
-                   TWO COLUMN LAYOUT
-                   ============================================================ */
+        /* ===== TWO COLUMN ===== */
         .two-column {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: 24px;
             margin-bottom: 24px;
         }
-
         .card-panel {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -475,8 +438,6 @@
             transition: all 0.3s;
             animation: slideUp 0.5s ease backwards;
         }
-        .card-panel:first-child { animation-delay: 0.1s; }
-        .card-panel:last-child { animation-delay: 0.15s; }
         .card-panel:hover { border-color: var(--gold); }
 
         .panel-header {
@@ -506,9 +467,7 @@
             transform: translateX(3px);
         }
 
-        /* ============================================================
-                   TRANSACTIONS
-                   ============================================================ */
+        /* ===== TRANSACTIONS ===== */
         .transaction-item {
             display: flex;
             align-items: center;
@@ -558,9 +517,7 @@
         .amount-positive { color: var(--success); }
         .amount-negative { color: var(--error); }
 
-        /* ============================================================
-                   BANK CARDS
-                   ============================================================ */
+        /* ===== CARDS ===== */
         .bank-card {
             background: linear-gradient(135deg, var(--card-bg), var(--bg-body));
             border-radius: 18px;
@@ -572,14 +529,6 @@
             overflow: hidden;
         }
         .bank-card:last-child { margin-bottom: 0; }
-        .bank-card::after {
-            content: '💳';
-            position: absolute;
-            bottom: 8px;
-            right: 12px;
-            font-size: 36px;
-            opacity: 0.06;
-        }
         .bank-card:hover {
             transform: translateY(-3px);
             border-color: var(--gold);
@@ -638,9 +587,7 @@
             transform: scale(1.05);
         }
 
-        /* ============================================================
-                   EXCHANGE RATES
-                   ============================================================ */
+        /* ===== RATES ===== */
         .rate-item {
             display: flex;
             justify-content: space-between;
@@ -678,17 +625,13 @@
         }
         .rate-time i { margin-right: 6px; }
 
-        /* ============================================================
-                   CHART
-                   ============================================================ */
+        /* ===== CHART ===== */
         .chart-container {
             height: 160px;
             margin-top: 12px;
         }
 
-        /* ============================================================
-                   EMPTY STATE
-                   ============================================================ */
+        /* ===== EMPTY STATE ===== */
         .empty-state {
             text-align: center;
             padding: 30px 20px;
@@ -700,11 +643,8 @@
             display: block;
             opacity: 0.4;
         }
-        .empty-state p { font-size: 14px; }
 
-        /* ============================================================
-                   BOTTOM NAV
-                   ============================================================ */
+        /* ===== BOTTOM NAV ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -744,9 +684,7 @@
         .nav-item.active span { color: var(--gold); }
         .nav-item:hover { transform: translateY(-3px); }
 
-        /* ============================================================
-                   LOADING OVERLAY
-                   ============================================================ */
+        /* ===== LOADING ===== */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -776,19 +714,10 @@
             letter-spacing: 2px;
         }
 
-        /* ============================================================
-                   RESPONSIVE
-                   ============================================================ */
         @media (max-width: 1200px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-            .quick-actions {
-                grid-template-columns: repeat(4, 1fr);
-            }
-            .two-column {
-                grid-template-columns: 1fr;
-            }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .quick-actions { grid-template-columns: repeat(4, 1fr); }
+            .two-column { grid-template-columns: 1fr; }
         }
 
         @media (max-width: 768px) {
@@ -806,10 +735,7 @@
             .account-info-card .copy-btn { width: 100%; justify-content: center; }
             .stats-grid { grid-template-columns: 1fr; gap: 12px; }
             .stat-value { font-size: 22px; }
-            .quick-actions {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 10px;
-            }
+            .quick-actions { grid-template-columns: repeat(4, 1fr); gap: 10px; }
             .action-card { padding: 14px 8px; }
             .action-card i { font-size: 20px; }
             .action-card span { font-size: 10px; }
@@ -821,24 +747,11 @@
             .welcome-text h2 { font-size: 22px; }
             .stat-card { padding: 16px; }
         }
-
-        @media (max-width: 480px) {
-            .quick-actions {
-                grid-template-columns: repeat(4, 1fr);
-                gap: 8px;
-            }
-            .action-card { padding: 10px 6px; }
-            .action-card i { font-size: 18px; margin-bottom: 4px; }
-            .action-card span { font-size: 9px; }
-            .balance-pill { display: none; }
-        }
     </style>
 </head>
 <body data-theme="dark">
 
-    <!-- ============================================================
-    TOP BAR
-    ============================================================ -->
+    <!-- TOP BAR -->
     <div class="top-bar">
         <div class="logo" onclick="location.reload()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
@@ -860,12 +773,10 @@
         </div>
     </div>
 
-    <!-- ============================================================
-    MAIN CONTAINER
-    ============================================================ -->
+    <!-- MAIN CONTAINER -->
     <div class="container">
 
-        <!-- ===== WELCOME SECTION ===== -->
+        <!-- WELCOME -->
         <div class="welcome-section">
             <div class="welcome-text">
                 <h2>Welcome back, <span class="highlight" id="userName">User</span> 👋</h2>
@@ -877,7 +788,7 @@
             </div>
         </div>
 
-        <!-- ===== ACCOUNT INFO ===== -->
+        <!-- ACCOUNT INFO -->
         <div class="account-info-card">
             <div class="account-detail">
                 <div class="account-label"><i class="fas fa-hashtag"></i> Account Number</div>
@@ -896,12 +807,10 @@
             </button>
         </div>
 
-        <!-- ===== STATS GRID ===== -->
-        <div class="stats-grid" id="statsGrid">
-            <!-- Populated by JavaScript -->
-        </div>
+        <!-- STATS -->
+        <div class="stats-grid" id="statsGrid"></div>
 
-        <!-- ===== QUICK ACTIONS ===== -->
+        <!-- QUICK ACTIONS -->
         <div class="quick-actions">
             <div class="action-card" onclick="goToSend()"><i class="fas fa-paper-plane"></i><span>Send</span></div>
             <div class="action-card" onclick="goToWithdraw()"><i class="fas fa-university"></i><span>Withdraw</span></div>
@@ -913,64 +822,46 @@
             <div class="action-card" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
         </div>
 
-        <!-- ===== TWO COLUMN: TRANSACTIONS + CARDS ===== -->
+        <!-- TWO COLUMN -->
         <div class="two-column">
-            <!-- Recent Transactions -->
             <div class="card-panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-history"></i> Recent Transactions</h3>
                     <a onclick="goToTransactions()">View All →</a>
                 </div>
-                <div id="recentTransactions">
-                    <div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading transactions...</p></div>
-                </div>
+                <div id="recentTransactions"><div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading transactions...</p></div></div>
             </div>
-
-            <!-- My Cards -->
             <div class="card-panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-credit-card"></i> My Cards</h3>
                     <a onclick="goToCards()">Manage →</a>
                 </div>
-                <div id="cardsList">
-                    <div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading cards...</p></div>
-                </div>
+                <div id="cardsList"><div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading cards...</p></div></div>
             </div>
         </div>
 
-        <!-- ===== TWO COLUMN: CHART + EXCHANGE RATES ===== -->
+        <!-- SECOND TWO COLUMN -->
         <div class="two-column">
-            <!-- Spending Chart -->
             <div class="card-panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-chart-pie"></i> Spending Overview</h3>
                     <a onclick="refreshStats()"><i class="fas fa-sync-alt"></i></a>
                 </div>
-                <div class="chart-container">
-                    <canvas id="spendingChart"></canvas>
-                </div>
+                <div class="chart-container"><canvas id="spendingChart"></canvas></div>
                 <div id="spendingInsights" style="margin-top:12px;"></div>
             </div>
-
-            <!-- Live Exchange Rates -->
             <div class="card-panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-globe"></i> Live Exchange Rates</h3>
                     <a onclick="fetchLiveRates()"><i class="fas fa-sync-alt"></i> Update</a>
                 </div>
-                <div id="exchangeRates">
-                    <div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading rates...</p></div>
-                </div>
-                <div class="rate-time">
-                    <i class="fas fa-clock"></i> Last updated: <span id="rateUpdateTime">Just now</span>
-                </div>
+                <div id="exchangeRates"><div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading rates...</p></div></div>
+                <div class="rate-time"><i class="fas fa-clock"></i> Last updated: <span id="rateUpdateTime">Just now</span></div>
             </div>
         </div>
     </div>
 
-    <!-- ============================================================
-    BOTTOM NAV
-    ============================================================ -->
+    <!-- BOTTOM NAV -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
         <div class="nav-item" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
@@ -979,17 +870,12 @@
         <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
     </div>
 
-    <!-- ============================================================
-    LOADING OVERLAY
-    ============================================================ -->
+    <!-- LOADING -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
         <div class="loader-text">Loading your data...</div>
     </div>
 
-    <!-- ============================================================
-    JAVASCRIPT
-    ============================================================ -->
     <script>
         // ============================================================
         // CONFIGURATION
@@ -1066,7 +952,6 @@
                     color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                 });
             }).catch(() => {
-                // Fallback
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
@@ -1118,7 +1003,7 @@
         // RENDER DASHBOARD
         // ============================================================
         function renderDashboard() {
-            // ---- Welcome ----
+            // Welcome
             const hour = new Date().getHours();
             const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
             const firstName = currentUser.first_name || currentUser.full_name?.split(' ')[0] || 'User';
@@ -1127,8 +1012,7 @@
             const lastLogin = currentUser.last_login ? new Date(currentUser.last_login).toLocaleString() : 'First time today';
             document.getElementById('lastLoginMessage').textContent = `Last login: ${lastLogin}`;
 
-            // ---- Account Info ----
-            // Get primary account or first account
+            // Account Info - FIXED to display correctly
             const accounts = currentUser.accounts || [];
             const primaryAccount = accounts.find(a => a.is_primary) || accounts[0] || {};
 
@@ -1136,12 +1020,12 @@
             document.getElementById('iban').textContent = primaryAccount.iban || '—';
             document.getElementById('swiftCode').textContent = primaryAccount.swift_code || '—';
 
-            // ---- Balance ----
+            // Balance
             const totalBalance = currentUser.totalBalance || 0;
             const currency = currentUser.currency || 'USD';
             document.getElementById('headerBalance').textContent = `${currency} ${totalBalance.toLocaleString()}`;
 
-            // ---- Stats ----
+            // Stats
             const cardCount = currentUser.cards?.length || 0;
             const txCount = currentUser.transactions?.length || 0;
             const activeCards = currentUser.cards?.filter(c => c.is_active).length || 0;
@@ -1185,17 +1069,12 @@
                 </div>
             `;
 
-            // ---- Transactions ----
+            // Transactions
             const txDiv = document.getElementById('recentTransactions');
             const transactions = currentUser.transactions || [];
 
             if (transactions.length === 0) {
-                txDiv.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
-                        <p>No transactions yet</p>
-                    </div>
-                `;
+                txDiv.innerHTML = `<div class="empty-state"><i class="fas fa-inbox"></i><p>No transactions yet</p></div>`;
             } else {
                 txDiv.innerHTML = transactions.slice(0, 5).map(tx => {
                     const isIncoming = tx.to_user_id === currentUser.id;
@@ -1204,33 +1083,24 @@
                     return `
                         <div class="transaction-item">
                             <div class="transaction-left">
-                                <div class="transaction-icon">
-                                    <i class="fas ${isIncoming ? 'fa-download' : 'fa-upload'}"></i>
-                                </div>
+                                <div class="transaction-icon"><i class="fas ${isIncoming ? 'fa-download' : 'fa-upload'}"></i></div>
                                 <div>
                                     <div class="transaction-name">${isIncoming ? (tx.from_name || 'Deposit') : (tx.to_name || 'Transfer')}</div>
                                     <div class="transaction-date">${tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent'}</div>
                                 </div>
                             </div>
-                            <div class="transaction-amount ${isIncoming ? 'amount-positive' : 'amount-negative'}">
-                                ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
-                            </div>
+                            <div class="transaction-amount ${isIncoming ? 'amount-positive' : 'amount-negative'}">${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}</div>
                         </div>
                     `;
                 }).join('');
             }
 
-            // ---- Cards ----
+            // Cards
             const cardsDiv = document.getElementById('cardsList');
             const cards = currentUser.cards || [];
 
             if (cards.length === 0) {
-                cardsDiv.innerHTML = `
-                    <div class="empty-state">
-                        <i class="fas fa-credit-card"></i>
-                        <p>No cards yet</p>
-                    </div>
-                `;
+                cardsDiv.innerHTML = `<div class="empty-state"><i class="fas fa-credit-card"></i><p>No cards yet</p></div>`;
             } else {
                 cardsDiv.innerHTML = cards.slice(0, 3).map(card => {
                     const last4 = card.last4 || '••••';
@@ -1252,25 +1122,8 @@
                 }).join('');
             }
 
-            // ---- Spending Insights ----
-            const insightsDiv = document.getElementById('spendingInsights');
-            const categories = [
-                { name: 'Food & Dining', amount: 0, color: '#C6A43F' },
-                { name: 'Shopping', amount: 0, color: '#10B981' },
-                { name: 'Transport', amount: 0, color: '#3B82F6' },
-                { name: 'Entertainment', amount: 0, color: '#8B5CF6' }
-            ];
-            insightsDiv.innerHTML = categories.map(c => `
-                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
-                    <span style="color:var(--text-secondary);font-size:13px;">${c.name}</span>
-                    <span style="color:var(--text-primary);font-weight:600;font-size:13px;">$0</span>
-                </div>
-            `).join('');
-
-            // ---- Chart ----
-            if (spendingChart) {
-                spendingChart.destroy();
-            }
+            // Chart
+            if (spendingChart) { spendingChart.destroy(); }
             const ctx = document.getElementById('spendingChart').getContext('2d');
             const isDark = document.body.getAttribute('data-theme') === 'dark';
 
@@ -1303,10 +1156,30 @@
                     cutout: '70%'
                 }
             });
+
+            // Insights
+            document.getElementById('spendingInsights').innerHTML = `
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-secondary);font-size:13px;">Food & Dining</span>
+                    <span style="color:var(--text-primary);font-weight:600;font-size:13px;">$0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-secondary);font-size:13px;">Shopping</span>
+                    <span style="color:var(--text-primary);font-weight:600;font-size:13px;">$0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);">
+                    <span style="color:var(--text-secondary);font-size:13px;">Transport</span>
+                    <span style="color:var(--text-primary);font-weight:600;font-size:13px;">$0</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                    <span style="color:var(--text-secondary);font-size:13px;">Entertainment</span>
+                    <span style="color:var(--text-primary);font-weight:600;font-size:13px;">$0</span>
+                </div>
+            `;
         }
 
         // ============================================================
-        // LIVE EXCHANGE RATES (FREE - NO API KEY)
+        // LIVE EXCHANGE RATES
         // ============================================================
         async function fetchLiveRates() {
             try {
@@ -1343,7 +1216,6 @@
                     useFallbackRates();
                 }
             } catch (error) {
-                console.warn('Exchange rate API failed, using fallback:', error);
                 useFallbackRates();
             }
         }
@@ -1402,7 +1274,6 @@
             loadUserData().finally(() => showLoading(false));
         }
 
-        // Auto-refresh rates every 5 minutes
         setInterval(fetchLiveRates, 300000);
     </script>
 </body>
