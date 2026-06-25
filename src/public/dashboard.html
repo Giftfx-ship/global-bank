@@ -81,8 +81,6 @@
 
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
-        @keyframes shimmer { 0% { background-position: -1000px 0; } 100% { background-position: 1000px 0; } }
 
         .top-bar {
             background: var(--glass-bg);
@@ -541,6 +539,18 @@
         }
         .loader-text { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-left: 12px;
+        }
+
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .quick-actions { grid-template-columns: repeat(4, 1fr); }
@@ -557,19 +567,20 @@
             .balance-pill { display: none; }
             .top-bar { padding: 12px 20px; }
             .logo span { font-size: 16px; }
+            .bbc-badge { display: none; }
         }
 
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
     </style>
 </head>
 <body data-theme="dark">
     <div class="top-bar">
         <div class="logo" onclick="location.reload()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage Bank</span>
+            <span>Prime Heritage</span>
+            <span class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step</span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
@@ -672,7 +683,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://global-bank-i4cd.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let userData = null;
         let currentUser = null;
 
@@ -728,7 +739,7 @@
         }
 
         function copyAccountInfo() {
-            const info = `Account: ${currentUser?.accountNumber}\nIBAN: ${currentUser?.iban}\nSWIFT: ${currentUser?.swiftCode}`;
+            const info = `Account: ${currentUser?.account_number}\nIBAN: ${currentUser?.iban}\nSWIFT: ${currentUser?.swift_code}`;
             navigator.clipboard.writeText(info);
             Swal.fire({
                 icon: 'success',
@@ -746,7 +757,7 @@
 
         async function loadUserData() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) { logout(); return; }
@@ -759,29 +770,35 @@
         function renderDashboard() {
             const hour = new Date().getHours();
             const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
-            document.getElementById('welcomeMessage').innerHTML = `${greeting}, ${currentUser.firstName}.`;
-            document.getElementById('accountNumber').innerHTML = currentUser.accountNumber;
-            document.getElementById('iban').innerHTML = currentUser.iban;
-            document.getElementById('swiftCode').innerHTML = currentUser.swiftCode;
+            document.getElementById('welcomeMessage').innerHTML = `${greeting}, ${currentUser.full_name}.`;
+            
+            // Get primary account
+            const primaryAccount = currentUser.accounts?.find(a => a.is_primary) || currentUser.accounts?.[0];
+            if (primaryAccount) {
+                document.getElementById('accountNumber').innerHTML = primaryAccount.account_number;
+                document.getElementById('iban').innerHTML = primaryAccount.iban;
+                document.getElementById('swiftCode').innerHTML = primaryAccount.swift_code;
+            }
 
-            const totalBalance = userData.totalBalance || 0;
-            document.getElementById('headerBalance').innerHTML = `${currentUser.currency} ${totalBalance.toLocaleString()}`;
+            const totalBalance = currentUser.totalBalance || 0;
+            const currency = currentUser.currency || 'USD';
+            document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
 
             document.getElementById('statsGrid').innerHTML = `
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-wallet"></i></div>
                     <div class="stat-label">Total Balance</div>
-                    <div class="stat-value">${currentUser.currency} ${totalBalance.toLocaleString()}</div>
+                    <div class="stat-value">${currency} ${totalBalance.toLocaleString()}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-credit-card"></i></div>
                     <div class="stat-label">Active Cards</div>
-                    <div class="stat-value">${userData.cards?.length || 0}</div>
+                    <div class="stat-value">${currentUser.cards?.length || 0}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-exchange-alt"></i></div>
                     <div class="stat-label">Transactions</div>
-                    <div class="stat-value">${userData.transactions?.length || 0}</div>
+                    <div class="stat-value">${currentUser.transactions?.length || 0}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-icon"><i class="fas fa-building"></i></div>
@@ -792,8 +809,8 @@
 
             const txDiv = document.getElementById('recentTransactions');
             txDiv.innerHTML = '';
-            if (userData.transactions?.length > 0) {
-                userData.transactions.slice(0, 5).forEach(tx => {
+            if (currentUser.transactions?.length > 0) {
+                currentUser.transactions.slice(0, 5).forEach(tx => {
                     const isIncoming = tx.to_user_id === currentUser.id;
                     txDiv.innerHTML += `
                         <div class="transaction-item">
@@ -818,15 +835,15 @@
 
             const cardsDiv = document.getElementById('cardsList');
             cardsDiv.innerHTML = '';
-            if (userData.cards?.length > 0) {
-                userData.cards.slice(0, 2).forEach(card => {
-                    const statusText = card.status === 'active' ? 'Active' : 'Frozen';
+            if (currentUser.cards?.length > 0) {
+                currentUser.cards.slice(0, 2).forEach(card => {
+                    const statusText = card.is_active ? 'Active' : 'Frozen';
                     cardsDiv.innerHTML += `
                         <div class="bank-card">
                             <div class="card-number">•••• •••• •••• ${card.last4}</div>
                             <div class="card-details">
                                 <div class="card-expiry">Valid ${card.expiry_month}/${card.expiry_year}</div>
-                                <div class="card-name">${currentUser.fullName}</div>
+                                <div class="card-name">${currentUser.full_name}</div>
                             </div>
                             <div class="card-status">
                                 <span class="status-active"><i class="fas fa-circle" style="font-size: 8px; margin-right: 6px;"></i>${statusText}</span>
@@ -861,6 +878,12 @@
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+
+        // Check token
+        const token = localStorage.getItem('token');
+        if (!token && window.location.pathname !== '/') {
             window.location.href = '/';
         }
 
