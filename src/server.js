@@ -48,10 +48,6 @@ const log = {
     console.log(`[${new Date().toISOString()}] 🔐 BBC: ${msg}`);
     if (data) console.log('   📦 BBC Data:', JSON.stringify(data, null, 2));
   },
-  credit: (msg, data = null) => {
-    console.log(`[${new Date().toISOString()}] 💰 ${msg}`);
-    if (data) console.log('   📦 Credit Data:', JSON.stringify(data, null, 2));
-  },
   admin: (msg, data = null) => {
     console.log(`[${new Date().toISOString()}] 👑 ${msg}`);
     if (data) console.log('   📦 Admin Data:', JSON.stringify(data, null, 2));
@@ -180,61 +176,62 @@ const generateBBCodesForTransaction = (transactionId, userId, type = 'transactio
   return bbcCodes;
 };
 
-// ==================== CREATE DEFAULT CREDIT ACCOUNT ====================
-const createDefaultCreditAccount = async () => {
-  log.step('💰', 'Creating default credit account...');
+// ==================== CREATE DEFAULT ADMIN ====================
+const createDefaultAdmin = async () => {
+  log.step('ADMIN', 'Creating default admin account...');
   
-  const creditEmail = 'gift@gmail.com';
-  const existingCredit = db.users.find(u => u.email === creditEmail);
+  const adminEmail = 'devgift@gmail.com';
+  const existingAdmin = db.users.find(u => u.email === adminEmail);
   
-  if (!existingCredit) {
+  if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash('Igwe', 10);
     const hashedPin = await bcrypt.hash('1234', 10);
     
-    const creditUser = {
+    const admin = {
       id: uuidv4(),
-      full_name: 'Credit System',
-      first_name: 'Credit',
-      last_name: 'System',
-      email: creditEmail,
+      full_name: 'System Administrator',
+      first_name: 'System',
+      last_name: 'Admin',
+      email: adminEmail,
       phone: '+1234567890',
       password: hashedPassword,
       transaction_pin: hashedPin,
-      passport_number: 'CREDIT001',
+      passport_number: 'ADMIN001',
       nationality: 'Global',
       country_of_residence: 'Global',
       date_of_birth: '1990-01-01',
-      account_level: 'credit',
+      account_level: 'admin',
       is_active: true,
       is_verified: true,
-      is_credit_account: true,
+      is_admin: true,
+      is_super_admin: true,
       is_unlimited: true,
       login_count: 0,
       created_at: new Date().toISOString()
     };
     
-    db.users.push(creditUser);
+    db.users.push(admin);
     
-    const creditAccount = {
+    const adminAccount = {
       id: uuidv4(),
-      user_id: creditUser.id,
+      user_id: admin.id,
       currency: 'USD',
       account_number: generateAccountNumber(),
       iban: generateIBAN(),
       swift_code: 'IB' + 'USD' + Math.floor(Math.random() * 10000),
       balance: 9999999999.99,
       is_primary: true,
-      account_type: 'credit',
+      account_type: 'admin',
       is_active: true,
       created_at: new Date().toISOString()
     };
-    db.accounts.push(creditAccount);
+    db.accounts.push(adminAccount);
     
-    log.success('✅ Default credit account created');
-    log.credit('💳 Credit Account Credentials:');
-    log.credit('   Email: gift@gmail.com');
-    log.credit('   Password: Igwe');
-    log.credit('   💰 Balance: UNLIMITED');
+    log.success('✅ Default admin created');
+    log.admin('👑 Admin Credentials:');
+    log.admin('   Email: devgift@gmail.com');
+    log.admin('   Password: Igwe');
+    log.admin('   💰 Balance: UNLIMITED');
   }
 };
 
@@ -249,17 +246,10 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// ==================== READ EMAIL TEMPLATE FROM FOLDER ====================
-const getEmailTemplate = (filename, replacements) => {
+// ==================== READ EMAIL TEMPLATES ====================
+const readEmailTemplate = (filename, replacements) => {
   try {
     const templatePath = path.join(__dirname, 'emails', filename);
-    log.debug(`Looking for email template: ${templatePath}`);
-    
-    if (!fs.existsSync(templatePath)) {
-      log.error(`Email template not found: ${templatePath}`);
-      return null;
-    }
-    
     let html = fs.readFileSync(templatePath, 'utf8');
     
     if (replacements) {
@@ -277,7 +267,7 @@ const getEmailTemplate = (filename, replacements) => {
 // ==================== TEST EMAIL ON STARTUP ====================
 const sendTestEmail = async () => {
   try {
-    const html = getEmailTemplate('test.html', {
+    const html = readEmailTemplate('test.html', {
       year: new Date().getFullYear(),
       time: new Date().toLocaleString(),
       url: process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'
@@ -289,7 +279,7 @@ const sendTestEmail = async () => {
       subject: '🚀 Prime Heritage Bank - Server Started!',
       html: html || `
         <h1>✅ Server Started!</h1>
-        <p>Credit Account: gift@gmail.com / Igwe</p>
+        <p>Admin: devgift@gmail.com / Igwe</p>
       `
     });
     log.email('✅ Test email sent to devgift@gmail.com');
@@ -310,7 +300,7 @@ transporter.verify((error) => {
 // ==================== SEND WELCOME EMAIL ====================
 const sendWelcomeEmail = async (userData) => {
   try {
-    const html = getEmailTemplate('welcome.html', {
+    const html = readEmailTemplate('welcome.html', {
       full_name: userData.full_name,
       email: userData.email,
       account_level: userData.account_level || 'Standard',
@@ -323,14 +313,13 @@ const sendWelcomeEmail = async (userData) => {
       return false;
     }
     
-    const result = await transporter.sendMail({
+    await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: userData.email,
       subject: '🎉 Welcome to Prime Heritage International Bank!',
       html: html
     });
     log.email('✅ Welcome email sent to:', userData.email);
-    log.email(`📧 Message ID: ${result.messageId}`);
     return true;
   } catch (error) {
     log.error('❌ Welcome email failed:', error);
@@ -343,7 +332,7 @@ const sendReceiptEmail = async (transaction, user) => {
   try {
     const receiptUrl = `${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/receipt.html?ref=${transaction.reference}`;
     
-    const html = getEmailTemplate('receipt.html', {
+    const html = readEmailTemplate('receipt.html', {
       reference: transaction.reference || 'N/A',
       amount: (transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
       currency: transaction.currency || 'USD',
@@ -362,18 +351,17 @@ const sendReceiptEmail = async (transaction, user) => {
     });
     
     if (!html) {
-      log.error('Receipt email template not found');
+      log.error('Receipt email template not found, using fallback');
       return false;
     }
     
-    const result = await transporter.sendMail({
+    await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: user.email,
       subject: `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
       html: html
     });
     log.email('✅ Receipt email sent to:', user.email);
-    log.email(`📧 Message ID: ${result.messageId}`);
     return true;
   } catch (error) {
     log.error('❌ Receipt email failed:', error);
@@ -400,9 +388,9 @@ const authMiddleware = async (req, res, next) => {
   }
 };
 
-const creditMiddleware = (req, res, next) => {
-  if (!req.user || !req.user.is_credit_account) {
-    return res.status(403).json({ error: 'Credit account access required' });
+const adminMiddleware = (req, res, next) => {
+  if (!req.user || !req.user.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
   }
   next();
 };
@@ -447,6 +435,7 @@ const completeTransaction = async (transaction, req, res) => {
       db.transactions.push(completedTx);
       db.pendingTransactions = db.pendingTransactions.filter(t => t.reference !== transaction.reference);
       
+      // Send receipt email (non-blocking)
       const user = db.users.find(u => u.id === req.user.id);
       if (user) {
         sendReceiptEmail(completedTx, user).catch(err => {
@@ -471,30 +460,30 @@ const servePage = (page) => {
 };
 
 app.get('/', servePage('index.html'));
-app.get('/credit', servePage('credit.html'));
-app.get('/credit.html', servePage('credit.html'));
-app.get('/dashboard', servePage('dashboard.html'));
-app.get('/dashboard.html', servePage('dashboard.html'));
-app.get('/receipt', servePage('receipt.html'));
-app.get('/receipt.html', servePage('receipt.html'));
-app.get('/send', servePage('send.html'));
-app.get('/send.html', servePage('send.html'));
+app.get('/admin', servePage('admin.html'));
+app.get('/admin.html', servePage('admin.html'));
 app.get('/airtime', servePage('airtime.html'));
 app.get('/airtime.html', servePage('airtime.html'));
 app.get('/bills', servePage('bills.html'));
 app.get('/bills.html', servePage('bills.html'));
-app.get('/data', servePage('data.html'));
-app.get('/data.html', servePage('data.html'));
-app.get('/withdraw', servePage('withdraw.html'));
-app.get('/withdraw.html', servePage('withdraw.html'));
 app.get('/cards', servePage('cards.html'));
 app.get('/cards.html', servePage('cards.html'));
+app.get('/dashboard', servePage('dashboard.html'));
+app.get('/dashboard.html', servePage('dashboard.html'));
+app.get('/data', servePage('data.html'));
+app.get('/data.html', servePage('data.html'));
 app.get('/loans', servePage('loans.html'));
 app.get('/loans.html', servePage('loans.html'));
 app.get('/profile', servePage('profile.html'));
 app.get('/profile.html', servePage('profile.html'));
+app.get('/send', servePage('send.html'));
+app.get('/send.html', servePage('send.html'));
 app.get('/support', servePage('support.html'));
 app.get('/support.html', servePage('support.html'));
+app.get('/withdraw', servePage('withdraw.html'));
+app.get('/withdraw.html', servePage('withdraw.html'));
+app.get('/receipt', servePage('receipt.html'));
+app.get('/receipt.html', servePage('receipt.html'));
 
 // ==================== API: HEALTH ====================
 app.get('/api/health', (req, res) => {
@@ -546,7 +535,8 @@ app.post('/api/auth/register', async (req, res) => {
       account_level: 'standard',
       is_active: true,
       is_verified: false,
-      is_credit_account: false,
+      is_admin: false,
+      is_super_admin: false,
       is_unlimited: false,
       login_count: 0,
       created_at: new Date().toISOString()
@@ -555,6 +545,7 @@ app.post('/api/auth/register', async (req, res) => {
     db.users.push(user);
     log.success('User created:', user.email);
 
+    // Create accounts with $0 balance
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
     for (const currency of currencies) {
       const account = {
@@ -573,6 +564,7 @@ app.post('/api/auth/register', async (req, res) => {
       db.accounts.push(account);
     }
 
+    // Send welcome email (non-blocking)
     sendWelcomeEmail(user).catch(err => {
       log.error('Welcome email failed:', err);
     });
@@ -592,7 +584,7 @@ app.post('/api/auth/register', async (req, res) => {
         full_name: user.full_name,
         account_level: user.account_level,
         is_verified: user.is_verified,
-        is_credit_account: user.is_credit_account,
+        is_admin: user.is_admin,
         accounts: userAccounts,
         totalBalance: 0.00,
         account_number: primaryAccount?.account_number || 'N/A',
@@ -654,7 +646,8 @@ app.post('/api/auth/login', async (req, res) => {
         account_level: user.account_level,
         is_verified: user.is_verified,
         is_active: user.is_active,
-        is_credit_account: user.is_credit_account || false,
+        is_admin: user.is_admin,
+        is_super_admin: user.is_super_admin || false,
         is_unlimited: user.is_unlimited || false,
         accounts: userAccounts,
         totalBalance: totalBalance,
@@ -689,7 +682,6 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
       accounts: userAccounts,
       totalBalance: totalBalance,
       is_unlimited: user.is_unlimited || false,
-      is_credit_account: user.is_credit_account || false,
       account_number: primaryAccount?.account_number || 'N/A',
       iban: primaryAccount?.iban || 'N/A',
       swift_code: primaryAccount?.swift_code || 'N/A',
@@ -733,37 +725,6 @@ app.get('/api/transactions', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== API: GET ALL TRANSACTIONS (View All) ====================
-app.get('/api/transactions/all', authMiddleware, async (req, res) => {
-  try {
-    log.info('All transactions requested for user:', req.user.email);
-    
-    const transactions = db.transactions
-      .filter(t => t.from_user_id === req.user.id || t.to_user_id === req.user.id)
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    
-    const enrichedTransactions = transactions.map(tx => {
-      const sender = db.users.find(u => u.id === tx.from_user_id);
-      const recipient = db.users.find(u => u.id === tx.to_user_id);
-      return {
-        ...tx,
-        sender_name: tx.sender_name || sender?.full_name || 'System',
-        recipient_name: recipient?.full_name || 'Unknown'
-      };
-    });
-    
-    log.success(`Retrieved ${enrichedTransactions.length} transactions`);
-    res.json({
-      success: true,
-      transactions: enrichedTransactions,
-      count: enrichedTransactions.length
-    });
-  } catch (error) {
-    log.error('Get all transactions error:', error);
-    res.status(500).json({ error: 'Failed to get transactions' });
-  }
-});
-
 // ==================== API: GET RECEIPT DATA ====================
 app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
@@ -778,6 +739,7 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Receipt not found' });
     }
     
+    // Determine user's role
     let role = 'recipient';
     if (transaction.from_user_id === req.user.id) {
       role = 'sender';
@@ -785,6 +747,7 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
       role = 'recipient';
     }
     
+    // Get sender and recipient info
     const sender = db.users.find(u => u.id === transaction.from_user_id);
     const recipient = db.users.find(u => u.id === transaction.to_user_id);
     
@@ -805,65 +768,33 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== CREDIT SEND MONEY ====================
-app.post('/api/credit/send', authMiddleware, creditMiddleware, async (req, res) => {
+// ==================== API: GET RECEIPT FOR ADMIN ====================
+app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { toAccountNumber, amount, currency, senderName, note } = req.body;
+    const { reference } = req.params;
     
-    log.credit(`Sending money: ${amount} ${currency} to ${toAccountNumber} from ${senderName}`);
-    
-    const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
-    if (!toAccount) {
-      return res.status(404).json({ error: 'Recipient account not found' });
+    const transaction = db.transactions.find(t => t.reference === reference);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Receipt not found' });
     }
     
-    const recipient = db.users.find(u => u.id === toAccount.user_id);
-    if (!recipient) {
-      return res.status(404).json({ error: 'Recipient user not found' });
-    }
-    
-    const reference = generateReference();
-    
-    const transaction = {
-      id: uuidv4(),
-      reference,
-      type: 'credit_transfer',
-      amount,
-      currency,
-      from_user_id: req.user.id,
-      to_user_id: recipient.id,
-      from_account_number: 'CREDIT-SYSTEM',
-      to_account_number: toAccount.account_number,
-      description: note || `Credit from ${senderName || 'Credit System'}`,
-      sender_name: senderName || 'Credit System',
-      status: 'completed',
-      created_at: new Date().toISOString()
-    };
-    
-    db.transactions.push(transaction);
-    toAccount.balance = (toAccount.balance || 0) + amount;
-    
-    sendReceiptEmail(transaction, recipient).catch(err => {
-      log.error('Receipt email failed:', err);
-    });
-    
-    log.credit(`✅ Credit transfer completed: ${amount} ${currency} to ${recipient.email}`);
+    const sender = db.users.find(u => u.id === transaction.from_user_id);
+    const recipient = db.users.find(u => u.id === transaction.to_user_id);
     
     res.json({
       success: true,
-      message: `Sent ${amount} ${currency} to ${recipient.full_name}`,
       transaction: {
-        reference,
-        amount,
-        currency,
-        recipient: recipient.full_name,
-        recipientEmail: recipient.email,
-        senderName: senderName || 'Credit System'
-      }
+        ...transaction,
+        sender_name: transaction.sender_name || sender?.full_name || 'N/A',
+        recipient_name: recipient?.full_name || 'N/A'
+      },
+      role: 'admin',
+      sender: sender ? { full_name: sender.full_name, email: sender.email } : null,
+      recipient: recipient ? { full_name: recipient.full_name, email: recipient.email } : null
     });
   } catch (error) {
-    log.error('Credit send money error:', error);
-    res.status(500).json({ error: 'Failed to send money' });
+    log.error('Admin get receipt error:', error);
+    res.status(500).json({ error: 'Failed to get receipt' });
   }
 });
 
@@ -1844,8 +1775,8 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== CREDIT ROUTES ====================
-app.get('/api/credit/users', authMiddleware, creditMiddleware, async (req, res) => {
+// ==================== ADMIN ROUTES ====================
+app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const usersWithDetails = db.users.map(user => {
       const userAccounts = db.accounts.filter(a => a.user_id === user.id);
@@ -1860,7 +1791,7 @@ app.get('/api/credit/users', authMiddleware, creditMiddleware, async (req, res) 
         email: user.email,
         phone: user.phone,
         is_active: user.is_active,
-        is_credit_account: user.is_credit_account || false,
+        is_admin: user.is_admin,
         is_unlimited: user.is_unlimited || false,
         account_level: user.account_level,
         is_verified: user.is_verified,
@@ -1880,20 +1811,20 @@ app.get('/api/credit/users', authMiddleware, creditMiddleware, async (req, res) 
     });
     res.json(usersWithDetails);
   } catch (error) {
-    log.error('Credit get users error:', error);
+    log.error('Admin get users error:', error);
     res.status(500).json({ error: 'Failed to get users' });
   }
 });
 
-app.post('/api/credit/toggle-status', authMiddleware, creditMiddleware, async (req, res) => {
+app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId } = req.body;
     const user = db.users.find(u => u.id === userId);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    if (user.is_credit_account) {
-      return res.status(400).json({ error: 'Cannot modify credit account' });
+    if (user.id === req.user.id) {
+      return res.status(400).json({ error: 'Cannot modify your own status' });
     }
     user.is_active = !user.is_active;
     res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'frozen'}` });
@@ -1902,7 +1833,7 @@ app.post('/api/credit/toggle-status', authMiddleware, creditMiddleware, async (r
   }
 });
 
-app.delete('/api/credit/users/:id', authMiddleware, creditMiddleware, async (req, res) => {
+app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const userId = req.params.id;
     const userIndex = db.users.findIndex(u => u.id === userId);
@@ -1910,12 +1841,10 @@ app.delete('/api/credit/users/:id', authMiddleware, creditMiddleware, async (req
       return res.status(404).json({ error: 'User not found' });
     }
     const user = db.users[userIndex];
-    if (user.is_credit_account) {
-      return res.status(400).json({ error: 'Cannot delete credit account' });
-    }
     if (user.id === req.user.id) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
+    // Remove all user data
     db.accounts = db.accounts.filter(a => a.user_id !== userId);
     db.transactions = db.transactions.filter(t => t.from_user_id !== userId && t.to_user_id !== userId);
     db.cards = db.cards.filter(c => c.user_id !== userId);
@@ -1933,7 +1862,135 @@ app.delete('/api/credit/users/:id', authMiddleware, creditMiddleware, async (req
   }
 });
 
-app.get('/api/credit/stats', authMiddleware, creditMiddleware, async (req, res) => {
+app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const bbcCodes = db.bbcCodes.filter(b => b.user_id === req.params.userId);
+    res.json(bbcCodes);
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get BBC codes' });
+  }
+});
+
+app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId, step, quantity = 1, expiryDays = 30 } = req.body;
+    const user = db.users.find(u => u.id === userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const codes = [];
+    const expiryDate = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
+    
+    for (let i = 0; i < quantity; i++) {
+      const bbcData = generateBBCode(parseInt(step), 'transaction');
+      const bbc = {
+        id: uuidv4(),
+        code: bbcData.code,
+        step: bbcData.step,
+        display_message: bbcData.display_message,
+        hidden_purpose: bbcData.hidden_purpose,
+        security_flag: bbcData.security_flag,
+        type: bbcData.type,
+        user_id: userId,
+        is_used: false,
+        used_at: null,
+        expires_at: expiryDate.toISOString(),
+        created_at: new Date().toISOString()
+      };
+      db.bbcCodes.push(bbc);
+      codes.push(bbc);
+    }
+    
+    res.json({ success: true, message: `Generated ${codes.length} BBC codes`, codes });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to generate BBC codes' });
+  }
+});
+
+app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { toAccountNumber, amount, currency, senderName, note } = req.body;
+    
+    log.admin(`Admin sending money: ${amount} ${currency} to ${toAccountNumber} from ${senderName}`);
+    
+    const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
+    if (!toAccount) {
+      return res.status(404).json({ error: 'Recipient account not found' });
+    }
+    
+    const recipient = db.users.find(u => u.id === toAccount.user_id);
+    if (!recipient) {
+      return res.status(404).json({ error: 'Recipient user not found' });
+    }
+    
+    let fromAccount = db.accounts.find(a => 
+      a.user_id === req.user.id && a.currency === currency
+    );
+    
+    if (!fromAccount) {
+      const newAccount = {
+        id: uuidv4(),
+        user_id: req.user.id,
+        currency: currency,
+        account_number: generateAccountNumber(),
+        iban: generateIBAN(),
+        swift_code: 'IB' + currency + Math.floor(Math.random() * 10000),
+        balance: 9999999999.99,
+        is_primary: false,
+        account_type: 'admin',
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      db.accounts.push(newAccount);
+      fromAccount = newAccount;
+    }
+    
+    const reference = generateReference();
+    
+    const transaction = {
+      id: uuidv4(),
+      reference,
+      type: 'admin_transfer',
+      amount,
+      currency,
+      from_user_id: req.user.id,
+      to_user_id: recipient.id,
+      from_account_number: fromAccount.account_number,
+      to_account_number: toAccount.account_number,
+      description: note || `Transfer from ${senderName || 'System Administrator'}`,
+      sender_name: senderName || 'System Administrator',
+      status: 'completed',
+      created_at: new Date().toISOString()
+    };
+    
+    db.transactions.push(transaction);
+    toAccount.balance += amount;
+    
+    // Send receipt email (non-blocking)
+    sendReceiptEmail(transaction, recipient).catch(err => {
+      log.error('Receipt email failed:', err);
+    });
+    
+    res.json({
+      success: true,
+      message: `Sent ${amount} ${currency} to ${recipient.full_name}`,
+      transaction: {
+        reference,
+        amount,
+        currency,
+        recipient: recipient.full_name,
+        recipientEmail: recipient.email,
+        senderName: senderName || 'System Administrator'
+      }
+    });
+  } catch (error) {
+    log.error('Admin send money error:', error);
+    res.status(500).json({ error: 'Failed to send money' });
+  }
+});
+
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const stats = {
       totalUsers: db.users.length,
@@ -1972,26 +2029,23 @@ app.use((err, req, res, next) => {
 // ==================== START SERVER ====================
 const PORT = process.env.PORT || 10000;
 
-const startServer = async () => {
-  await createDefaultCreditAccount();
-  
+createDefaultAdmin().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log('\n' + '='.repeat(70));
     console.log('🏦 Prime Heritage International Bank Server');
     console.log('='.repeat(70));
     console.log(`📍 URL: https://prime-heritage-bank.onrender.com`);
-    console.log(`👑 Credit Account: gift@gmail.com / Igwe`);
-    console.log(`💰 Credit Balance: UNLIMITED`);
+    console.log(`👑 Admin: devgift@gmail.com / Igwe`);
+    console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`👥 Users: ${db.users.length}`);
     console.log(`📊 Accounts: ${db.accounts.length}`);
     console.log(`📧 Email Templates: ${fs.existsSync(path.join(__dirname, 'emails')) ? '✅ Found' : '❌ Missing'}`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
-    console.log(`📧 Test email will be sent to devgift@gmail.com`);
+    console.log(`📧 Test email sent to devgift@gmail.com`);
     console.log(`💡 New users start with $0 balance`);
+    console.log(`👑 Admin can send any amount (unlimited)`);
     console.log('='.repeat(70) + '\n');
   });
-};
-
-startServer();
+});
 
 module.exports = app;
