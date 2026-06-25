@@ -897,6 +897,7 @@
         // CONFIGURATION
         // ============================================================
         const API_URL = 'https://prime-heritage-bank.onrender.com';
+        const EXCHANGE_RATE_API = 'https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies';
 
         let userData = null;
         let currentUser = null;
@@ -985,7 +986,7 @@
         }
 
         // ============================================================
-        // VIEW RECEIPT - Opens receipt page in new tab
+        // VIEW RECEIPT
         // ============================================================
         function viewReceipt(reference) {
             if (!reference) return;
