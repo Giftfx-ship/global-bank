@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction Receipt | Prime Heritage Bank</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0A0E1A;
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: #0F1622;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+            border: 1px solid rgba(198, 164, 63, 0.15);
+        }
+        .header {
+            background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%);
+            padding: 30px 30px 20px;
+            text-align: center;
+            position: relative;
+            border-bottom: 1px solid rgba(198, 164, 63, 0.2);
+        }
+        .header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F);
+            background-size: 200% 100%;
+            animation: shimmer 2s ease-in-out infinite;
+        }
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        .header .logo { font-size: 40px; display: block; margin-bottom: 6px; }
+        .header h1 { color: #FFFFFF; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
+        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+        .content { padding: 30px 30px 20px; background: #0F1622; }
+        .receipt-id {
+            display: inline-block;
+            padding: 4px 16px;
+            background: rgba(198, 164, 63, 0.12);
+            border: 1px solid rgba(198, 164, 63, 0.2);
+            border-radius: 50px;
+            color: #C6A43F;
+            font-size: 11px;
+            font-weight: 600;
+            font-family: monospace;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.12);
+            color: #10B981;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            margin: 12px 0 16px;
+        }
+        .amount-section {
+            text-align: center;
+            padding: 16px 0;
+            margin: 12px 0;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        .amount-section .amount {
+            font-size: 34px;
+            font-weight: 800;
+            color: #FFFFFF;
+        }
+        .amount-section .amount .currency { color: #C6A43F; }
+        .amount-section .amount-label { color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: rgba(255,255,255,0.4); font-size: 12px; }
+        .detail-value { color: #FFFFFF; font-weight: 500; font-size: 12px; text-align: right; }
+        .detail-value .gold-text { color: #C6A43F; }
+        .detail-value.mono { font-family: monospace; font-size: 11px; letter-spacing: 0.5px; }
+        .view-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #C6A43F, #9E8032);
+            color: #0A0E1A;
+            padding: 12px 32px;
+            text-decoration: none;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            margin: 16px 0 4px;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+        }
+        .footer {
+            background: rgba(255,255,255,0.02);
+            padding: 20px 30px 25px;
+            text-align: center;
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+        .footer p { color: rgba(255,255,255,0.3); font-size: 11px; margin: 4px 0; line-height: 1.6; }
+        .footer .brand { color: rgba(255,255,255,0.5); font-weight: 600; }
+        @media (max-width: 480px) {
+            .content { padding: 20px; }
+            .amount-section .amount { font-size: 26px; }
+            .header h1 { font-size: 20px; }
+            .detail-row { flex-direction: column; gap: 4px; }
+            .detail-value { text-align: left; }
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="header">
+            <span class="logo">🏦</span>
+            <h1>Prime Heritage <span class="gold">Bank</span></h1>
+            <div class="subtitle">International Banking</div>
+        </div>
+        <div class="content">
+            <div style="text-align:center;margin-bottom:12px;">
+                <span class="receipt-id">#{{reference}}</span>
+            </div>
+            <div style="text-align:center;">
+                <span class="status-badge">✅ COMPLETED</span>
+            </div>
+
+            <div class="amount-section">
+                <div class="amount-label">Amount</div>
+                <div class="amount"><span class="currency">{{currency}}</span> {{amount}}</div>
+            </div>
+
+            <div class="detail-row">
+                <span class="detail-label">Transaction Type</span>
+                <span class="detail-value">{{type}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Description</span>
+                <span class="detail-value">{{description}}</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Date & Time</span>
+                <span class="detail-value">{{date}} at {{time}}</span>
+            </div>
+
+            <div style="text-align:center;margin-top:16px;">
+                <a href="{{receipt_url}}" class="view-btn">🧾 View Full Receipt</a>
+            </div>
+            <div style="text-align:center;font-size:11px;color:rgba(255,255,255,0.2);margin-top:8px;">
+                This is an automated receipt for your transaction.
+            </div>
+        </div>
+        <div class="footer">
+            <p>© {{year}} <span class="brand">Prime Heritage International Bank</span></p>
+            <p>Sent to {{email}}</p>
+        </div>
+    </div>
+</body>
+</html>
