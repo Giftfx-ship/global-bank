@@ -73,6 +73,108 @@ const db = {
   receipts: []
 };
 
+// ==================== UTILITY FUNCTIONS ====================
+const generateAccountNumber = () => {
+  return 'IB' + Date.now().toString().slice(-10) + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+};
+
+const generateIBAN = () => {
+  const countryCode = ['GB', 'DE', 'FR', 'US', 'NG', 'KE', 'ZA', 'AE', 'CH', 'SG'][Math.floor(Math.random() * 10)];
+  return countryCode + Math.floor(Math.random() * 10 ** 10).toString().padStart(10, '0') + 
+         Math.floor(Math.random() * 10 ** 8).toString().padStart(8, '0');
+};
+
+const generateReference = () => {
+  return 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + 
+         Math.random().toString(36).substring(2, 6).toUpperCase();
+};
+
+const generateCardNumber = () => {
+  let num = '4';
+  for (let i = 0; i < 15; i++) {
+    num += Math.floor(Math.random() * 10);
+  }
+  return num;
+};
+
+// ==================== BBC CODE GENERATION ====================
+const generateBBCode = (step, type = 'transaction') => {
+  const prefixes = { 1: 'ALPHA', 2: 'BETA', 3: 'GAMMA' };
+  const displayMessages = {
+    1: '🔑 Enter BBC Authorization Code',
+    2: '🔒 Enter BBC Security Code',
+    3: '🛡️ Enter BBC Final Code'
+  };
+  const hiddenPurposes = {
+    transaction: {
+      1: 'Verifying currency exchange rates and initial transaction details',
+      2: 'Validating recipient account and transfer authorization',
+      3: 'Authorizing final transfer completion and settlement'
+    },
+    airtime: {
+      1: 'Verifying phone number and network availability',
+      2: 'Validating airtime plan and pricing',
+      3: 'Authorizing airtime credit to phone number'
+    },
+    bills: {
+      1: 'Verifying biller and account details',
+      2: 'Validating payment amount and currency conversion',
+      3: 'Authorizing bill payment and generating receipt'
+    },
+    data: {
+      1: 'Verifying data plan availability and network',
+      2: 'Validating data bundle pricing and phone number',
+      3: 'Authorizing data bundle activation'
+    },
+    withdraw: {
+      1: 'Verifying bank account details and routing',
+      2: 'Validating withdrawal amount and processing fees',
+      3: 'Authorizing bank transfer and settlement'
+    }
+  };
+  const securityFlags = {
+    1: 'INITIAL_VERIFICATION',
+    2: 'ACCOUNT_VALIDATED',
+    3: 'TRANSACTION_AUTHORIZED'
+  };
+  const code = prefixes[step] + '-' + 
+               Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + 
+               Math.random().toString(36).substring(2, 6).toUpperCase();
+  return {
+    code,
+    step,
+    display_message: displayMessages[step],
+    hidden_purpose: hiddenPurposes[type]?.[step] || hiddenPurposes.transaction[step],
+    security_flag: securityFlags[step],
+    type: type
+  };
+};
+
+const generateBBCodesForTransaction = (transactionId, userId, type = 'transaction') => {
+  const bbcCodes = [];
+  for (let step = 1; step <= 3; step++) {
+    const bbcData = generateBBCode(step, type);
+    const bbc = {
+      id: uuidv4(),
+      code: bbcData.code,
+      step: bbcData.step,
+      display_message: bbcData.display_message,
+      hidden_purpose: bbcData.hidden_purpose,
+      security_flag: bbcData.security_flag,
+      type: bbcData.type,
+      transaction_id: transactionId,
+      user_id: userId,
+      is_used: false,
+      used_at: null,
+      expires_at: new Date(Date.now() + 15 * 60000).toISOString(),
+      created_at: new Date().toISOString()
+    };
+    db.bbcCodes.push(bbc);
+    bbcCodes.push(bbc);
+  }
+  return bbcCodes;
+};
+
 // ==================== CREATE DEFAULT ADMIN ====================
 const createDefaultAdmin = async () => {
   log.step('ADMIN', 'Creating default admin account...');
@@ -143,6 +245,139 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// ==================== TEST EMAIL ON STARTUP ====================
+const sendTestEmail = async () => {
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
+      to: 'devgift@gmail.com',
+      subject: '🚀 Prime Heritage Bank - Server Started!',
+      html: `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; background: #0A0E1A; padding: 20px; }
+            .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; padding: 30px; border: 1px solid rgba(198,164,63,0.15); }
+            .header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px; text-align: center; border-radius: 16px 16px 0 0; margin: -30px -30px 20px -30px; border-bottom: 3px solid #C6A43F; }
+            .header h1 { color: white; margin: 0; font-size: 28px; }
+            .header .gold { color: #C6A43F; }
+            .success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34D399; padding: 15px; border-radius: 12px; border-left: 4px solid #10B981; margin: 15px 0; }
+            .info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #60A5FA; padding: 15px; border-radius: 12px; border-left: 4px solid #3B82F6; margin: 15px 0; }
+            .admin-box { background: rgba(198,164,63,0.1); border: 1px solid rgba(198,164,63,0.2); color: #C6A43F; padding: 15px; border-radius: 12px; border-left: 4px solid #C6A43F; margin: 15px 0; }
+            .footer { margin-top: 20px; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
+          </style>
+        </head>
+        <body>
+          <div class="container">
+            <div class="header">
+              <h1>🏦 Prime Heritage <span class="gold">Bank</span></h1>
+              <p style="color: rgba(255,255,255,0.5); margin: 5px 0 0;">INTERNATIONAL BANKING</p>
+            </div>
+            <h2 style="color: white;">✅ Server Started Successfully!</h2>
+            <div class="success"><strong>✓ Email System is Working!</strong><br>Your server is running and emails are sending correctly.</div>
+            <div class="info">
+              <strong>📋 Server Details:</strong><br>
+              • Time: ${new Date().toLocaleString()}<br>
+              • Environment: ${process.env.NODE_ENV || 'production'}<br>
+              • URL: https://prime-heritage-bank.onrender.com<br>
+              • Receipt System: ✅ Active
+            </div>
+            <div class="admin-box">
+              <strong>👑 Admin Access:</strong><br>
+              Email: <code>devgift@gmail.com</code><br>
+              Password: <code>Igwe</code><br>
+              <strong>💰 Balance: UNLIMITED</strong>
+            </div>
+            <div class="footer">
+              <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
+            </div>
+          </div>
+        </body>
+        </html>
+      `
+    });
+    log.email('✅ Test email sent to devgift@gmail.com');
+  } catch (error) {
+    log.error('Test email failed:', error);
+  }
+};
+
+transporter.verify((error) => {
+  if (error) {
+    log.error('Email error:', error);
+  } else {
+    log.success('Email server ready');
+    setTimeout(sendTestEmail, 2000);
+  }
+});
+
+// ==================== WELCOME EMAIL ====================
+const generateWelcomeEmailHTML = (userData) => {
+  return `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #0A0E1A; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; padding: 30px; border: 1px solid rgba(198,164,63,0.15); }
+        .header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px; text-align: center; border-radius: 16px 16px 0 0; margin: -30px -30px 20px -30px; border-bottom: 3px solid #C6A43F; }
+        .header h1 { color: white; margin: 0; font-size: 28px; }
+        .header .gold { color: #C6A43F; }
+        .content { padding: 20px 0; }
+        .features { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0; }
+        .feature { background: rgba(255,255,255,0.03); padding: 15px; border-radius: 12px; border-left: 3px solid #C6A43F; }
+        .feature .icon { font-size: 24px; }
+        .feature .label { font-weight: 700; color: #FFFFFF; font-size: 13px; }
+        .feature .desc { color: rgba(255,255,255,0.4); font-size: 11px; }
+        .btn { display: inline-block; background: #C6A43F; color: #0A0E1A; padding: 12px 30px; text-decoration: none; border-radius: 8px; font-weight: 700; }
+        .footer { margin-top: 20px; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header">
+          <h1>🏦 Prime Heritage <span class="gold">Bank</span></h1>
+          <p style="color: rgba(255,255,255,0.5);">INTERNATIONAL BANKING</p>
+        </div>
+        <div class="content">
+          <h2 style="color: white;">Hello, ${userData.full_name}! 👋</h2>
+          <p style="color: rgba(255,255,255,0.7);">Welcome to Prime Heritage International Bank! Your account has been successfully created.</p>
+          <div class="features">
+            <div class="feature"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD, EUR, GBP, NGN</span></div>
+            <div class="feature"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa & Mastercard</span></div>
+            <div class="feature"><span class="icon">🔐</span><span class="label">BBC Security</span><span class="desc">3-Step Verification</span></div>
+            <div class="feature"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT & SEPA Ready</span></div>
+          </div>
+          <div style="text-align: center;">
+            <a href="https://prime-heritage-bank.onrender.com/dashboard.html" class="btn">🚀 Go to Dashboard</a>
+          </div>
+        </div>
+        <div class="footer">
+          <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
+          <p>Sent to ${userData.email}</p>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+const sendWelcomeEmail = async (userData) => {
+  try {
+    const html = generateWelcomeEmailHTML(userData);
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
+      to: userData.email,
+      subject: '🎉 Welcome to Prime Heritage Bank!',
+      html
+    });
+    log.email('✅ Welcome email sent to:', userData.email);
+  } catch (error) {
+    log.error('Welcome email failed:', error);
+  }
+};
+
 // ==================== RECEIPT GENERATOR ====================
 const generateReceiptHTML = (transaction, user) => {
   const typeIcons = {
@@ -153,7 +388,6 @@ const generateReceiptHTML = (transaction, user) => {
     withdrawal: '🏦',
     admin_transfer: '👑'
   };
-  
   const typeNames = {
     transfer: 'Money Transfer',
     airtime: 'Airtime Purchase',
@@ -162,21 +396,17 @@ const generateReceiptHTML = (transaction, user) => {
     withdrawal: 'Bank Withdrawal',
     admin_transfer: 'Admin Transfer'
   };
-  
   const statusColors = {
     completed: '#10B981',
     pending: '#F59E0B',
     failed: '#EF4444'
   };
-  
   const statusIcons = {
     completed: '✅',
     pending: '⏳',
     failed: '❌'
   };
-  
   const transactionDate = new Date(transaction.created_at || transaction.completed_at || Date.now());
-  
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -186,209 +416,39 @@ const generateReceiptHTML = (transaction, user) => {
       <title>Transaction Receipt</title>
       <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: #0A0E1A;
-          padding: 40px 20px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 100vh;
-        }
-        .receipt-container {
-          max-width: 500px;
-          width: 100%;
-          background: #0F1622;
-          border-radius: 28px;
-          overflow: hidden;
-          border: 1px solid rgba(198, 164, 63, 0.15);
-          box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-        }
-        .receipt-header {
-          background: linear-gradient(135deg, #0A0E1A, #16213E);
-          padding: 30px 30px 20px;
-          text-align: center;
-          border-bottom: 2px solid rgba(198, 164, 63, 0.2);
-          position: relative;
-        }
-        .receipt-header::after {
-          content: '';
-          position: absolute;
-          bottom: -2px;
-          left: 0;
-          right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F);
-          background-size: 200% 100%;
-          animation: shimmer 2s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .receipt-header .logo {
-          font-size: 48px;
-          display: block;
-          margin-bottom: 8px;
-        }
-        .receipt-header h1 {
-          color: #FFFFFF;
-          font-size: 24px;
-          font-weight: 700;
-          letter-spacing: 1px;
-        }
-        .receipt-header h1 .gold {
-          background: linear-gradient(135deg, #C6A43F, #D4B85A);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .receipt-header .subtitle {
-          color: rgba(255,255,255,0.4);
-          font-size: 11px;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          margin-top: 4px;
-        }
-        .receipt-header .receipt-id {
-          display: inline-block;
-          margin-top: 12px;
-          padding: 4px 16px;
-          background: rgba(198, 164, 63, 0.12);
-          border: 1px solid rgba(198, 164, 63, 0.2);
-          border-radius: 50px;
-          color: #C6A43F;
-          font-size: 11px;
-          font-weight: 600;
-          font-family: monospace;
-        }
-        .receipt-body {
-          padding: 28px 30px 30px;
-        }
-        .status-badge {
-          display: inline-flex;
-          align-items: center;
-          gap: 8px;
-          padding: 6px 16px;
-          border-radius: 50px;
-          font-size: 13px;
-          font-weight: 600;
-          background: rgba(16, 185, 129, 0.12);
-          color: #10B981;
-          border: 1px solid rgba(16, 185, 129, 0.2);
-          margin-bottom: 20px;
-        }
-        .transaction-type {
-          text-align: center;
-          padding: 16px 0;
-          margin-bottom: 20px;
-          background: rgba(255,255,255,0.03);
-          border-radius: 16px;
-          border: 1px solid rgba(255,255,255,0.05);
-        }
-        .transaction-type .icon {
-          font-size: 40px;
-          display: block;
-          margin-bottom: 6px;
-        }
-        .transaction-type .type-label {
-          color: #C6A43F;
-          font-weight: 700;
-          font-size: 18px;
-        }
-        .transaction-type .type-sub {
-          color: rgba(255,255,255,0.3);
-          font-size: 12px;
-        }
-        .amount-section {
-          text-align: center;
-          padding: 20px 0;
-          margin-bottom: 20px;
-          border-top: 1px solid rgba(255,255,255,0.05);
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-        }
-        .amount-section .amount {
-          font-size: 36px;
-          font-weight: 800;
-          color: #FFFFFF;
-        }
-        .amount-section .amount .currency {
-          color: #C6A43F;
-        }
-        .amount-section .amount-label {
-          color: rgba(255,255,255,0.3);
-          font-size: 12px;
-          letter-spacing: 1px;
-          text-transform: uppercase;
-        }
-        .detail-row {
-          display: flex;
-          justify-content: space-between;
-          padding: 10px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-        .detail-row:last-child {
-          border-bottom: none;
-        }
-        .detail-label {
-          color: rgba(255,255,255,0.4);
-          font-size: 13px;
-        }
-        .detail-value {
-          color: #FFFFFF;
-          font-weight: 500;
-          font-size: 13px;
-          text-align: right;
-        }
-        .detail-value .gold-text {
-          color: #C6A43F;
-        }
-        .detail-value.mono {
-          font-family: monospace;
-          font-size: 12px;
-          letter-spacing: 0.5px;
-        }
-        .receipt-footer {
-          padding: 20px 30px 30px;
-          border-top: 1px solid rgba(255,255,255,0.05);
-          text-align: center;
-        }
-        .receipt-footer .thank-you {
-          color: #C6A43F;
-          font-size: 16px;
-          font-weight: 700;
-        }
-        .receipt-footer .tagline {
-          color: rgba(255,255,255,0.2);
-          font-size: 11px;
-          margin-top: 4px;
-        }
-        .receipt-footer .qr-placeholder {
-          margin: 12px auto 0;
-          width: 60px;
-          height: 60px;
-          background: rgba(198, 164, 63, 0.1);
-          border-radius: 12px;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          border: 1px dashed rgba(198, 164, 63, 0.2);
-        }
-        .receipt-footer .qr-placeholder i {
-          font-size: 24px;
-          color: #C6A43F;
-          opacity: 0.4;
-        }
-        .watermark {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: 120px;
-          opacity: 0.02;
-          pointer-events: none;
-          font-weight: 900;
-          color: #C6A43F;
-        }
+        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: #0A0E1A; padding: 40px 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .receipt-container { max-width: 500px; width: 100%; background: #0F1622; border-radius: 28px; overflow: hidden; border: 1px solid rgba(198, 164, 63, 0.15); box-shadow: 0 25px 60px rgba(0,0,0,0.5); }
+        .receipt-header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px 30px 20px; text-align: center; border-bottom: 2px solid rgba(198, 164, 63, 0.2); position: relative; }
+        .receipt-header::after { content: ''; position: absolute; bottom: -2px; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F); background-size: 200% 100%; animation: shimmer 2s ease-in-out infinite; }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .receipt-header .logo { font-size: 48px; display: block; margin-bottom: 8px; }
+        .receipt-header h1 { color: #FFFFFF; font-size: 24px; font-weight: 700; letter-spacing: 1px; }
+        .receipt-header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .receipt-header .subtitle { color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
+        .receipt-header .receipt-id { display: inline-block; margin-top: 12px; padding: 4px 16px; background: rgba(198, 164, 63, 0.12); border: 1px solid rgba(198, 164, 63, 0.2); border-radius: 50px; color: #C6A43F; font-size: 11px; font-weight: 600; font-family: monospace; }
+        .receipt-body { padding: 28px 30px 30px; }
+        .status-badge { display: inline-flex; align-items: center; gap: 8px; padding: 6px 16px; border-radius: 50px; font-size: 13px; font-weight: 600; background: rgba(16, 185, 129, 0.12); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.2); margin-bottom: 20px; }
+        .transaction-type { text-align: center; padding: 16px 0; margin-bottom: 20px; background: rgba(255,255,255,0.03); border-radius: 16px; border: 1px solid rgba(255,255,255,0.05); }
+        .transaction-type .icon { font-size: 40px; display: block; margin-bottom: 6px; }
+        .transaction-type .type-label { color: #C6A43F; font-weight: 700; font-size: 18px; }
+        .transaction-type .type-sub { color: rgba(255,255,255,0.3); font-size: 12px; }
+        .amount-section { text-align: center; padding: 20px 0; margin-bottom: 20px; border-top: 1px solid rgba(255,255,255,0.05); border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .amount-section .amount { font-size: 36px; font-weight: 800; color: #FFFFFF; }
+        .amount-section .amount .currency { color: #C6A43F; }
+        .amount-section .amount-label { color: rgba(255,255,255,0.3); font-size: 12px; letter-spacing: 1px; text-transform: uppercase; }
+        .detail-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: rgba(255,255,255,0.4); font-size: 13px; }
+        .detail-value { color: #FFFFFF; font-weight: 500; font-size: 13px; text-align: right; }
+        .detail-value .gold-text { color: #C6A43F; }
+        .detail-value.mono { font-family: monospace; font-size: 12px; letter-spacing: 0.5px; }
+        .receipt-footer { padding: 20px 30px 30px; border-top: 1px solid rgba(255,255,255,0.05); text-align: center; }
+        .receipt-footer .thank-you { color: #C6A43F; font-size: 16px; font-weight: 700; }
+        .receipt-footer .tagline { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 4px; }
+        .receipt-footer .qr-placeholder { margin: 12px auto 0; width: 60px; height: 60px; background: rgba(198, 164, 63, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; border: 1px dashed rgba(198, 164, 63, 0.2); }
+        .receipt-footer .qr-placeholder i { font-size: 24px; color: #C6A43F; opacity: 0.4; }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; opacity: 0.02; pointer-events: none; font-weight: 900; color: #C6A43F; }
+        @media (max-width: 500px) { .receipt-header { padding: 24px 20px 16px; } .receipt-body { padding: 20px; } .receipt-footer { padding: 16px 20px 24px; } .amount-section .amount { font-size: 28px; } }
       </style>
     </head>
     <body>
@@ -400,56 +460,28 @@ const generateReceiptHTML = (transaction, user) => {
           <div class="receipt-id">#${transaction.reference || 'N/A'}</div>
           <div class="watermark">RECEIPT</div>
         </div>
-        
         <div class="receipt-body">
-          <div class="status-badge">
-            ${statusIcons[transaction.status] || '✅'} ${(transaction.status || 'completed').toUpperCase()}
-          </div>
-          
+          <div class="status-badge">${statusIcons[transaction.status] || '✅'} ${(transaction.status || 'completed').toUpperCase()}</div>
           <div class="transaction-type">
             <span class="icon">${typeIcons[transaction.type] || '💳'}</span>
             <div class="type-label">${typeNames[transaction.type] || 'Transaction'}</div>
             <div class="type-sub">${new Date(transactionDate).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })} at ${new Date(transactionDate).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</div>
           </div>
-          
           <div class="amount-section">
             <div class="amount-label">Amount</div>
             <div class="amount"><span class="currency">${transaction.currency || 'USD'}</span> ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
           </div>
-          
-          <div class="detail-row">
-            <span class="detail-label">From</span>
-            <span class="detail-value mono">${transaction.from_account_number || 'N/A'}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">To</span>
-            <span class="detail-value mono">${transaction.to_account_number || 'N/A'}</span>
-          </div>
-          <div class="detail-row">
-            <span class="detail-label">Description</span>
-            <span class="detail-value">${transaction.description || transaction.purpose || 'N/A'}</span>
-          </div>
-          ${transaction.sender_name ? `
-          <div class="detail-row">
-            <span class="detail-label">Sender</span>
-            <span class="detail-value gold-text">${transaction.sender_name}</span>
-          </div>` : ''}
-          <div class="detail-row">
-            <span class="detail-label">Transaction ID</span>
-            <span class="detail-value mono gold-text">${transaction.id || 'N/A'}</span>
-          </div>
-          <div class="detail-row" style="border-bottom: none;">
-            <span class="detail-label">Status</span>
-            <span class="detail-value" style="color: ${statusColors[transaction.status] || '#10B981'};">${(transaction.status || 'completed').toUpperCase()}</span>
-          </div>
+          <div class="detail-row"><span class="detail-label">From</span><span class="detail-value mono">${transaction.from_account_number || 'N/A'}</span></div>
+          <div class="detail-row"><span class="detail-label">To</span><span class="detail-value mono">${transaction.to_account_number || 'N/A'}</span></div>
+          <div class="detail-row"><span class="detail-label">Description</span><span class="detail-value">${transaction.description || transaction.purpose || 'N/A'}</span></div>
+          ${transaction.sender_name ? `<div class="detail-row"><span class="detail-label">Sender</span><span class="detail-value gold-text">${transaction.sender_name}</span></div>` : ''}
+          <div class="detail-row"><span class="detail-label">Transaction ID</span><span class="detail-value mono gold-text">${transaction.id || 'N/A'}</span></div>
+          <div class="detail-row" style="border-bottom: none;"><span class="detail-label">Status</span><span class="detail-value" style="color: ${statusColors[transaction.status] || '#10B981'};">${(transaction.status || 'completed').toUpperCase()}</span></div>
         </div>
-        
         <div class="receipt-footer">
           <div class="thank-you">Thank you for banking with us</div>
           <div class="tagline">Prime Heritage International Bank • Global Banking Excellence</div>
-          <div class="qr-placeholder">
-            <i class="fas fa-qrcode"></i>
-          </div>
+          <div class="qr-placeholder"><i class="fas fa-qrcode"></i></div>
         </div>
       </div>
     </body>
@@ -461,18 +493,11 @@ const generateReceiptHTML = (transaction, user) => {
 const sendReceiptEmail = async (transaction, user) => {
   try {
     const html = generateReceiptHTML(transaction, user);
-    const subject = `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`;
-    
     await transporter.sendMail({
       from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
       to: user.email,
-      subject: subject,
-      html: html,
-      attachments: [{
-        filename: `receipt-${transaction.reference || 'transaction'}.html`,
-        content: html,
-        contentType: 'text/html'
-      }]
+      subject: `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
+      html: html
     });
     log.email('✅ Receipt email sent to:', user.email);
     return true;
@@ -482,71 +507,11 @@ const sendReceiptEmail = async (transaction, user) => {
   }
 };
 
-// ==================== REST OF THE SERVER CODE ====================
-// (All the previous routes - register, login, BBC transactions, admin routes, etc.)
-// ... [Keep all the previous code here]
-
-// ==================== GET RECEIPT ====================
-app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
-  try {
-    const { reference } = req.params;
-    
-    // Find transaction
-    const transaction = db.transactions.find(t => 
-      t.reference === reference && 
-      (t.from_user_id === req.user.id || t.to_user_id === req.user.id)
-    );
-    
-    if (!transaction) {
-      return res.status(404).json({ error: 'Receipt not found' });
-    }
-    
-    const user = db.users.find(u => u.id === req.user.id);
-    const html = generateReceiptHTML(transaction, user);
-    
-    res.json({
-      success: true,
-      html: html,
-      transaction: transaction
-    });
-  } catch (error) {
-    log.error('Get receipt error:', error);
-    res.status(500).json({ error: 'Failed to get receipt' });
-  }
-});
-
-// ==================== ADMIN GET RECEIPT ====================
-app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const { reference } = req.params;
-    
-    const transaction = db.transactions.find(t => t.reference === reference);
-    if (!transaction) {
-      return res.status(404).json({ error: 'Receipt not found' });
-    }
-    
-    const user = db.users.find(u => u.id === transaction.from_user_id || u.id === transaction.to_user_id);
-    const html = generateReceiptHTML(transaction, user);
-    
-    res.json({
-      success: true,
-      html: html,
-      transaction: transaction,
-      user: user ? { email: user.email, full_name: user.full_name } : null
-    });
-  } catch (error) {
-    log.error('Admin get receipt error:', error);
-    res.status(500).json({ error: 'Failed to get receipt' });
-  }
-});
-
-// ==================== GENERATE RECEIPT FOR TRANSACTION ====================
 const generateAndSendReceipt = async (transaction, userId) => {
   try {
     const user = db.users.find(u => u.id === userId);
     if (user) {
       await sendReceiptEmail(transaction, user);
-      // Store receipt in database
       db.receipts.push({
         id: uuidv4(),
         transaction_id: transaction.id,
@@ -557,6 +522,83 @@ const generateAndSendReceipt = async (transaction, userId) => {
     }
   } catch (error) {
     log.error('Generate receipt error:', error);
+  }
+};
+
+// ==================== AUTH MIDDLEWARE ====================
+const authMiddleware = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'No token provided' });
+    }
+    const decoded = jwt.verify(token, JWT_SECRET);
+    const user = db.users.find(u => u.id === decoded.userId);
+    if (!user || !user.is_active) {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    req.user = user;
+    next();
+  } catch (error) {
+    return res.status(401).json({ error: 'Authentication failed' });
+  }
+};
+
+const adminMiddleware = (req, res, next) => {
+  if (!req.user || !req.user.is_admin) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  next();
+};
+
+// ==================== MIDDLEWARE ====================
+app.use(helmet({ contentSecurityPolicy: false, crossOriginEmbedderPolicy: false }));
+app.use(cors({ origin: '*', credentials: true }));
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.static(path.join(__dirname, 'public')));
+
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, try again later.' }
+});
+app.use('/api', limiter);
+
+// ==================== CONSTANTS ====================
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
+const JWT_EXPIRE = '7d';
+const BBC_EXPIRY_MINUTES = 15;
+
+// ==================== COMPLETE TRANSACTION ====================
+const completeTransaction = async (transaction, req, res) => {
+  try {
+    const fromAccount = db.accounts.find(a => a.account_number === transaction.from_account_number);
+    const toAccount = db.accounts.find(a => a.account_number === transaction.to_account_number);
+    
+    if (fromAccount && toAccount) {
+      if (!req.user.is_unlimited) {
+        fromAccount.balance -= transaction.amount;
+      }
+      toAccount.balance += transaction.amount;
+      
+      const completedTx = {
+        ...transaction,
+        status: 'completed',
+        completed_at: new Date().toISOString()
+      };
+      
+      db.transactions.push(completedTx);
+      db.pendingTransactions = db.pendingTransactions.filter(t => t.reference !== transaction.reference);
+      
+      await generateAndSendReceipt(completedTx, req.user.id);
+      
+      return { success: true, newBalance: fromAccount.balance, transaction: completedTx };
+    }
+    return { success: false, error: 'Account error' };
+  } catch (error) {
+    log.error('Complete transaction error:', error);
+    return { success: false, error: error.message };
   }
 };
 
@@ -970,44 +1012,61 @@ app.get('/api/support', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== ============================================
-// ==================== BBC SECURED TRANSACTIONS ====================
-// ==================== ============================================
-
-// ==================== UTILITY FUNCTION FOR COMPLETING TRANSACTIONS ====================
-const completeTransaction = async (transaction, req, res) => {
+// ==================== RECEIPT ROUTES ====================
+app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
-    const fromAccount = db.accounts.find(a => a.account_number === transaction.from_account_number);
-    const toAccount = db.accounts.find(a => a.account_number === transaction.to_account_number);
+    const { reference } = req.params;
     
-    if (fromAccount && toAccount) {
-      if (!req.user.is_unlimited) {
-        fromAccount.balance -= transaction.amount;
-      }
-      toAccount.balance += transaction.amount;
-      
-      const completedTx = {
-        ...transaction,
-        status: 'completed',
-        completed_at: new Date().toISOString()
-      };
-      
-      db.transactions.push(completedTx);
-      db.pendingTransactions = db.pendingTransactions.filter(t => t.reference !== transaction.reference);
-      
-      // Generate and send receipt
-      await generateAndSendReceipt(completedTx, req.user.id);
-      
-      return { success: true, newBalance: fromAccount.balance, transaction: completedTx };
+    const transaction = db.transactions.find(t => 
+      t.reference === reference && 
+      (t.from_user_id === req.user.id || t.to_user_id === req.user.id)
+    );
+    
+    if (!transaction) {
+      return res.status(404).json({ error: 'Receipt not found' });
     }
-    return { success: false, error: 'Account error' };
+    
+    const user = db.users.find(u => u.id === req.user.id);
+    const html = generateReceiptHTML(transaction, user);
+    
+    res.json({
+      success: true,
+      html: html,
+      transaction: transaction
+    });
   } catch (error) {
-    log.error('Complete transaction error:', error);
-    return { success: false, error: error.message };
+    log.error('Get receipt error:', error);
+    res.status(500).json({ error: 'Failed to get receipt' });
   }
-};
+});
 
-// ==================== 1. SEND MONEY (WITH BBC) ====================
+app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { reference } = req.params;
+    
+    const transaction = db.transactions.find(t => t.reference === reference);
+    if (!transaction) {
+      return res.status(404).json({ error: 'Receipt not found' });
+    }
+    
+    const user = db.users.find(u => u.id === transaction.from_user_id || u.id === transaction.to_user_id);
+    const html = generateReceiptHTML(transaction, user);
+    
+    res.json({
+      success: true,
+      html: html,
+      transaction: transaction,
+      user: user ? { email: user.email, full_name: user.full_name } : null
+    });
+  } catch (error) {
+    log.error('Admin get receipt error:', error);
+    res.status(500).json({ error: 'Failed to get receipt' });
+  }
+});
+
+// ==================== BBC SECURED TRANSACTIONS ====================
+
+// 1. SEND MONEY
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
@@ -1209,7 +1268,7 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== 2. AIRTIME (WITH BBC) ====================
+// 2. AIRTIME
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
@@ -1400,7 +1459,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== 3. BILL PAYMENT (WITH BBC) ====================
+// 3. BILLS
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
@@ -1592,7 +1651,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== 4. DATA BUNDLE (WITH BBC) ====================
+// 4. DATA
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
@@ -1785,7 +1844,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== 5. WITHDRAWAL (WITH BBC) ====================
+// 5. WITHDRAW
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
@@ -2121,7 +2180,6 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
   }
 });
 
-// ==================== ADMIN SEND MONEY ====================
 app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, currency, senderName, note } = req.body;
@@ -2181,8 +2239,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     };
     
     db.transactions.push(transaction);
-    
-    // Admin doesn't lose money - unlimited!
     toAccount.balance += amount;
     
     db.auditLogs.push({
@@ -2198,7 +2254,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       timestamp: new Date().toISOString()
     });
     
-    // Generate receipt for admin transfer
     await generateAndSendReceipt(transaction, recipient.id);
     
     log.admin(`✅ Admin transfer completed: ${amount} ${currency} to ${recipient.email} (${senderName})`);
@@ -2242,73 +2297,6 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   } catch (error) {
     log.error('Admin stats error:', error);
     res.status(500).json({ error: 'Failed to get stats' });
-  }
-});
-
-// ==================== TEST EMAIL ====================
-const sendTestEmail = async () => {
-  try {
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com',
-      to: 'devgift@gmail.com',
-      subject: '🚀 Prime Heritage Bank - Server Started!',
-      html: `
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <style>
-            body { font-family: 'Segoe UI', Arial, sans-serif; background: #0A0E1A; padding: 20px; }
-            .container { max-width: 600px; margin: 0 auto; background: #0F1622; border-radius: 24px; padding: 30px; border: 1px solid rgba(198,164,63,0.15); }
-            .header { background: linear-gradient(135deg, #0A0E1A, #16213E); padding: 30px; text-align: center; border-radius: 16px 16px 0 0; margin: -30px -30px 20px -30px; border-bottom: 3px solid #C6A43F; }
-            .header h1 { color: white; margin: 0; font-size: 28px; }
-            .header .gold { color: #C6A43F; }
-            .success { background: rgba(16,185,129,0.15); border: 1px solid rgba(16,185,129,0.3); color: #34D399; padding: 15px; border-radius: 12px; border-left: 4px solid #10B981; margin: 15px 0; }
-            .info { background: rgba(59,130,246,0.1); border: 1px solid rgba(59,130,246,0.2); color: #60A5FA; padding: 15px; border-radius: 12px; border-left: 4px solid #3B82F6; margin: 15px 0; }
-            .admin-box { background: rgba(198,164,63,0.1); border: 1px solid rgba(198,164,63,0.2); color: #C6A43F; padding: 15px; border-radius: 12px; border-left: 4px solid #C6A43F; margin: 15px 0; }
-            .footer { margin-top: 20px; text-align: center; color: rgba(255,255,255,0.3); font-size: 12px; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 20px; }
-          </style>
-        </head>
-        <body>
-          <div class="container">
-            <div class="header">
-              <h1>🏦 Prime Heritage <span class="gold">Bank</span></h1>
-              <p style="color: rgba(255,255,255,0.5); margin: 5px 0 0;">INTERNATIONAL BANKING</p>
-            </div>
-            <h2 style="color: white;">✅ Server Started Successfully!</h2>
-            <div class="success"><strong>✓ Email System is Working!</strong><br>Your server is running and emails are sending correctly.</div>
-            <div class="info">
-              <strong>📋 Server Details:</strong><br>
-              • Time: ${new Date().toLocaleString()}<br>
-              • Environment: ${process.env.NODE_ENV || 'production'}<br>
-              • URL: https://prime-heritage-bank.onrender.com<br>
-              • Receipt System: ✅ Active
-            </div>
-            <div class="admin-box">
-              <strong>👑 Admin Access:</strong><br>
-              Email: <code>devgift@gmail.com</code><br>
-              Password: <code>Igwe</code><br>
-              <strong>💰 Balance: UNLIMITED</strong>
-            </div>
-            <div class="footer">
-              <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
-            </div>
-          </div>
-        </body>
-        </html>
-      `
-    });
-    log.email('✅ Test email sent to devgift@gmail.com');
-  } catch (error) {
-    log.error('Test email failed:', error);
-  }
-};
-
-transporter.verify((error) => {
-  if (error) {
-    log.error('Email error:', error);
-  } else {
-    log.success('Email server ready');
-    setTimeout(sendTestEmail, 2000);
   }
 });
 
