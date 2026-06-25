@@ -516,6 +516,102 @@
         }
         .amount-positive { color: var(--success); }
         .amount-negative { color: var(--error); }
+        .receipt-btn {
+            background: rgba(198,164,63,0.1);
+            border: 1px solid var(--gold);
+            padding: 4px 12px;
+            border-radius: 30px;
+            color: var(--gold);
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-left: 8px;
+        }
+        .receipt-btn:hover {
+            background: var(--gradient-gold);
+            color: #0A0E1A;
+        }
+
+        /* ===== RECEIPT MODAL ===== */
+        .receipt-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .receipt-modal.active {
+            display: flex;
+        }
+        .receipt-modal-content {
+            max-width: 550px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            border-radius: 20px;
+            position: relative;
+        }
+        .receipt-modal-content iframe {
+            width: 100%;
+            min-height: 700px;
+            border: none;
+            border-radius: 20px;
+            background: #0F1622;
+        }
+        .receipt-close {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            background: rgba(198,164,63,0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50%;
+            color: var(--gold);
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 3001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s;
+        }
+        .receipt-close:hover {
+            background: var(--gold);
+            color: #0A0E1A;
+            transform: rotate(90deg);
+        }
+        .receipt-download-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 14px 28px;
+            background: var(--gradient-gold);
+            border: none;
+            border-radius: 50px;
+            color: #0A0E1A;
+            font-weight: 700;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 3001;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 10px 30px rgba(198,164,63,0.3);
+            transition: all 0.3s;
+        }
+        .receipt-download-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px rgba(198,164,63,0.4);
+        }
 
         /* ===== CARDS ===== */
         .bank-card {
@@ -746,6 +842,8 @@
             .nav-item span { font-size: 9px; }
             .welcome-text h2 { font-size: 22px; }
             .stat-card { padding: 16px; }
+            .receipt-download-btn { bottom: 80px; right: 20px; padding: 12px 20px; font-size: 12px; }
+            .receipt-close { top: 10px; right: 10px; width: 40px; height: 40px; font-size: 20px; }
         }
     </style>
 </head>
@@ -861,6 +959,17 @@
         </div>
     </div>
 
+    <!-- RECEIPT MODAL -->
+    <div class="receipt-modal" id="receiptModal">
+        <button class="receipt-close" onclick="closeReceipt()"><i class="fas fa-times"></i></button>
+        <button class="receipt-download-btn" onclick="downloadReceipt()">
+            <i class="fas fa-download"></i> Download Receipt
+        </button>
+        <div class="receipt-modal-content">
+            <iframe id="receiptFrame" srcdoc=""></iframe>
+        </div>
+    </div>
+
     <!-- BOTTOM NAV -->
     <div class="bottom-nav">
         <div class="nav-item active" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
@@ -886,6 +995,7 @@
         let userData = null;
         let currentUser = null;
         let spendingChart = null;
+        let currentReceiptHtml = '';
 
         // ============================================================
         // THEME
@@ -970,6 +1080,60 @@
         }
 
         // ============================================================
+        // RECEIPT FUNCTIONS
+        // ============================================================
+        async function viewReceipt(reference) {
+            try {
+                showLoading(true);
+                const res = await fetch(`${API_URL}/api/receipt/${reference}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    currentReceiptHtml = data.html;
+                    document.getElementById('receiptFrame').srcdoc = currentReceiptHtml;
+                    document.getElementById('receiptModal').classList.add('active');
+                    document.body.style.overflow = 'hidden';
+                } else {
+                    Swal.fire('Error', 'Could not load receipt', 'error');
+                }
+            } catch (e) {
+                Swal.fire('Error', 'Failed to load receipt', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function closeReceipt() {
+            document.getElementById('receiptModal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        function downloadReceipt() {
+            if (!currentReceiptHtml) return;
+            
+            const blob = new Blob([currentReceiptHtml], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `receipt-${Date.now()}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Close receipt on escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeReceipt();
+        });
+
+        // Close receipt on click outside
+        document.getElementById('receiptModal').addEventListener('click', (e) => {
+            if (e.target === e.currentTarget) closeReceipt();
+        });
+
+        // ============================================================
         // LOAD USER DATA
         // ============================================================
         async function loadUserData() {
@@ -1012,7 +1176,7 @@
             const lastLogin = currentUser.last_login ? new Date(currentUser.last_login).toLocaleString() : 'First time today';
             document.getElementById('lastLoginMessage').textContent = `Last login: ${lastLogin}`;
 
-            // Account Info - FIXED to display correctly
+            // Account Info
             const accounts = currentUser.accounts || [];
             const primaryAccount = accounts.find(a => a.is_primary) || accounts[0] || {};
 
@@ -1069,7 +1233,7 @@
                 </div>
             `;
 
-            // Transactions
+            // Transactions with Receipt Button
             const txDiv = document.getElementById('recentTransactions');
             const transactions = currentUser.transactions || [];
 
@@ -1080,8 +1244,10 @@
                     const isIncoming = tx.to_user_id === currentUser.id;
                     const amount = tx.amount || 0;
                     const currency = tx.currency || 'USD';
+                    const reference = tx.reference || tx.id;
+                    const hasReceipt = tx.status === 'completed';
                     return `
-                        <div class="transaction-item">
+                        <div class="transaction-item" onclick="viewReceipt('${reference}')">
                             <div class="transaction-left">
                                 <div class="transaction-icon"><i class="fas ${isIncoming ? 'fa-download' : 'fa-upload'}"></i></div>
                                 <div>
@@ -1089,7 +1255,10 @@
                                     <div class="transaction-date">${tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent'}</div>
                                 </div>
                             </div>
-                            <div class="transaction-amount ${isIncoming ? 'amount-positive' : 'amount-negative'}">${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}</div>
+                            <div>
+                                <div class="transaction-amount ${isIncoming ? 'amount-positive' : 'amount-negative'}">${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}</div>
+                                ${hasReceipt ? `<button class="receipt-btn" onclick="event.stopPropagation();viewReceipt('${reference}')"><i class="fas fa-receipt"></i> Receipt</button>` : ''}
+                            </div>
                         </div>
                     `;
                 }).join('');
