@@ -258,11 +258,6 @@
             color: var(--text-primary);
         }
 
-        .country-flag {
-            font-size: 20px;
-            margin-right: 10px;
-        }
-
         .pin-inputs, .code-inputs {
             display: flex;
             gap: 12px;
@@ -394,6 +389,18 @@
 
         .loader-text { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .card { padding: 24px; }
@@ -434,6 +441,7 @@
             <div class="title">
                 <h2><i class="fas fa-globe-americas"></i> Pay Bills</h2>
                 <p>International bill payments with BBC security</p>
+                <div class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step Verification</div>
             </div>
 
             <div class="info-box">
@@ -611,7 +619,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let currentRef = null;
 
         const PROVIDERS = {
@@ -702,7 +710,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/bills/step1`, {
+                const res = await fetch(`${API_URL}/api/bills/step1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -754,7 +762,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/bills/step2`, {
+                const res = await fetch(`${API_URL}/api/bills/step2`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -795,7 +803,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/bills/step3`, {
+                const res = await fetch(`${API_URL}/api/bills/step3`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -836,7 +844,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/bills/step4`, {
+                const res = await fetch(`${API_URL}/api/bills/step4`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -854,7 +862,6 @@
                             <div style="text-align: left;">
                                 <p><strong>Bill Type:</strong> ${document.getElementById('billType').value}</p>
                                 <p><strong>Provider:</strong> ${document.getElementById('provider').value}</p>
-                                <p><strong>Account:</strong> ${document.getElementById('accountNumber').value}</p>
                                 <p><strong>Amount:</strong> $${parseFloat(document.getElementById('amount').value).toFixed(2)}</p>
                                 <p><strong>Reference:</strong> ${currentRef}</p>
                                 <p style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
@@ -878,7 +885,7 @@
 
         async function loadBalance() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) {
@@ -886,10 +893,11 @@
                     return;
                 }
                 const data = await res.json();
-                const balance = data.totalBalance || 0;
-                const currency = data.user.currency || 'USD';
-                document.getElementById('userBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
-                document.getElementById('headerBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
+                const user = data.user;
+                const totalBalance = user.totalBalance || 0;
+                const currency = user.currency || 'USD';
+                document.getElementById('userBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
+                document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
             } catch(e) {
                 console.error(e);
             }
@@ -897,6 +905,12 @@
 
         document.getElementById('countrySelect').addEventListener('change', updateProviders);
         updateProviders();
+
+        const token = localStorage.getItem('token');
+        if (!token && window.location.pathname !== '/') {
+            window.location.href = '/';
+        }
+
         loadBalance();
     </script>
 </body>
