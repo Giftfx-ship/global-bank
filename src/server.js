@@ -235,9 +235,9 @@ const generateCardNumber = () => {
 // ==================== BBC CODE GENERATION (HIDDEN PURPOSES) ====================
 const generateBBCode = (step, type = 'transaction') => {
   const prefixes = { 
-    1: 'ALPHA',  // Hidden: Verifies currency exchange rates / initial check
-    2: 'BETA',   // Hidden: Validates recipient account / second check
-    3: 'GAMMA'   // Hidden: Authorizes final settlement / completion
+    1: 'ALPHA',
+    2: 'BETA',
+    3: 'GAMMA'
   };
   
   const displayMessages = {
@@ -507,10 +507,10 @@ app.post('/api/auth/register', async (req, res) => {
     db.users.push(user);
     log.success('User created:', user.email);
 
-    // Create default accounts
+    // Create default accounts - generates unique account numbers
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
     for (const currency of currencies) {
-      db.accounts.push({
+      const account = {
         id: uuidv4(),
         user_id: user.id,
         currency,
@@ -522,12 +522,19 @@ app.post('/api/auth/register', async (req, res) => {
         account_type: 'current',
         is_active: true,
         created_at: new Date().toISOString()
-      });
+      };
+      db.accounts.push(account);
+      log.debug(`Created ${currency} account: ${account.account_number}`);
     }
 
+    // Send welcome email in background
     sendWelcomeEmail(user);
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
+
+    // Get user accounts for response
+    const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
 
     res.status(201).json({
       success: true,
@@ -539,7 +546,13 @@ app.post('/api/auth/register', async (req, res) => {
         full_name: user.full_name,
         account_level: user.account_level,
         is_verified: user.is_verified,
-        is_admin: user.is_admin
+        is_admin: user.is_admin,
+        accounts: userAccounts,
+        totalBalance: userAccounts.reduce((sum, a) => sum + a.balance, 0),
+        account_number: primaryAccount?.account_number || 'N/A',
+        iban: primaryAccount?.iban || 'N/A',
+        swift_code: primaryAccount?.swift_code || 'N/A',
+        currency: primaryAccount?.currency || 'USD'
       }
     });
   } catch (error) {
@@ -578,6 +591,10 @@ app.post('/api/auth/login', async (req, res) => {
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
+    // Get user accounts
+    const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
+
     res.json({
       success: true,
       message: 'Login successful',
@@ -592,7 +609,13 @@ app.post('/api/auth/login', async (req, res) => {
         is_verified: user.is_verified,
         is_active: user.is_active,
         is_admin: user.is_admin,
-        is_super_admin: user.is_super_admin || false
+        is_super_admin: user.is_super_admin || false,
+        accounts: userAccounts,
+        totalBalance: userAccounts.reduce((sum, a) => sum + a.balance, 0),
+        account_number: primaryAccount?.account_number || 'N/A',
+        iban: primaryAccount?.iban || 'N/A',
+        swift_code: primaryAccount?.swift_code || 'N/A',
+        currency: primaryAccount?.currency || 'USD'
       }
     });
   } catch (error) {
@@ -604,11 +627,36 @@ app.post('/api/auth/login', async (req, res) => {
 // ==================== API: GET PROFILE ====================
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
-    const userData = { ...req.user };
-    delete userData.password;
-    delete userData.transaction_pin;
+    const user = db.users.find(u => u.id === req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
+    
+    const userData = {
+      ...user,
+      password: undefined,
+      transaction_pin: undefined,
+      accounts: userAccounts,
+      totalBalance: userAccounts.reduce((sum, a) => sum + a.balance, 0),
+      account_number: primaryAccount?.account_number || 'N/A',
+      iban: primaryAccount?.iban || 'N/A',
+      swift_code: primaryAccount?.swift_code || 'N/A',
+      currency: primaryAccount?.currency || 'USD',
+      cards: db.cards.filter(c => c.user_id === user.id),
+      transactions: db.transactions
+        .filter(t => t.from_user_id === user.id || t.to_user_id === user.id)
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+        .slice(0, 50),
+      loans: db.loans.filter(l => l.user_id === user.id),
+      supportTickets: db.supportTickets.filter(s => s.user_id === user.id)
+    };
+    
     res.json({ success: true, user: userData });
   } catch (error) {
+    log.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
   }
 });
@@ -1838,6 +1886,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
     });
     res.json(usersWithDetails);
   } catch (error) {
+    log.error('Admin get users error:', error);
     res.status(500).json({ error: 'Failed to get users' });
   }
 });
@@ -1855,6 +1904,7 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
     
+    // Remove all user data
     db.accounts = db.accounts.filter(a => a.user_id !== userId);
     db.transactions = db.transactions.filter(t => t.from_user_id !== userId && t.to_user_id !== userId);
     db.cards = db.cards.filter(c => c.user_id !== userId);
@@ -1867,8 +1917,10 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     db.withdrawHistory = db.withdrawHistory.filter(w => w.user_id !== userId);
     db.users.splice(userIndex, 1);
     
+    log.admin(`User deleted: ${user.email}`);
     res.json({ success: true, message: `User ${user.full_name} deleted` });
   } catch (error) {
+    log.error('Admin delete user error:', error);
     res.status(500).json({ error: 'Failed to delete user' });
   }
 });
@@ -1884,8 +1936,10 @@ app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req
       return res.status(400).json({ error: 'Cannot modify your own status' });
     }
     user.is_active = !user.is_active;
+    log.admin(`User ${user.email} status toggled to: ${user.is_active ? 'Active' : 'Frozen'}`);
     res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'frozen'}` });
   } catch (error) {
+    log.error('Admin toggle status error:', error);
     res.status(500).json({ error: 'Failed to toggle user status' });
   }
 });
@@ -1895,6 +1949,7 @@ app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, r
     const bbcCodes = db.bbcCodes.filter(b => b.user_id === req.params.userId);
     res.json(bbcCodes);
   } catch (error) {
+    log.error('Admin get BBC codes error:', error);
     res.status(500).json({ error: 'Failed to get BBC codes' });
   }
 });
@@ -1930,31 +1985,47 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
       codes.push(bbc);
     }
     
+    log.admin(`Generated ${codes.length} BBC codes for user ${user.email}`);
     res.json({ success: true, message: `Generated ${codes.length} BBC codes`, codes });
   } catch (error) {
+    log.error('Admin generate BBC error:', error);
     res.status(500).json({ error: 'Failed to generate BBC codes' });
   }
 });
 
+// ==================== ADMIN SEND MONEY (WITH SENDER NAME) ====================
 app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, currency, senderName, note } = req.body;
+    
+    log.admin(`Admin sending money: ${amount} ${currency} to ${toAccountNumber} from ${senderName}`);
+    
     const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
     if (!toAccount) {
+      log.warn('Recipient account not found:', toAccountNumber);
       return res.status(404).json({ error: 'Recipient account not found' });
     }
     
     const recipient = db.users.find(u => u.id === toAccount.user_id);
-    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === currency);
+    if (!recipient) {
+      log.warn('Recipient user not found for account:', toAccountNumber);
+      return res.status(404).json({ error: 'Recipient user not found' });
+    }
     
+    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === currency);
     if (!fromAccount) {
+      log.warn('Admin account not found for currency:', currency);
       return res.status(404).json({ error: 'Admin account not found' });
     }
+    
     if (fromAccount.balance < amount) {
+      log.warn('Insufficient admin balance:', { balance: fromAccount.balance, requested: amount });
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
     const reference = generateReference();
+    
+    // Create transaction with sender name
     const transaction = {
       id: uuidv4(),
       reference,
@@ -1965,7 +2036,8 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       to_user_id: recipient.id,
       from_account_number: fromAccount.account_number,
       to_account_number: toAccount.account_number,
-      description: note || 'Admin transfer',
+      description: note || `Transfer from ${senderName || 'System Administrator'}`,
+      sender_name: senderName || 'System Administrator',
       status: 'completed',
       created_at: new Date().toISOString()
     };
@@ -1974,9 +2046,61 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     fromAccount.balance -= amount;
     toAccount.balance += amount;
     
-    res.json({ success: true, message: `Sent ${amount} ${currency} to ${recipient.full_name}` });
+    // Add to audit log
+    db.auditLogs.push({
+      id: uuidv4(),
+      admin_id: req.user.id,
+      admin_email: req.user.email,
+      action: 'admin_send',
+      recipient_email: recipient.email,
+      amount,
+      currency,
+      sender_name: senderName || 'System Administrator',
+      reference,
+      timestamp: new Date().toISOString()
+    });
+    
+    log.admin(`✅ Admin transfer completed: ${amount} ${currency} to ${recipient.email} (${senderName})`);
+    
+    res.json({
+      success: true,
+      message: `Sent ${amount} ${currency} to ${recipient.full_name} (${recipient.email}) from ${senderName || 'System Administrator'}`,
+      transaction: {
+        reference,
+        amount,
+        currency,
+        recipient: recipient.full_name,
+        recipientEmail: recipient.email,
+        senderName: senderName || 'System Administrator'
+      }
+    });
   } catch (error) {
+    log.error('Admin send money error:', error);
     res.status(500).json({ error: 'Failed to send money' });
+  }
+});
+
+// ==================== ADMIN GET STATS ====================
+app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const stats = {
+      totalUsers: db.users.length,
+      activeUsers: db.users.filter(u => u.is_active).length,
+      totalAccounts: db.accounts.length,
+      totalBalance: db.accounts.reduce((sum, a) => sum + a.balance, 0),
+      totalTransactions: db.transactions.length,
+      totalBBCodes: db.bbcCodes.length,
+      totalCards: db.cards.length,
+      totalLoans: db.loans.length,
+      totalAirtime: db.airtimeHistory.length,
+      totalBills: db.billHistory.length,
+      totalData: db.dataHistory.length,
+      totalWithdrawals: db.withdrawHistory.length
+    };
+    res.json(stats);
+  } catch (error) {
+    log.error('Admin stats error:', error);
+    res.status(500).json({ error: 'Failed to get stats' });
   }
 });
 
@@ -2005,6 +2129,7 @@ createDefaultAdmin().then(() => {
     console.log(`📍 URL: https://prime-heritage-bank.onrender.com`);
     console.log(`👑 Admin: devgift@gmail.com / Igwe`);
     console.log(`👥 Users: ${db.users.length}`);
+    console.log(`📊 Accounts: ${db.accounts.length}`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
     console.log(`📧 Test email sent to devgift@gmail.com`);
     console.log(`📊 Features: Send, Airtime, Bills, Data, Withdraw (All BBC Secured)`);
