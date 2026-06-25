@@ -2,9 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Portal | Prime Heritage Bank</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -636,7 +636,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://global-bank-i4cd.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let users = [];
         let currentBbcUserId = null;
         let allBbcCodes = [];
@@ -701,6 +701,9 @@
                             <button class="btn-sm ${u.is_active ? 'btn-danger' : ''}" onclick="toggleUserStatus('${u.id}')">
                                 <i class="fas ${u.is_active ? 'fa-snowflake' : 'fa-play'}"></i> ${u.is_active ? 'Freeze' : 'Activate'}
                             </button>` : ''}
+                            <button class="btn-sm btn-danger" onclick="deleteUser('${u.id}')">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </td>
                         <td>
                             <button class="btn-sm" onclick="viewBBCodes('${u.id}', '${u.full_name}')">
@@ -774,7 +777,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/admin/send`, {
+                const res = await fetch(`${API_URL}/api/admin/send`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -803,6 +806,41 @@
             }
         }
 
+        async function deleteUser(userId) {
+            const user = users.find(u => u.id === userId);
+            Swal.fire({
+                title: `Delete ${user.full_name}?`,
+                text: 'This will permanently delete the user and all their data!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Yes, Delete Permanently'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        const res = await fetch(`${API_URL}/api/admin/users/${userId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Deleted!', data.message, 'success');
+                            loadUsers();
+                        } else {
+                            Swal.fire('Error', data.error, 'error');
+                        }
+                    } catch(e) {
+                        Swal.fire('Error', 'Failed to delete user', 'error');
+                    } finally {
+                        showLoading(false);
+                    }
+                }
+            });
+        }
+
         async function toggleUserStatus(userId) {
             const user = users.find(u => u.id === userId);
             Swal.fire({
@@ -816,7 +854,7 @@
                 if (result.isConfirmed) {
                     showLoading(true);
                     try {
-                        const res = await fetch(`${apiUrl}/api/admin/toggle-status`, {
+                        const res = await fetch(`${API_URL}/api/admin/toggle-status`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json',
@@ -850,7 +888,7 @@
         async function loadBBCodes(userId) {
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/admin/bbc/${userId}`, {
+                const res = await fetch(`${API_URL}/api/admin/bbc/${userId}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 allBbcCodes = await res.json();
@@ -914,7 +952,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/admin/generate-bbc`, {
+                const res = await fetch(`${API_URL}/api/admin/generate-bbc`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -946,7 +984,7 @@
         async function loadUsers() {
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/admin/users`, {
+                const res = await fetch(`${API_URL}/api/admin/users`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 403) {
@@ -958,7 +996,7 @@
 
                 for (let u of users) {
                     try {
-                        const bbcRes = await fetch(`${apiUrl}/api/admin/bbc/${u.id}`, {
+                        const bbcRes = await fetch(`${API_URL}/api/admin/bbc/${u.id}`, {
                             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                         });
                         const bbcCodes = await bbcRes.json();
@@ -980,6 +1018,11 @@
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            window.location.href = '/';
+        }
+
+        // Check if token exists
+        if (!localStorage.getItem('token')) {
             window.location.href = '/';
         }
 
