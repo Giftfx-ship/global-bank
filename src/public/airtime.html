@@ -98,7 +98,6 @@
         }
 
         .user-section { display: flex; align-items: center; gap: 16px; }
-
         .balance-pill {
             background: rgba(198,164,63,0.15);
             padding: 8px 20px;
@@ -388,6 +387,18 @@
 
         .loader-text { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .card { padding: 24px; }
@@ -427,6 +438,7 @@
             <div class="title">
                 <h2><i class="fas fa-mobile-alt"></i> Buy Airtime</h2>
                 <p>Instant top-up for all networks with BBC security</p>
+                <div class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step Verification</div>
             </div>
 
             <div class="info-box">
@@ -559,7 +571,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
         let currentRef = null;
 
         function setTheme(theme) {
@@ -623,7 +635,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/airtime/step1`, {
+                const res = await fetch(`${API_URL}/api/airtime/step1`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -674,7 +686,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/airtime/step2`, {
+                const res = await fetch(`${API_URL}/api/airtime/step2`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -715,7 +727,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/airtime/step3`, {
+                const res = await fetch(`${API_URL}/api/airtime/step3`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -756,7 +768,7 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/airtime/step4`, {
+                const res = await fetch(`${API_URL}/api/airtime/step4`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -797,7 +809,7 @@
 
         async function loadBalance() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) {
@@ -805,13 +817,19 @@
                     return;
                 }
                 const data = await res.json();
-                const balance = data.totalBalance || 0;
-                const currency = data.user.currency || 'USD';
-                document.getElementById('userBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
-                document.getElementById('headerBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
+                const user = data.user;
+                const totalBalance = user.totalBalance || 0;
+                const currency = user.currency || 'USD';
+                document.getElementById('userBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
+                document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
             } catch(e) {
                 console.error(e);
             }
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token && window.location.pathname !== '/') {
+            window.location.href = '/';
         }
 
         loadBalance();
