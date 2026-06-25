@@ -168,7 +168,8 @@ const sendTestEmail = async () => {
               • Time: ${new Date().toLocaleString()}<br>
               • Environment: ${process.env.NODE_ENV || 'development'}<br>
               • Users in DB: ${db.users.length}<br>
-              • Email: ${process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com'}
+              • Email: ${process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com'}<br>
+              • URL: https://prime-heritage-bank.onrender.com
             </div>
             <div class="admin-box">
               <strong>👑 Admin Access:</strong><br>
@@ -215,7 +216,6 @@ transporter.verify((error, success) => {
     log.warn('Email may not work properly. Check Gmail App Password.');
   } else {
     log.success('Email server is ready (Gmail)');
-    // Send test email after verification
     setTimeout(() => {
       sendTestEmail();
     }, 2000);
@@ -258,12 +258,11 @@ const BBC_EXPIRY_MINUTES = 15;
 log.debug(`JWT configured - Expire: ${JWT_EXPIRE}`);
 
 // ==================== BBC CODE GENERATION ====================
-// Each BBC code has a hidden security purpose that the user doesn't know
 const generateBBCode = (step) => {
   const prefixes = {
-    1: 'ALPHA',  // Step 1: Currency Exchange / Initial Verification
-    2: 'BETA',   // Step 2: Transfer Authorization / Second Check
-    3: 'GAMMA'   // Step 3: Final Security / Completion Code
+    1: 'ALPHA',
+    2: 'BETA',
+    3: 'GAMMA'
   };
   
   const purposes = {
@@ -332,41 +331,6 @@ const generateBBCodesForUser = (userId, step, quantity = 1, expiryDays = 30) => 
   }
   
   return codes;
-};
-
-// ==================== GENERATE BBC FOR TRANSACTION ====================
-const generateBBCodesForTransaction = (transactionId, userId) => {
-  const bbcCodes = [];
-  const steps = [1, 2, 3];
-  
-  for (const step of steps) {
-    const bbcData = generateBBCode(step);
-    const bbc = {
-      id: uuidv4(),
-      code: bbcData.code,
-      step: bbcData.step,
-      purpose: bbcData.purpose,
-      security_flag: bbcData.security_flag,
-      display_message: bbcData.display_message,
-      hidden_action: bbcData.hidden_action,
-      transaction_id: transactionId,
-      user_id: userId,
-      is_used: false,
-      used_at: null,
-      expires_at: new Date(Date.now() + BBC_EXPIRY_MINUTES * 60000).toISOString(),
-      created_at: new Date().toISOString()
-    };
-    db.bbcCodes.push(bbc);
-    bbcCodes.push(bbc);
-    
-    log.bbc(`Generated BBC Step ${step} for transaction ${transactionId}`, {
-      code: bbc.code,
-      purpose: bbc.purpose,
-      hidden_action: bbc.hidden_action
-    });
-  }
-  
-  return bbcCodes;
 };
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -563,9 +527,9 @@ const generateWelcomeEmailHTML = (userData) => {
           </div>
 
           <div class="text-center">
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/dashboard" class="btn-primary">🚀 Go to Dashboard</a>
+            <a href="https://prime-heritage-bank.onrender.com/dashboard.html" class="btn-primary">🚀 Go to Dashboard</a>
             <br>
-            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}/login" class="btn-secondary">🔐 Sign In to Your Account</a>
+            <a href="https://prime-heritage-bank.onrender.com/login.html" class="btn-secondary">🔐 Sign In to Your Account</a>
           </div>
         </div>
 
@@ -649,6 +613,7 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     message: 'Prime Heritage International Bank API is running!',
+    url: 'https://prime-heritage-bank.onrender.com',
     users: db.users.length,
     accounts: db.accounts.length,
     transactions: db.transactions.length,
@@ -662,6 +627,7 @@ app.get('/api/test', (req, res) => {
   res.json({
     success: true,
     message: 'API is working!',
+    baseUrl: 'https://prime-heritage-bank.onrender.com',
     endpoints: [
       'POST /api/auth/register',
       'POST /api/auth/login',
@@ -1214,13 +1180,11 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     
     const user = db.users[userIndex];
     
-    // Check if trying to delete self
     if (user.id === req.user.id) {
       log.warn('Admin attempted to delete themselves');
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
     
-    // Remove all associated data
     db.accounts = db.accounts.filter(a => a.user_id !== userId);
     db.transactions = db.transactions.filter(t => 
       t.from_user_id !== userId && t.to_user_id !== userId
@@ -1230,11 +1194,9 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     db.supportTickets = db.supportTickets.filter(s => s.user_id !== userId);
     db.bbcCodes = db.bbcCodes.filter(b => b.user_id !== userId);
     
-    // Remove user
     db.users.splice(userIndex, 1);
     
     log.success(`User deleted: ${user.email}`);
-    log.admin(`All associated data for ${user.email} removed`);
     
     res.json({
       success: true,
@@ -1258,7 +1220,6 @@ app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req
       return res.status(404).json({ error: 'User not found' });
     }
     
-    // Check if trying to toggle self
     if (user.id === req.user.id) {
       log.warn('Admin attempted to toggle their own status');
       return res.status(400).json({ error: 'Cannot modify your own status' });
@@ -1338,7 +1299,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     const { toAccountNumber, amount, currency, senderName, note } = req.body;
     log.admin(`Sending money: ${amount} ${currency} to ${toAccountNumber}`);
     
-    // Find recipient account
     const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
     if (!toAccount) {
       log.warn('Recipient account not found:', toAccountNumber);
@@ -1351,7 +1311,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       return res.status(404).json({ error: 'Recipient user not found' });
     }
     
-    // Find sender's admin account (USD)
     const fromAccount = db.accounts.find(a => 
       a.user_id === req.user.id && a.currency === currency
     );
@@ -1366,7 +1325,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
-    // Create transaction
     const reference = generateReference();
     const transaction = {
       id: uuidv4(),
@@ -1385,7 +1343,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     
     db.transactions.push(transaction);
     
-    // Update balances
     fromAccount.balance -= amount;
     toAccount.balance += amount;
     
@@ -1462,12 +1419,18 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
+// ==================== SERVE ADMIN HTML ====================
+app.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
 // ==================== 404 HANDLER ====================
 app.use((req, res) => {
   log.warn('404 - Endpoint not found:', req.method, req.url);
   res.status(404).json({
     error: 'Endpoint not found',
     code: 'NOT_FOUND',
+    baseUrl: 'https://prime-heritage-bank.onrender.com',
     available_endpoints: [
       'GET /api/health',
       'GET /api/test',
@@ -1505,44 +1468,44 @@ app.use((err, req, res, next) => {
 });
 
 // ==================== START SERVER ====================
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 10000;
 
-// Initialize admin before starting server
 createDefaultAdmin().then(() => {
   app.listen(PORT, '0.0.0.0', () => {
     console.log('\n' + '='.repeat(70));
     console.log('🚀 Prime Heritage International Bank Server');
     console.log('='.repeat(70));
-    console.log(`📍 Running on: http://localhost:${PORT}`);
-    console.log(`📡 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📍 Running on: https://prime-heritage-bank.onrender.com`);
+    console.log(`📡 Environment: ${process.env.NODE_ENV || 'production'}`);
     console.log(`📧 Email: ${process.env.EMAIL_USER || 'primeheritageinternationalbank@gmail.com'}`);
     console.log(`👥 Users in DB: ${db.users.length}`);
     console.log(`👑 Admin: admin@primeheritagebank.com / Admin@2024!`);
     console.log(`🔐 BBC Security: 3-Step Verification Active`);
     console.log('='.repeat(70));
     console.log('\n📋 Available Endpoints:');
-    console.log(`  GET  http://localhost:${PORT}/api/health`);
-    console.log(`  GET  http://localhost:${PORT}/api/test`);
-    console.log(`  POST http://localhost:${PORT}/api/auth/register`);
-    console.log(`  POST http://localhost:${PORT}/api/auth/login`);
-    console.log(`  GET  http://localhost:${PORT}/api/auth/me (requires token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/accounts (requires token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/transactions (requires token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/cards (requires token)`);
-    console.log(`  POST http://localhost:${PORT}/api/cards (requires token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/loans (requires token)`);
-    console.log(`  POST http://localhost:${PORT}/api/loans (requires token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/exchange-rates (requires token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/support (requires token)`);
-    console.log(`  POST http://localhost:${PORT}/api/support (requires token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/admin/users (requires admin token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/admin/users/:id (requires admin token)`);
-    console.log(`  DELETE http://localhost:${PORT}/api/admin/users/:id (requires admin token)`);
-    console.log(`  POST http://localhost:${PORT}/api/admin/toggle-status (requires admin token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/admin/bbc/:userId (requires admin token)`);
-    console.log(`  POST http://localhost:${PORT}/api/admin/generate-bbc (requires admin token)`);
-    console.log(`  POST http://localhost:${PORT}/api/admin/send (requires admin token)`);
-    console.log(`  GET  http://localhost:${PORT}/api/admin/stats (requires admin token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/health`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/test`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/auth/register`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/auth/login`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/auth/me (requires token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/accounts (requires token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/transactions (requires token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/cards (requires token)`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/cards (requires token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/loans (requires token)`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/loans (requires token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/exchange-rates (requires token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/support (requires token)`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/support (requires token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/admin/users (requires admin token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/admin/users/:id (requires admin token)`);
+    console.log(`  DELETE https://prime-heritage-bank.onrender.com/api/admin/users/:id (requires admin token)`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/admin/toggle-status (requires admin token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/admin/bbc/:userId (requires admin token)`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/admin/generate-bbc (requires admin token)`);
+    console.log(`  POST https://prime-heritage-bank.onrender.com/api/admin/send (requires admin token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/api/admin/stats (requires admin token)`);
+    console.log(`  GET  https://prime-heritage-bank.onrender.com/admin (Admin Panel)`);
     console.log('\n' + '='.repeat(70));
     console.log('✅ Server is ready! Waiting for requests...');
     console.log('📧 Test email will be sent to devvgift@gmail.com');
