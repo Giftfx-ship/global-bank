@@ -2011,7 +2011,7 @@ const startServer = async () => {
     console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`👥 Users: ${db.users.length}`);
     console.log(`📊 Accounts: ${db.accounts.length}`);
-    console.log(`📧 Email Templates: Loaded from emails/ folder`);
+    console.log(`📧 Email Templates: Loaded from src/emails/ folder`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
     console.log(`📧 Test email will be sent to devgift@gmail.com`);
     console.log(`💡 New users start with $0 balance`);
