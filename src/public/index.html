@@ -643,7 +643,6 @@
             font-size: 14px;
         }
 
-        /* Theme Toggle */
         .theme-toggle {
             position: fixed;
             top: 20px;
@@ -677,6 +676,22 @@
             color: var(--bg-primary);
         }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 12px;
+        }
+
+        .bbc-badge i {
+            margin-right: 4px;
+        }
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .card { padding: 20px; }
@@ -702,7 +717,6 @@
     <div class="orb orb-2"></div>
     <div class="orb orb-3"></div>
 
-    <!-- Theme Toggle -->
     <div class="theme-toggle" onclick="toggleTheme()">
         <div class="theme-option active" id="darkOption"><i class="fas fa-moon"></i></div>
         <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div>
@@ -713,6 +727,7 @@
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <h1>Prime Heritage Bank</h1>
             <div class="tagline">International Banking System 2026</div>
+            <div class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step Security</div>
         </div>
 
         <div class="card">
@@ -901,8 +916,7 @@
 
     <script>
         // ========== CONFIGURATION ==========
-        // FIXED: Hardcode your Render URL for production
-        const API_URL = 'https://global-bank-i4cd.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
 
         // ========== GLOBAL STATE ==========
         let currentSection = 1;
@@ -1137,16 +1151,17 @@
             showLoading(true);
             try {
                 console.log('📝 Submitting registration to:', API_URL);
-                const response = await fetch(`${API_URL}/api/register`, {
+                const response = await fetch(`${API_URL}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
-                        firstName: registrationData.firstName,
-                        lastName: registrationData.lastName,
+                        full_name: `${registrationData.firstName} ${registrationData.lastName}`,
+                        first_name: registrationData.firstName,
+                        last_name: registrationData.lastName,
                         email: registrationData.email,
                         phone: registrationData.phone,
                         password: registrationData.password,
-                        transactionPin: registrationData.transactionPin,
+                        transaction_pin: registrationData.transactionPin,
                         currency: registrationData.currency || 'USD'
                     })
                 });
@@ -1189,10 +1204,13 @@
             showLoading(true);
             try {
                 console.log('🔐 Login attempt:', identifier);
-                const response = await fetch(`${API_URL}/api/login`, {
+                const response = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ identifier, password })
+                    body: JSON.stringify({ 
+                        email: identifier,
+                        password: password 
+                    })
                 });
                 const data = await response.json();
                 console.log('🔐 Login response:', data);
@@ -1208,7 +1226,7 @@
                         showConfirmButton: false
                     });
                     setTimeout(() => {
-                        window.location.href = data.user?.isAdmin ? '/admin.html' : '/dashboard.html';
+                        window.location.href = data.user?.is_admin ? '/admin.html' : '/dashboard.html';
                     }, 1500);
                 } else {
                     Swal.fire('Error', data.error || 'Login failed', 'error');
@@ -1230,7 +1248,7 @@
 
             showLoading(true);
             try {
-                const response = await fetch(`${API_URL}/api/forgot-password`, {
+                const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ email })
@@ -1255,7 +1273,7 @@
         const token = localStorage.getItem('token');
         if (token && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
             const user = JSON.parse(localStorage.getItem('user') || '{}');
-            if (user.isAdmin) window.location.href = '/admin.html';
+            if (user.is_admin) window.location.href = '/admin.html';
             else if (user.id) window.location.href = '/dashboard.html';
         }
     </script>
