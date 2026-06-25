@@ -252,7 +252,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-log.debug(`📧 Email Config: Host=${process.env.EMAIL_HOST || 'smtp.gmail.com'}, Port=${parseInt(process.env.EMAIL_PORT) || 465}, Secure=${emailSecure}`);
+
 
 // ==================== ULTRA-PREMIUM EMAIL TEMPLATES ====================
 
