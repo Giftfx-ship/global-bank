@@ -377,6 +377,18 @@
             margin-bottom: 20px;
         }
 
+        .bbc-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 8px;
+        }
+
         @media (max-width: 768px) {
             .container { padding: 16px; }
             .two-column { grid-template-columns: 1fr; gap: 20px; }
@@ -397,7 +409,8 @@
     <div class="top-bar">
         <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage Bank</span>
+            <span>Prime Heritage</span>
+            <span class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step</span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
@@ -508,7 +521,7 @@
     </div>
 
     <script>
-        const apiUrl = window.location.hostname === 'localhost' ? 'http://localhost:3000' : 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
 
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
@@ -571,10 +584,15 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${apiUrl}/api/loans/apply`, {
+                const res = await fetch(`${API_URL}/api/loans`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ amount, purpose, tenureMonths: tenure })
+                    body: JSON.stringify({ 
+                        amount, 
+                        purpose, 
+                        tenure_months: tenure,
+                        currency: 'USD'
+                    })
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -584,7 +602,7 @@
                         html: `
                             <div style="text-align: left;">
                                 <p><strong>Loan Amount:</strong> $${amount.toLocaleString()}</p>
-                                <p><strong>Monthly Payment:</strong> $${data.loan?.monthly_payment || (amount * 1.12 / tenure).toFixed(2)}</p>
+                                <p><strong>Monthly Payment:</strong> $${(amount * 1.12 / tenure).toFixed(2)}</p>
                                 <p><strong>Status:</strong> Pending Review</p>
                                 <p><strong>Estimated Approval:</strong> 24-48 hours</p>
                             </div>
@@ -600,7 +618,7 @@
 
         async function loadLoans() {
             try {
-                const res = await fetch(`${apiUrl}/api/loans`, {
+                const res = await fetch(`${API_URL}/api/loans`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) { window.location.href = '/'; return; }
@@ -652,15 +670,21 @@
 
         async function loadBalance() {
             try {
-                const res = await fetch(`${apiUrl}/api/me`, {
+                const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
                 if (res.status === 401) { window.location.href = '/'; return; }
                 const data = await res.json();
-                const balance = data.totalBalance || 0;
-                const currency = data.user.currency || 'USD';
-                document.getElementById('headerBalance').innerHTML = `${currency} ${balance.toLocaleString()}`;
+                const user = data.user;
+                const totalBalance = user.totalBalance || 0;
+                const currency = user.currency || 'USD';
+                document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
             } catch(e) { console.error(e); }
+        }
+
+        const token = localStorage.getItem('token');
+        if (!token && window.location.pathname !== '/') {
+            window.location.href = '/';
         }
 
         calculateLoan();
