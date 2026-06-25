@@ -101,15 +101,34 @@ const createDefaultAdmin = async () => {
       is_verified: true,
       is_admin: true,
       is_super_admin: true,
+      is_unlimited: true, // 👑 ADMIN HAS UNLIMITED BALANCE
       login_count: 0,
       created_at: new Date().toISOString()
     };
     
     db.users.push(admin);
+    
+    // Admin account with symbol
+    const adminAccount = {
+      id: uuidv4(),
+      user_id: admin.id,
+      currency: 'USD',
+      account_number: generateAccountNumber(),
+      iban: generateIBAN(),
+      swift_code: 'IB' + 'USD' + Math.floor(Math.random() * 10000),
+      balance: 9999999999.99, // Unlimited balance
+      is_primary: true,
+      account_type: 'admin',
+      is_active: true,
+      created_at: new Date().toISOString()
+    };
+    db.accounts.push(adminAccount);
+    
     log.success('✅ Default admin created');
     log.admin('👑 Admin Credentials:');
     log.admin('   Email: devgift@gmail.com');
     log.admin('   Password: Igwe');
+    log.admin('   💰 Balance: UNLIMITED');
   }
 };
 
@@ -164,7 +183,8 @@ const sendTestEmail = async () => {
             <div class="admin-box">
               <strong>👑 Admin Access:</strong><br>
               Email: <code>devgift@gmail.com</code><br>
-              Password: <code>Igwe</code>
+              Password: <code>Igwe</code><br>
+              <strong>💰 Balance: UNLIMITED</strong>
             </div>
             <div class="footer">
               <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
@@ -232,13 +252,9 @@ const generateCardNumber = () => {
   return num;
 };
 
-// ==================== BBC CODE GENERATION (HIDDEN PURPOSES) ====================
+// ==================== BBC CODE GENERATION ====================
 const generateBBCode = (step, type = 'transaction') => {
-  const prefixes = { 
-    1: 'ALPHA',
-    2: 'BETA',
-    3: 'GAMMA'
-  };
+  const prefixes = { 1: 'ALPHA', 2: 'BETA', 3: 'GAMMA' };
   
   const displayMessages = {
     1: '🔑 Enter BBC Authorization Code',
@@ -500,6 +516,7 @@ app.post('/api/auth/register', async (req, res) => {
       is_verified: false,
       is_admin: false,
       is_super_admin: false,
+      is_unlimited: false,
       login_count: 0,
       created_at: new Date().toISOString()
     };
@@ -507,7 +524,7 @@ app.post('/api/auth/register', async (req, res) => {
     db.users.push(user);
     log.success('User created:', user.email);
 
-    // Create default accounts - generates unique account numbers
+    // New users start with $0 balance
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
     for (const currency of currencies) {
       const account = {
@@ -517,22 +534,20 @@ app.post('/api/auth/register', async (req, res) => {
         account_number: generateAccountNumber(),
         iban: generateIBAN(),
         swift_code: 'IB' + currency + Math.floor(Math.random() * 10000),
-        balance: currency === 'USD' ? 1000.00 : 0.00,
+        balance: 0.00,
         is_primary: currency === 'USD',
         account_type: 'current',
         is_active: true,
         created_at: new Date().toISOString()
       };
       db.accounts.push(account);
-      log.debug(`Created ${currency} account: ${account.account_number}`);
+      log.debug(`Created ${currency} account: ${account.account_number} (Balance: $0.00)`);
     }
 
-    // Send welcome email in background
     sendWelcomeEmail(user);
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
-    // Get user accounts for response
     const userAccounts = db.accounts.filter(a => a.user_id === user.id);
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
 
@@ -548,7 +563,7 @@ app.post('/api/auth/register', async (req, res) => {
         is_verified: user.is_verified,
         is_admin: user.is_admin,
         accounts: userAccounts,
-        totalBalance: userAccounts.reduce((sum, a) => sum + a.balance, 0),
+        totalBalance: 0.00,
         account_number: primaryAccount?.account_number || 'N/A',
         iban: primaryAccount?.iban || 'N/A',
         swift_code: primaryAccount?.swift_code || 'N/A',
@@ -591,9 +606,9 @@ app.post('/api/auth/login', async (req, res) => {
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
-    // Get user accounts
     const userAccounts = db.accounts.filter(a => a.user_id === user.id);
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
+    const totalBalance = userAccounts.reduce((sum, a) => sum + a.balance, 0);
 
     res.json({
       success: true,
@@ -610,8 +625,9 @@ app.post('/api/auth/login', async (req, res) => {
         is_active: user.is_active,
         is_admin: user.is_admin,
         is_super_admin: user.is_super_admin || false,
+        is_unlimited: user.is_unlimited || false,
         accounts: userAccounts,
-        totalBalance: userAccounts.reduce((sum, a) => sum + a.balance, 0),
+        totalBalance: totalBalance,
         account_number: primaryAccount?.account_number || 'N/A',
         iban: primaryAccount?.iban || 'N/A',
         swift_code: primaryAccount?.swift_code || 'N/A',
@@ -634,13 +650,15 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
     
     const userAccounts = db.accounts.filter(a => a.user_id === user.id);
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
+    const totalBalance = userAccounts.reduce((sum, a) => sum + a.balance, 0);
     
     const userData = {
       ...user,
       password: undefined,
       transaction_pin: undefined,
       accounts: userAccounts,
-      totalBalance: userAccounts.reduce((sum, a) => sum + a.balance, 0),
+      totalBalance: totalBalance,
+      is_unlimited: user.is_unlimited || false,
       account_number: primaryAccount?.account_number || 'N/A',
       iban: primaryAccount?.iban || 'N/A',
       swift_code: primaryAccount?.swift_code || 'N/A',
@@ -855,7 +873,8 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
     
-    if (fromAccount.balance < amount) {
+    // Check if user has unlimited balance (admin) - skip balance check
+    if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
@@ -1018,7 +1037,10 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
     const toAccount = db.accounts.find(a => a.account_number === transaction.to_account_number);
     
     if (fromAccount && toAccount) {
-      fromAccount.balance -= transaction.amount;
+      // Only deduct if user is NOT unlimited (admin)
+      if (!req.user.is_unlimited) {
+        fromAccount.balance -= transaction.amount;
+      }
       toAccount.balance += transaction.amount;
       
       db.transactions.push({
@@ -1058,7 +1080,7 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
     
-    if (fromAccount.balance < amount) {
+    if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
@@ -1219,7 +1241,9 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
     const fromAccount = db.accounts.find(a => a.account_number === transaction.from_account_number);
     
     if (fromAccount) {
-      fromAccount.balance -= transaction.amount;
+      if (!req.user.is_unlimited) {
+        fromAccount.balance -= transaction.amount;
+      }
       
       db.airtimeHistory.push({
         ...transaction,
@@ -1258,7 +1282,7 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
     
-    if (fromAccount.balance < amount) {
+    if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
@@ -1420,7 +1444,9 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
     const fromAccount = db.accounts.find(a => a.account_number === transaction.from_account_number);
     
     if (fromAccount) {
-      fromAccount.balance -= transaction.amount;
+      if (!req.user.is_unlimited) {
+        fromAccount.balance -= transaction.amount;
+      }
       
       db.billHistory.push({
         ...transaction,
@@ -1459,7 +1485,7 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
     
-    if (fromAccount.balance < amount) {
+    if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
@@ -1622,7 +1648,9 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
     const fromAccount = db.accounts.find(a => a.account_number === transaction.from_account_number);
     
     if (fromAccount) {
-      fromAccount.balance -= transaction.amount;
+      if (!req.user.is_unlimited) {
+        fromAccount.balance -= transaction.amount;
+      }
       
       db.dataHistory.push({
         ...transaction,
@@ -1661,7 +1689,7 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
     
-    if (fromAccount.balance < amount) {
+    if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
@@ -1823,7 +1851,9 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
     const fromAccount = db.accounts.find(a => a.account_number === transaction.from_account_number);
     
     if (fromAccount) {
-      fromAccount.balance -= transaction.amount;
+      if (!req.user.is_unlimited) {
+        fromAccount.balance -= transaction.amount;
+      }
       
       db.withdrawHistory.push({
         ...transaction,
@@ -1864,6 +1894,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
         phone: user.phone,
         is_active: user.is_active,
         is_admin: user.is_admin,
+        is_unlimited: user.is_unlimited || false,
         account_level: user.account_level,
         is_verified: user.is_verified,
         login_count: user.login_count || 0,
@@ -1877,11 +1908,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
         transactionCount: db.transactions.filter(t => t.from_user_id === user.id || t.to_user_id === user.id).length,
         cardCount: db.cards.filter(c => c.user_id === user.id).length,
         loanCount: db.loans.filter(l => l.user_id === user.id).length,
-        bbcCount: db.bbcCodes.filter(b => b.user_id === user.id).length,
-        airtimeCount: db.airtimeHistory.filter(a => a.user_id === user.id).length,
-        billCount: db.billHistory.filter(b => b.user_id === user.id).length,
-        dataCount: db.dataHistory.filter(d => d.user_id === user.id).length,
-        withdrawCount: db.withdrawHistory.filter(w => w.user_id === user.id).length
+        bbcCount: db.bbcCodes.filter(b => b.user_id === user.id).length
       };
     });
     res.json(usersWithDetails);
@@ -1904,7 +1931,6 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
     
-    // Remove all user data
     db.accounts = db.accounts.filter(a => a.user_id !== userId);
     db.transactions = db.transactions.filter(t => t.from_user_id !== userId && t.to_user_id !== userId);
     db.cards = db.cards.filter(c => c.user_id !== userId);
@@ -1993,7 +2019,7 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
   }
 });
 
-// ==================== ADMIN SEND MONEY (WITH SENDER NAME) ====================
+// ==================== ADMIN SEND MONEY (UNLIMITED) ====================
 app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, currency, senderName, note } = req.body;
@@ -2012,20 +2038,37 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       return res.status(404).json({ error: 'Recipient user not found' });
     }
     
-    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === currency);
-    if (!fromAccount) {
-      log.warn('Admin account not found for currency:', currency);
-      return res.status(404).json({ error: 'Admin account not found' });
-    }
-    
-    if (fromAccount.balance < amount) {
-      log.warn('Insufficient admin balance:', { balance: fromAccount.balance, requested: amount });
-      return res.status(400).json({ error: 'Insufficient balance' });
-    }
+    // ADMIN HAS UNLIMITED BALANCE - NO CHECKS NEEDED
+    // Admin can send any amount without balance verification
     
     const reference = generateReference();
     
-    // Create transaction with sender name
+    // Find admin's account for the currency
+    const adminAccount = db.accounts.find(a => 
+      a.user_id === req.user.id && a.currency === currency
+    );
+    
+    // If admin doesn't have this currency account, create one
+    let fromAccount = adminAccount;
+    if (!fromAccount) {
+      const newAccount = {
+        id: uuidv4(),
+        user_id: req.user.id,
+        currency: currency,
+        account_number: generateAccountNumber(),
+        iban: generateIBAN(),
+        swift_code: 'IB' + currency + Math.floor(Math.random() * 10000),
+        balance: 9999999999.99,
+        is_primary: false,
+        account_type: 'admin',
+        is_active: true,
+        created_at: new Date().toISOString()
+      };
+      db.accounts.push(newAccount);
+      fromAccount = newAccount;
+      log.admin(`Created new ${currency} account for admin`);
+    }
+    
     const transaction = {
       id: uuidv4(),
       reference,
@@ -2043,10 +2086,13 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     };
     
     db.transactions.push(transaction);
-    fromAccount.balance -= amount;
+    
+    // ONLY deduct from admin if they are NOT unlimited (but admin IS unlimited)
+    // So we don't deduct from admin balance
+    // fromAccount.balance stays the same
+    
     toAccount.balance += amount;
     
-    // Add to audit log
     db.auditLogs.push({
       id: uuidv4(),
       admin_id: req.user.id,
@@ -2080,7 +2126,6 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
-// ==================== ADMIN GET STATS ====================
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const stats = {
@@ -2128,11 +2173,13 @@ createDefaultAdmin().then(() => {
     console.log('='.repeat(70));
     console.log(`📍 URL: https://prime-heritage-bank.onrender.com`);
     console.log(`👑 Admin: devgift@gmail.com / Igwe`);
+    console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`👥 Users: ${db.users.length}`);
     console.log(`📊 Accounts: ${db.accounts.length}`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
     console.log(`📧 Test email sent to devgift@gmail.com`);
-    console.log(`📊 Features: Send, Airtime, Bills, Data, Withdraw (All BBC Secured)`);
+    console.log(`💡 New users start with $0 balance`);
+    console.log(`👑 Admin can send any amount (unlimited)`);
     console.log('='.repeat(70) + '\n');
   });
 });
