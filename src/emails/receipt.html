@@ -2,173 +2,1011 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Transaction Receipt | Prime Heritage Bank</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --gold: #C6A43F;
+            --gold-dark: #9E8032;
+            --gold-light: #D4B85A;
+            --success: #10B981;
+            --error: #EF4444;
+            --warning: #F59E0B;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0A0E1A;
+            --bg-card: rgba(17, 24, 39, 0.95);
+            --border: rgba(31, 41, 55, 0.5);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --input-bg: #0F1622;
+            --glass-bg: rgba(17, 24, 39, 0.8);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #F3F4F6;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --border: rgba(229, 231, 235, 0.5);
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --input-bg: #F9FAFB;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+        }
+
         body {
-            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0A0E1A;
-            margin: 0;
-            padding: 0;
-            -webkit-font-smoothing: antialiased;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-body);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .email-container {
-            max-width: 600px;
-            margin: 40px auto;
-            background: #0F1622;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.5);
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.08) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes shimmer {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .receipt-wrapper {
+            max-width: 520px;
+            width: 100%;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1;
+        }
+
+        .back-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gold);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: all 0.3s;
+            padding: 10px 20px;
+            border-radius: 50px;
+            background: rgba(198, 164, 63, 0.08);
             border: 1px solid rgba(198, 164, 63, 0.15);
+            text-decoration: none;
         }
-        .header {
+        .back-btn:hover {
+            background: rgba(198, 164, 63, 0.15);
+            transform: translateX(-5px);
+        }
+
+        .receipt-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 28px;
+            border: 1px solid rgba(198, 164, 63, 0.15);
+            overflow: hidden;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            transition: all 0.3s;
+        }
+
+        .receipt-card:hover {
+            border-color: rgba(198, 164, 63, 0.3);
+            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
+        }
+
+        .receipt-header {
             background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%);
             padding: 30px 30px 20px;
             text-align: center;
             position: relative;
-            border-bottom: 1px solid rgba(198, 164, 63, 0.2);
+            border-bottom: 2px solid rgba(198, 164, 63, 0.2);
         }
-        .header::after {
+
+        .receipt-header::after {
             content: '';
             position: absolute;
-            bottom: 0;
+            bottom: -2px;
             left: 0;
             right: 0;
             height: 2px;
             background: linear-gradient(90deg, #C6A43F, #D4B85A, #C6A43F);
             background-size: 200% 100%;
-            animation: shimmer 2s ease-in-out infinite;
+            animation: shimmer 3s ease-in-out infinite;
         }
-        @keyframes shimmer {
-            0%, 100% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
+
+        .receipt-header .logo-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 8px;
+            animation: float 3s ease-in-out infinite;
         }
-        .header .logo { font-size: 40px; display: block; margin-bottom: 6px; }
-        .header h1 { color: #FFFFFF; font-size: 22px; font-weight: 700; letter-spacing: 1px; }
-        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header .subtitle { color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; margin-top: 4px; }
-        .content { padding: 30px 30px 20px; background: #0F1622; }
-        .receipt-id {
+
+        .receipt-header h1 {
+            color: #FFFFFF;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: 1px;
+        }
+
+        .receipt-header h1 .gold {
+            background: linear-gradient(135deg, #C6A43F, #D4B85A);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .receipt-header .subtitle {
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-top: 4px;
+            font-weight: 300;
+        }
+
+        .receipt-header .receipt-id {
             display: inline-block;
-            padding: 4px 16px;
+            margin-top: 12px;
+            padding: 6px 20px;
             background: rgba(198, 164, 63, 0.12);
             border: 1px solid rgba(198, 164, 63, 0.2);
             border-radius: 50px;
             color: #C6A43F;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
-            font-family: monospace;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 1px;
         }
-        .status-badge {
-            display: inline-block;
-            padding: 4px 14px;
-            border-radius: 50px;
+
+        .receipt-header .receipt-date {
+            display: block;
+            margin-top: 8px;
+            color: rgba(255,255,255,0.25);
             font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .receipt-header .admin-tag {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 2px 10px;
+            background: #EF4444;
+            border-radius: 50px;
+            font-size: 9px;
+            font-weight: 700;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 120px;
+            opacity: 0.02;
+            pointer-events: none;
+            font-weight: 900;
+            color: #C6A43F;
+            user-select: none;
+            letter-spacing: 20px;
+        }
+
+        .receipt-body {
+            padding: 28px 30px 20px;
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 12px;
             font-weight: 600;
+            margin-bottom: 16px;
             background: rgba(16, 185, 129, 0.12);
             color: #10B981;
             border: 1px solid rgba(16, 185, 129, 0.2);
-            margin: 12px 0 16px;
         }
+
+        .transaction-type {
+            text-align: center;
+            padding: 16px 0 12px;
+            margin-bottom: 16px;
+            background: rgba(255,255,255,0.02);
+            border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+
+        .transaction-type .icon {
+            font-size: 36px;
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .transaction-type .type-label {
+            color: #C6A43F;
+            font-weight: 700;
+            font-size: 17px;
+        }
+
+        .transaction-type .type-sub {
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
         .amount-section {
             text-align: center;
-            padding: 16px 0;
-            margin: 12px 0;
+            padding: 20px 0;
+            margin-bottom: 16px;
             border-top: 1px solid rgba(255,255,255,0.05);
             border-bottom: 1px solid rgba(255,255,255,0.05);
         }
+
         .amount-section .amount {
-            font-size: 34px;
+            font-size: 38px;
             font-weight: 800;
             color: #FFFFFF;
         }
-        .amount-section .amount .currency { color: #C6A43F; }
-        .amount-section .amount-label { color: rgba(255,255,255,0.3); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; }
+
+        .amount-section .amount .currency {
+            color: #C6A43F;
+        }
+
+        .amount-section .amount-label {
+            color: rgba(255,255,255,0.3);
+            font-size: 11px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
         .detail-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 10px 0;
             border-bottom: 1px solid rgba(255,255,255,0.04);
         }
-        .detail-row:last-child { border-bottom: none; }
-        .detail-label { color: rgba(255,255,255,0.4); font-size: 12px; }
-        .detail-value { color: #FFFFFF; font-weight: 500; font-size: 12px; text-align: right; }
-        .detail-value .gold-text { color: #C6A43F; }
-        .detail-value.mono { font-family: monospace; font-size: 11px; letter-spacing: 0.5px; }
-        .view-btn {
-            display: inline-block;
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .detail-label i {
+            margin-right: 8px;
+            color: var(--gold);
+            width: 16px;
+        }
+
+        .detail-value {
+            color: #FFFFFF;
+            font-weight: 500;
+            font-size: 13px;
+            text-align: right;
+            word-break: break-word;
+            max-width: 60%;
+        }
+
+        .detail-value .gold-text {
+            color: #C6A43F;
+        }
+
+        .detail-value.mono {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .info-banner {
+            background: rgba(198, 164, 63, 0.06);
+            border: 1px solid rgba(198, 164, 63, 0.1);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin-top: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .info-banner i {
+            color: #C6A43F;
+            font-size: 18px;
+        }
+
+        .info-banner .info-text {
+            color: rgba(255,255,255,0.6);
+            font-size: 12px;
+        }
+
+        .info-banner .info-text strong {
+            color: #FFFFFF;
+        }
+
+        .info-banner .role-badge {
+            margin-left: auto;
+            padding: 4px 12px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .role-recipient { background: rgba(16,185,129,0.15); color: #10B981; }
+        .role-sender { background: rgba(245,158,11,0.15); color: #F59E0B; }
+        .role-admin { background: rgba(198,164,63,0.15); color: #C6A43F; }
+
+        .receipt-footer {
+            padding: 20px 30px 30px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            text-align: center;
+        }
+
+        .receipt-footer .thank-you {
+            color: #C6A43F;
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .receipt-footer .tagline {
+            color: rgba(255,255,255,0.2);
+            font-size: 11px;
+            margin-top: 4px;
+        }
+
+        .receipt-footer .footer-meta {
+            margin-top: 12px;
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            font-size: 10px;
+            color: rgba(255,255,255,0.12);
+        }
+
+        .receipt-footer .qr-placeholder {
+            margin: 14px auto 0;
+            width: 56px;
+            height: 56px;
+            background: rgba(198, 164, 63, 0.08);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px dashed rgba(198, 164, 63, 0.12);
+        }
+
+        .receipt-footer .qr-placeholder i {
+            font-size: 22px;
+            color: #C6A43F;
+            opacity: 0.25;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 14px 20px;
+            border-radius: 16px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border: none;
+        }
+
+        .btn-share {
             background: linear-gradient(135deg, #C6A43F, #9E8032);
             color: #0A0E1A;
-            padding: 12px 32px;
-            text-decoration: none;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 14px;
-            margin: 16px 0 4px;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
         }
-        .footer {
-            background: rgba(255,255,255,0.02);
-            padding: 20px 30px 25px;
+
+        .btn-share:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(198, 164, 63, 0.3);
+        }
+
+        .btn-download {
+            background: rgba(255,255,255,0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-download:hover {
+            background: rgba(255,255,255,0.1);
+            transform: translateY(-3px);
+        }
+
+        .btn-print {
+            background: rgba(59, 130, 246, 0.1);
+            color: #3B82F6;
+            border: 1px solid rgba(59, 130, 246, 0.15);
+        }
+
+        .btn-print:hover {
+            background: rgba(59, 130, 246, 0.2);
+            transform: translateY(-3px);
+        }
+
+        .loading-state {
             text-align: center;
-            border-top: 1px solid rgba(255,255,255,0.05);
+            padding: 60px 20px;
         }
-        .footer p { color: rgba(255,255,255,0.3); font-size: 11px; margin: 4px 0; line-height: 1.6; }
-        .footer .brand { color: rgba(255,255,255,0.5); font-weight: 600; }
-        @media (max-width: 480px) {
-            .content { padding: 20px; }
-            .amount-section .amount { font-size: 26px; }
-            .header h1 { font-size: 20px; }
-            .detail-row { flex-direction: column; gap: 4px; }
-            .detail-value { text-align: left; }
+
+        .loading-state .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(198, 164, 63, 0.15);
+            border-top: 3px solid #C6A43F;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 16px;
+        }
+
+        .loading-state p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .error-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .error-state i {
+            font-size: 48px;
+            color: #EF4444;
+            margin-bottom: 16px;
+            display: block;
+        }
+
+        .error-state h3 {
+            color: var(--text-primary);
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .error-state p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        @media (max-width: 500px) {
+            body { padding: 12px; }
+            .receipt-header { padding: 24px 20px 16px; }
+            .receipt-body { padding: 20px; }
+            .receipt-footer { padding: 16px 20px 24px; }
+            .amount-section .amount { font-size: 28px; }
+            .action-buttons { flex-direction: column; }
+            .btn-action { padding: 12px; font-size: 12px; }
+            .detail-value { max-width: 50%; font-size: 12px; }
+            .info-banner { flex-wrap: wrap; }
+            .info-banner .role-badge { margin-left: 0; }
+            .footer-meta { flex-direction: column; gap: 6px; }
+        }
+
+        @media print {
+            body { background: white !important; padding: 0; }
+            .receipt-wrapper { max-width: 100%; }
+            .back-btn, .action-buttons { display: none !important; }
+            .receipt-card { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+            .receipt-header { background: #f8f8f8 !important; }
+            .receipt-header h1 .gold { -webkit-text-fill-color: #C6A43F !important; }
+            .receipt-header .receipt-id { color: #C6A43F; }
+            .watermark { opacity: 0.01 !important; }
         }
     </style>
 </head>
-<body>
-    <div class="email-container">
-        <div class="header">
-            <span class="logo">🏦</span>
-            <h1>Prime Heritage <span class="gold">Bank</span></h1>
-            <div class="subtitle">International Banking</div>
+<body data-theme="dark">
+
+    <div class="receipt-wrapper" id="receiptWrapper">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+
+        <div class="receipt-card">
+            <div class="loading-state" id="loadingState">
+                <div class="loader"></div>
+                <p>Loading receipt...</p>
+            </div>
+
+            <div class="error-state" id="errorState" style="display: none;">
+                <i class="fas fa-exclamation-circle"></i>
+                <h3>Receipt Not Found</h3>
+                <p id="errorMessage">The receipt you're looking for doesn't exist or you don't have permission to view it.</p>
+                <a href="javascript:history.back()" style="color:var(--gold);font-weight:600;text-decoration:none;margin-top:12px;display:inline-block;">
+                    <i class="fas fa-arrow-left"></i> Go Back
+                </a>
+            </div>
+
+            <div id="receiptContent" style="display: none;">
+                <div class="receipt-header">
+                    <span class="logo-icon">🏦</span>
+                    <h1>Prime Heritage <span class="gold">Bank</span></h1>
+                    <div class="subtitle">International Banking</div>
+                    <div class="receipt-id" id="receiptRef">#TXN-XXXXXX</div>
+                    <div class="receipt-date" id="receiptDate">—</div>
+                    <div class="watermark">RECEIPT</div>
+                </div>
+
+                <div class="receipt-body">
+                    <div class="status-badge" id="statusBadge">
+                        <i class="fas fa-check-circle"></i> COMPLETED
+                    </div>
+
+                    <div class="transaction-type">
+                        <span class="icon" id="txIcon">💸</span>
+                        <div class="type-label" id="txType">Money Transfer</div>
+                        <div class="type-sub" id="txTime">—</div>
+                    </div>
+
+                    <div class="amount-section">
+                        <div class="amount-label">Amount</div>
+                        <div class="amount"><span class="currency" id="txCurrency">USD</span> <span id="txAmount">0.00</span></div>
+                    </div>
+
+                    <div id="detailsContainer">
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-user"></i> From</span>
+                            <span class="detail-value mono" id="txFrom">—</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-user-check"></i> To</span>
+                            <span class="detail-value mono" id="txTo">—</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-pen"></i> Description</span>
+                            <span class="detail-value" id="txDesc">—</span>
+                        </div>
+                        <div class="detail-row" id="senderRow">
+                            <span class="detail-label"><i class="fas fa-user-tie"></i> Sender</span>
+                            <span class="detail-value gold-text" id="txSender">—</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-hashtag"></i> Transaction ID</span>
+                            <span class="detail-value mono gold-text" id="txId">—</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-clock"></i> Timestamp</span>
+                            <span class="detail-value mono" id="txTimestamp">—</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="detail-label"><i class="fas fa-info-circle"></i> Status</span>
+                            <span class="detail-value" id="txStatus">Completed</span>
+                        </div>
+                    </div>
+
+                    <div class="info-banner" id="roleBanner">
+                        <i class="fas fa-user-tag"></i>
+                        <div class="info-text">
+                            You are viewing this receipt as <strong id="roleText">Recipient</strong>
+                        </div>
+                        <span class="role-badge" id="roleBadge">RECIPIENT</span>
+                    </div>
+                </div>
+
+                <div class="receipt-footer">
+                    <div class="thank-you">Thank you for banking with us</div>
+                    <div class="tagline">Prime Heritage International Bank • Global Banking Excellence</div>
+                    <div class="footer-meta">
+                        <span>📱 Mobile Banking</span>
+                        <span>🔒 Secured Transaction</span>
+                        <span>🌍 Global Transfer</span>
+                    </div>
+                    <div class="qr-placeholder">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="content">
-            <div style="text-align:center;margin-bottom:12px;">
-                <span class="receipt-id">#{{reference}}</span>
-            </div>
-            <div style="text-align:center;">
-                <span class="status-badge">✅ COMPLETED</span>
-            </div>
 
-            <div class="amount-section">
-                <div class="amount-label">Amount</div>
-                <div class="amount"><span class="currency">{{currency}}</span> {{amount}}</div>
-            </div>
-
-            <div class="detail-row">
-                <span class="detail-label">Transaction Type</span>
-                <span class="detail-value">{{type}}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Description</span>
-                <span class="detail-value">{{description}}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Date & Time</span>
-                <span class="detail-value">{{date}} at {{time}}</span>
-            </div>
-
-            <div style="text-align:center;margin-top:16px;">
-                <a href="{{receipt_url}}" class="view-btn">🧾 View Full Receipt</a>
-            </div>
-            <div style="text-align:center;font-size:11px;color:rgba(255,255,255,0.2);margin-top:8px;">
-                This is an automated receipt for your transaction.
-            </div>
-        </div>
-        <div class="footer">
-            <p>© {{year}} <span class="brand">Prime Heritage International Bank</span></p>
-            <p>Sent to {{email}}</p>
+        <div class="action-buttons" id="actionButtons" style="display: none;">
+            <button class="btn-action btn-share" onclick="shareReceipt()">
+                <i class="fas fa-share-alt"></i> Share
+            </button>
+            <button class="btn-action btn-download" onclick="downloadReceipt()">
+                <i class="fas fa-download"></i> Download
+            </button>
+            <button class="btn-action btn-print" onclick="printReceipt()">
+                <i class="fas fa-print"></i> Print
+            </button>
         </div>
     </div>
+
+    <div class="theme-toggle" style="position:fixed;top:20px;right:20px;z-index:100;background:var(--glass-bg);border:1px solid var(--border);border-radius:50px;padding:6px 12px;display:flex;gap:6px;cursor:pointer;backdrop-filter:blur(10px);" onclick="toggleTheme()">
+        <span id="darkIcon" style="padding:4px 10px;border-radius:30px;font-size:12px;font-weight:600;background:var(--gold);color:#0A0E1A;">🌙</span>
+        <span id="lightIcon" style="padding:4px 10px;border-radius:30px;font-size:12px;font-weight:600;color:var(--text-secondary);">☀️</span>
+    </div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const API_URL = 'https://prime-heritage-bank.onrender.com';
+
+        // ============================================================
+        // GET RECEIPT DATA FROM URL
+        // ============================================================
+        function getQueryParam(param) {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get(param);
+        }
+
+        const reference = getQueryParam('ref');
+        const isAdmin = getQueryParam('admin') === 'true';
+        const role = getQueryParam('role') || 'recipient';
+
+        // ============================================================
+        // THEME
+        // ============================================================
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            const darkIcon = document.getElementById('darkIcon');
+            const lightIcon = document.getElementById('lightIcon');
+            if (theme === 'dark') {
+                darkIcon.style.background = 'var(--gold)';
+                darkIcon.style.color = '#0A0E1A';
+                lightIcon.style.background = 'transparent';
+                lightIcon.style.color = 'var(--text-secondary)';
+            } else {
+                lightIcon.style.background = 'var(--gold)';
+                lightIcon.style.color = '#0A0E1A';
+                darkIcon.style.background = 'transparent';
+                darkIcon.style.color = 'var(--text-secondary)';
+            }
+        }
+
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+
+        // ============================================================
+        // LOAD RECEIPT
+        // ============================================================
+        async function loadReceipt() {
+            if (!reference) {
+                showError('No receipt reference provided.');
+                return;
+            }
+
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const content = document.getElementById('receiptContent');
+            const actions = document.getElementById('actionButtons');
+
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                let url;
+                if (isAdmin) {
+                    url = `${API_URL}/api/admin/receipt/${reference}`;
+                } else {
+                    url = `${API_URL}/api/receipt/${reference}`;
+                }
+
+                const res = await fetch(url, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 404) {
+                    showError('Receipt not found. It may have been deleted or never existed.');
+                    return;
+                }
+
+                if (res.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                const data = await res.json();
+
+                if (!data.success) {
+                    showError(data.error || 'Failed to load receipt.');
+                    return;
+                }
+
+                renderReceipt(data);
+                loadingState.style.display = 'none';
+                content.style.display = 'block';
+                actions.style.display = 'flex';
+
+            } catch (e) {
+                console.error('Load receipt error:', e);
+                showError('Failed to load receipt. Please try again.');
+            }
+        }
+
+        // ============================================================
+        // RENDER RECEIPT
+        // ============================================================
+        function renderReceipt(data) {
+            const tx = data.transaction;
+            const sender = data.sender || {};
+            const recipient = data.recipient || {};
+            const userRole = data.role || 'recipient';
+
+            // Status
+            const statusBadge = document.getElementById('statusBadge');
+            const statusMap = {
+                completed: { icon: 'fa-check-circle', text: 'COMPLETED' },
+                pending: { icon: 'fa-clock', text: 'PENDING' },
+                failed: { icon: 'fa-times-circle', text: 'FAILED' }
+            };
+            const status = statusMap[tx.status] || statusMap.completed;
+            statusBadge.className = `status-badge`;
+            statusBadge.innerHTML = `<i class="fas ${status.icon}"></i> ${status.text}`;
+
+            // Transaction Type
+            const typeIcons = {
+                transfer: '💸',
+                airtime: '📱',
+                bill_payment: '📄',
+                data_bundle: '🌐',
+                withdrawal: '🏦',
+                admin_transfer: '👑'
+            };
+            const typeNames = {
+                transfer: 'Money Transfer',
+                airtime: 'Airtime Purchase',
+                bill_payment: 'Bill Payment',
+                data_bundle: 'Data Bundle',
+                withdrawal: 'Bank Withdrawal',
+                admin_transfer: 'Admin Transfer'
+            };
+
+            document.getElementById('txIcon').textContent = typeIcons[tx.type] || '💳';
+            document.getElementById('txType').textContent = typeNames[tx.type] || 'Transaction';
+
+            // Date & Time
+            const txDate = new Date(tx.created_at || tx.completed_at || Date.now());
+            const dateStr = txDate.toLocaleDateString('en-US', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+            });
+            const timeStr = txDate.toLocaleTimeString('en-US', { 
+                hour: '2-digit', minute: '2-digit', second: '2-digit' 
+            });
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            document.getElementById('receiptDate').textContent = `${dateStr} • ${timezone}`;
+            document.getElementById('txTime').textContent = `${dateStr} at ${timeStr}`;
+            document.getElementById('txTimestamp').textContent = `${dateStr} ${timeStr} (${timezone})`;
+
+            // Amount
+            document.getElementById('txCurrency').textContent = tx.currency || 'USD';
+            document.getElementById('txAmount').textContent = (tx.amount || 0).toLocaleString('en-US', { 
+                minimumFractionDigits: 2, maximumFractionDigits: 2 
+            });
+
+            // Receipt ID
+            document.getElementById('receiptRef').textContent = '#' + (tx.reference || 'N/A');
+
+            // Details
+            document.getElementById('txFrom').textContent = tx.from_account_number || '—';
+            document.getElementById('txTo').textContent = tx.to_account_number || '—';
+            document.getElementById('txDesc').textContent = tx.description || tx.purpose || '—';
+            document.getElementById('txSender').textContent = tx.sender_name || sender.full_name || '—';
+            document.getElementById('txId').textContent = tx.id || '—';
+            document.getElementById('txStatus').textContent = (tx.status || 'completed').toUpperCase();
+            document.getElementById('txStatus').style.color = 
+                tx.status === 'completed' ? '#10B981' : tx.status === 'pending' ? '#F59E0B' : '#EF4444';
+
+            // Sender Row
+            if (!tx.sender_name && !sender.full_name) {
+                document.getElementById('senderRow').style.display = 'none';
+            }
+
+            // Role Banner
+            const roleText = document.getElementById('roleText');
+            const roleBadge = document.getElementById('roleBadge');
+            
+            if (isAdmin || userRole === 'admin') {
+                roleText.textContent = 'Admin (Full Access)';
+                roleBadge.textContent = '👑 ADMIN';
+                roleBadge.className = 'role-badge role-admin';
+                // Add admin tag to header
+                const header = document.querySelector('.receipt-header .receipt-id');
+                const adminTag = document.createElement('span');
+                adminTag.className = 'admin-tag';
+                adminTag.textContent = '👑 Admin View';
+                header.appendChild(adminTag);
+            } else if (userRole === 'recipient') {
+                roleText.textContent = 'Recipient (Received Funds)';
+                roleBadge.textContent = '📥 RECIPIENT';
+                roleBadge.className = 'role-badge role-recipient';
+            } else if (userRole === 'sender') {
+                roleText.textContent = 'Sender (Sent Funds)';
+                roleBadge.textContent = '📤 SENDER';
+                roleBadge.className = 'role-badge role-sender';
+            } else {
+                roleText.textContent = 'Participant';
+                roleBadge.textContent = '👤 PARTICIPANT';
+                roleBadge.className = 'role-badge';
+            }
+
+            // Update Title
+            document.title = `Receipt ${tx.reference || ''} | Prime Heritage Bank`;
+        }
+
+        // ============================================================
+        // ERROR STATE
+        // ============================================================
+        function showError(message) {
+            document.getElementById('loadingState').style.display = 'none';
+            document.getElementById('errorState').style.display = 'block';
+            document.getElementById('errorMessage').textContent = message;
+        }
+
+        // ============================================================
+        // ACTIONS
+        // ============================================================
+        function shareReceipt() {
+            const receiptData = {
+                ref: document.getElementById('receiptRef').textContent,
+                amount: document.getElementById('txAmount').textContent,
+                currency: document.getElementById('txCurrency').textContent,
+                type: document.getElementById('txType').textContent,
+                date: document.getElementById('txDate').textContent,
+                time: document.getElementById('txTime').textContent
+            };
+
+            const shareText = `🧾 RECEIPT ${receiptData.ref}\n` +
+                             `💰 Amount: ${receiptData.currency} ${receiptData.amount}\n` +
+                             `📋 Type: ${receiptData.type}\n` +
+                             `📅 Date: ${receiptData.date}\n` +
+                             `🕐 Time: ${receiptData.time}\n` +
+                             `🏦 Prime Heritage International Bank`;
+
+            if (navigator.share) {
+                navigator.share({
+                    title: 'Transaction Receipt',
+                    text: shareText,
+                }).catch(() => {});
+            } else {
+                navigator.clipboard.writeText(shareText).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Copied!',
+                        text: 'Receipt details copied to clipboard.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#1a1a2e' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
+                }).catch(() => {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Share Receipt',
+                        text: shareText,
+                        confirmButtonColor: '#C6A43F'
+                    });
+                });
+            }
+        }
+
+        function downloadReceipt() {
+            const content = document.getElementById('receiptContent');
+            const styles = document.querySelector('style').innerHTML;
+            const theme = document.body.getAttribute('data-theme');
+
+            const receiptHTML = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Receipt ${document.getElementById('receiptRef').textContent}</title>
+                    <style>
+                        ${styles}
+                        body { padding: 20px; background: #0A0E1A; }
+                        .back-btn, .action-buttons { display: none !important; }
+                        .receipt-wrapper { max-width: 500px; margin: 0 auto; }
+                        .watermark { display: none; }
+                        @media print {
+                            body { background: white !important; }
+                            .receipt-card { box-shadow: none !important; border: 1px solid #ddd !important; }
+                            .receipt-header { background: #f8f8f8 !important; }
+                        }
+                    </style>
+                </head>
+                <body data-theme="${theme}">
+                    <div class="receipt-wrapper">
+                        <div class="receipt-card">
+                            ${content.innerHTML}
+                        </div>
+                    </div>
+                    <script>
+                        window.onload = function() { setTimeout(function() { window.print(); }, 500); };
+                    <\/script>
+                </body>
+                </html>
+            `;
+
+            const blob = new Blob([receiptHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `receipt-${document.getElementById('receiptRef').textContent || 'transaction'}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Download Started!',
+                text: 'Your receipt is being downloaded.',
+                timer: 1500,
+                showConfirmButton: false,
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#1a1a2e' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+            });
+        }
+
+        function printReceipt() {
+            window.print();
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '/';
+        }
+
+        loadReceipt();
+    </script>
 </body>
 </html>
