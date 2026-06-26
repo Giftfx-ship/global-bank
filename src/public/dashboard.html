@@ -68,8 +68,7 @@
             bottom: 0;
             background: 
                 radial-gradient(circle at 20% 50%, rgba(198,164,63,0.06) 0%, transparent 50%),
-                radial-gradient(circle at 80% 80%, rgba(198,164,63,0.04) 0%, transparent 60%),
-                radial-gradient(circle at 50% 20%, rgba(158,128,50,0.02) 0%, transparent 30%);
+                radial-gradient(circle at 80% 80%, rgba(198,164,63,0.04) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
@@ -77,7 +76,6 @@
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
-        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(30px); }
@@ -99,6 +97,8 @@
             z-index: 100;
             border-bottom: 1px solid var(--border);
             transition: all 0.3s ease;
+            flex-wrap: wrap;
+            gap: 10px;
         }
 
         .logo {
@@ -144,6 +144,7 @@
             display: flex;
             align-items: center;
             gap: 16px;
+            flex-wrap: wrap;
         }
 
         .balance-pill {
@@ -179,6 +180,9 @@
             font-weight: 600;
             transition: all 0.3s;
             color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
         }
         .theme-option.active {
             background: var(--gradient-gold);
@@ -402,6 +406,7 @@
             cursor: pointer;
             transition: all 0.3s;
             animation: slideUp 0.5s ease backwards;
+            text-decoration: none;
         }
         .action-card:hover {
             border-color: var(--gold);
@@ -680,6 +685,7 @@
             padding: 8px 16px;
             border-radius: 12px;
             transition: all 0.3s;
+            text-decoration: none;
         }
         .nav-item i {
             font-size: 20px;
@@ -730,6 +736,99 @@
             letter-spacing: 2px;
         }
 
+        /* ===== TRANSACTIONS MODAL ===== */
+        .transactions-modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1500;
+            align-items: center;
+            justify-content: center;
+        }
+        .transactions-modal .modal-content {
+            background: var(--bg-card);
+            border-radius: 28px;
+            padding: 32px;
+            max-width: 700px;
+            width: 90%;
+            border: 1px solid var(--border);
+            max-height: 85vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .transactions-modal .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid var(--border);
+            flex-shrink: 0;
+        }
+        .transactions-modal .modal-header h3 {
+            color: var(--gold);
+            font-size: 22px;
+            font-weight: 700;
+        }
+        .transactions-modal .modal-header h3 i { margin-right: 10px; }
+        .transactions-modal .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .transactions-modal .close-modal:hover { color: var(--error); transform: rotate(90deg); }
+        .transactions-modal .modal-body {
+            overflow-y: auto;
+            flex: 1;
+            padding-right: 5px;
+        }
+        .transactions-modal .modal-body::-webkit-scrollbar { width: 4px; }
+        .transactions-modal .modal-body::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+
+        .tx-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 0;
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s;
+            cursor: pointer;
+            border-radius: 8px;
+            padding-left: 8px;
+        }
+        .tx-item:hover { background: var(--hover-bg); }
+        .tx-item:last-child { border-bottom: none; }
+        .tx-item .tx-info { flex: 1; }
+        .tx-item .tx-type { font-weight: 600; color: var(--text-primary); font-size: 14px; }
+        .tx-item .tx-date { color: var(--text-secondary); font-size: 11px; }
+        .tx-item .tx-amount { font-weight: 700; font-size: 15px; }
+        .tx-item .tx-amount.incoming { color: var(--success); }
+        .tx-item .tx-amount.outgoing { color: var(--error); }
+        .tx-item .tx-ref { font-size: 10px; color: var(--text-secondary); font-family: monospace; }
+        .tx-item .view-receipt-btn {
+            background: rgba(198,164,63,0.1);
+            border: 1px solid var(--gold);
+            padding: 4px 14px;
+            border-radius: 30px;
+            color: var(--gold);
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+            margin-left: 10px;
+        }
+        .tx-item .view-receipt-btn:hover {
+            background: var(--gradient-gold);
+            color: #0A0E1A;
+        }
+
         @media (max-width: 1200px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
             .quick-actions { grid-template-columns: repeat(4, 1fr); }
@@ -762,12 +861,13 @@
             .nav-item span { font-size: 9px; }
             .welcome-text h2 { font-size: 22px; }
             .stat-card { padding: 16px; }
+            .transactions-modal .modal-content { padding: 20px; }
         }
     </style>
 </head>
 <body data-theme="dark">
 
-    <!-- TOP BAR -->
+    <!-- ===== TOP BAR ===== -->
     <div class="top-bar">
         <div class="logo" onclick="location.reload()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
@@ -776,8 +876,8 @@
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
-                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></div>
-                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></div>
+                <button class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></button>
+                <button class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></button>
             </div>
             <div class="balance-pill">
                 <i class="fas fa-wallet"></i>
@@ -789,7 +889,7 @@
         </div>
     </div>
 
-    <!-- MAIN CONTAINER -->
+    <!-- ===== MAIN CONTAINER ===== -->
     <div class="container">
 
         <!-- WELCOME -->
@@ -828,14 +928,14 @@
 
         <!-- QUICK ACTIONS -->
         <div class="quick-actions">
-            <div class="action-card" onclick="goToSend()"><i class="fas fa-paper-plane"></i><span>Send</span></div>
-            <div class="action-card" onclick="goToWithdraw()"><i class="fas fa-university"></i><span>Withdraw</span></div>
-            <div class="action-card" onclick="goToAirtime()"><i class="fas fa-mobile-alt"></i><span>Airtime</span></div>
-            <div class="action-card" onclick="goToBills()"><i class="fas fa-bolt"></i><span>Bills</span></div>
-            <div class="action-card" onclick="goToData()"><i class="fas fa-wifi"></i><span>Data</span></div>
-            <div class="action-card" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-            <div class="action-card" onclick="goToLoans()"><i class="fas fa-hand-holding-usd"></i><span>Loans</span></div>
-            <div class="action-card" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
+            <a class="action-card" href="/send.html"><i class="fas fa-paper-plane"></i><span>Send</span></a>
+            <a class="action-card" href="/withdraw.html"><i class="fas fa-university"></i><span>Withdraw</span></a>
+            <a class="action-card" href="/airtime.html"><i class="fas fa-mobile-alt"></i><span>Airtime</span></a>
+            <a class="action-card" href="/bills.html"><i class="fas fa-bolt"></i><span>Bills</span></a>
+            <a class="action-card" href="/data.html"><i class="fas fa-wifi"></i><span>Data</span></a>
+            <a class="action-card" href="/cards.html"><i class="fas fa-credit-card"></i><span>Cards</span></a>
+            <a class="action-card" href="/loans.html"><i class="fas fa-hand-holding-usd"></i><span>Loans</span></a>
+            <a class="action-card" href="/support.html"><i class="fas fa-headset"></i><span>Support</span></a>
         </div>
 
         <!-- TWO COLUMN -->
@@ -843,14 +943,14 @@
             <div class="card-panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-history"></i> Recent Transactions</h3>
-                    <a onclick="goToTransactions()">View All →</a>
+                    <a onclick="openAllTransactions()">View All →</a>
                 </div>
                 <div id="recentTransactions"><div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading transactions...</p></div></div>
             </div>
             <div class="card-panel">
                 <div class="panel-header">
                     <h3><i class="fas fa-credit-card"></i> My Cards</h3>
-                    <a onclick="goToCards()">Manage →</a>
+                    <a href="/cards.html">Manage →</a>
                 </div>
                 <div id="cardsList"><div class="empty-state"><i class="fas fa-spinner fa-pulse"></i><p>Loading cards...</p></div></div>
             </div>
@@ -877,16 +977,32 @@
         </div>
     </div>
 
-    <!-- BOTTOM NAV -->
+    <!-- ===== BOTTOM NAV ===== -->
     <div class="bottom-nav">
-        <div class="nav-item active" onclick="goToDashboard()"><i class="fas fa-home"></i><span>Home</span></div>
-        <div class="nav-item" onclick="goToCards()"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-        <div class="nav-item" onclick="goToSend()"><i class="fas fa-paper-plane"></i><span>Send</span></div>
-        <div class="nav-item" onclick="goToSupport()"><i class="fas fa-headset"></i><span>Support</span></div>
-        <div class="nav-item" onclick="goToProfile()"><i class="fas fa-user"></i><span>Profile</span></div>
+        <a class="nav-item active" href="/dashboard.html"><i class="fas fa-home"></i><span>Home</span></a>
+        <a class="nav-item" href="/cards.html"><i class="fas fa-credit-card"></i><span>Cards</span></a>
+        <a class="nav-item" href="/send.html"><i class="fas fa-paper-plane"></i><span>Send</span></a>
+        <a class="nav-item" href="/support.html"><i class="fas fa-headset"></i><span>Support</span></a>
+        <a class="nav-item" href="/profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
     </div>
 
-    <!-- LOADING -->
+    <!-- ===== TRANSACTIONS MODAL ===== -->
+    <div id="transactionsModal" class="transactions-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-list"></i> All Transactions</h3>
+                <button class="close-modal" onclick="closeAllTransactions()">&times;</button>
+            </div>
+            <div class="modal-body" id="allTransactionsList">
+                <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                    <i class="fas fa-spinner fa-pulse" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                    <p>Loading transactions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== LOADING ===== -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
         <div class="loader-text">Loading your data...</div>
@@ -897,11 +1013,11 @@
         // CONFIGURATION
         // ============================================================
         const API_URL = 'https://prime-heritage-bank.onrender.com';
-        const EXCHANGE_RATE_API = 'https://cdn.jsdelivr.net/gh/irfanokr/currency-api@main/v1/currencies';
 
         let userData = null;
         let currentUser = null;
         let spendingChart = null;
+        let allTransactions = [];
 
         // ============================================================
         // THEME
@@ -924,17 +1040,7 @@
         // ============================================================
         // NAVIGATION
         // ============================================================
-        function goToDashboard() { window.location.href = '/dashboard.html'; }
-        function goToSend() { window.location.href = '/send.html'; }
-        function goToWithdraw() { window.location.href = '/withdraw.html'; }
-        function goToAirtime() { window.location.href = '/airtime.html'; }
-        function goToBills() { window.location.href = '/bills.html'; }
-        function goToData() { window.location.href = '/data.html'; }
-        function goToLoans() { window.location.href = '/loans.html'; }
-        function goToCards() { window.location.href = '/cards.html'; }
-        function goToTransactions() { window.location.href = '/transactions.html'; }
         function goToProfile() { window.location.href = '/profile.html'; }
-        function goToSupport() { window.location.href = '/support.html'; }
 
         function refreshStats() { loadUserData(); }
 
@@ -991,6 +1097,102 @@
         function viewReceipt(reference) {
             if (!reference) return;
             window.open(`/receipt.html?ref=${reference}`, '_blank');
+        }
+
+        function viewReceiptAdmin(reference) {
+            if (!reference) return;
+            window.open(`/receipt.html?ref=${reference}&admin=true`, '_blank');
+        }
+
+        // ============================================================
+        // ALL TRANSACTIONS MODAL
+        // ============================================================
+        function openAllTransactions() {
+            const modal = document.getElementById('transactionsModal');
+            modal.style.display = 'flex';
+            
+            const list = document.getElementById('allTransactionsList');
+            list.innerHTML = `
+                <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                    <i class="fas fa-spinner fa-pulse" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                    <p>Loading transactions...</p>
+                </div>
+            `;
+
+            loadAllTransactions();
+        }
+
+        function closeAllTransactions() {
+            document.getElementById('transactionsModal').style.display = 'none';
+        }
+
+        async function loadAllTransactions() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const res = await fetch(`${API_URL}/api/transactions/all`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+
+                const data = await res.json();
+                allTransactions = data.transactions || [];
+
+                const list = document.getElementById('allTransactionsList');
+                
+                if (allTransactions.length === 0) {
+                    list.innerHTML = `
+                        <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                            <i class="fas fa-inbox" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></i>
+                            <p>No transactions found</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                allTransactions.forEach(tx => {
+                    const isIncoming = tx.to_user_id === currentUser?.id;
+                    const amount = tx.amount || 0;
+                    const currency = tx.currency || 'USD';
+                    const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent';
+                    const ref = tx.reference || tx.id;
+                    const hasReceipt = tx.status === 'completed';
+
+                    html += `
+                        <div class="tx-item">
+                            <div class="tx-info">
+                                <div class="tx-type">${isIncoming ? '📥 Received' : '📤 Sent'} ${tx.type ? `- ${tx.type}` : ''}</div>
+                                <div class="tx-date">${date}</div>
+                                <div class="tx-ref">${ref}</div>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div class="tx-amount ${isIncoming ? 'incoming' : 'outgoing'}">
+                                    ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
+                                </div>
+                                ${hasReceipt ? `<button class="view-receipt-btn" onclick="event.stopPropagation();viewReceipt('${ref}')"><i class="fas fa-receipt"></i></button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+
+                list.innerHTML = html;
+
+            } catch (e) {
+                console.error('Load all transactions error:', e);
+                document.getElementById('allTransactionsList').innerHTML = `
+                    <div style="text-align:center;padding:40px;color:var(--error);">
+                        <i class="fas fa-exclamation-circle" style="font-size:48px;display:block;margin-bottom:16px;"></i>
+                        <p>Failed to load transactions.</p>
+                        <button onclick="loadAllTransactions()" style="margin-top:12px;padding:10px 24px;background:var(--gold);border:none;border-radius:12px;color:#0A0E1A;font-weight:600;cursor:pointer;">Retry</button>
+                    </div>
+                `;
+            }
         }
 
         // ============================================================
@@ -1144,7 +1346,7 @@
                             </div>
                             <div class="card-status-bar">
                                 <span class="status-active"><i class="fas fa-circle"></i> ${card.is_active ? 'Active' : 'Frozen'}</span>
-                                <button class="btn-sm" onclick="goToCards()">Manage</button>
+                                <button class="btn-sm" onclick="window.location.href='/cards.html'">Manage</button>
                             </div>
                         </div>
                     `;
@@ -1286,21 +1488,13 @@
         }
 
         // ============================================================
-        // SHOW LOADING
-        // ============================================================
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
-        }
-
-        // ============================================================
         // INIT
         // ============================================================
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') {
             window.location.href = '/';
         } else {
-            showLoading(true);
-            loadUserData().finally(() => showLoading(false));
+            loadUserData();
         }
 
         setInterval(fetchLiveRates, 300000);
