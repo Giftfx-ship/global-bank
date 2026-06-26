@@ -30,8 +30,6 @@
             --input-bg: #0F1622;
             --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             --glass-bg: rgba(17, 24, 39, 0.8);
-            --card-bg: rgba(17, 24, 39, 0.6);
-            --hover-bg: rgba(198,164,63,0.05);
         }
 
         [data-theme="light"] {
@@ -43,33 +41,25 @@
             --input-bg: #F9FAFB;
             --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
             --glass-bg: rgba(255, 255, 255, 0.8);
-            --card-bg: rgba(255, 255, 255, 0.6);
-            --hover-bg: rgba(198,164,63,0.08);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-body);
             min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             padding: 20px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        /* ===== RECEIPT WRAPPER ===== */
-        .receipt-wrapper {
-            max-width: 520px;
-            width: 100%;
-            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
-            z-index: 1;
         }
 
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(40px) scale(0.95); }
             to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .container {
+            max-width: 520px;
+            margin: 0 auto;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .back-btn {
@@ -81,7 +71,6 @@
             font-weight: 600;
             cursor: pointer;
             margin-bottom: 20px;
-            transition: all 0.3s;
             padding: 10px 20px;
             border-radius: 50px;
             background: rgba(198, 164, 63, 0.08);
@@ -93,7 +82,6 @@
             transform: translateX(-5px);
         }
 
-        /* ===== RECEIPT CARD ===== */
         .receipt-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -104,12 +92,6 @@
             transition: all 0.3s;
         }
 
-        .receipt-card:hover {
-            border-color: rgba(198, 164, 63, 0.3);
-            box-shadow: 0 30px 80px rgba(0,0,0,0.4);
-        }
-
-        /* ===== RECEIPT HEADER ===== */
         .receipt-header {
             background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%);
             padding: 30px 30px 20px;
@@ -139,12 +121,6 @@
             font-size: 48px;
             display: block;
             margin-bottom: 8px;
-            animation: float 3s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
         }
 
         .receipt-header h1 {
@@ -188,37 +164,8 @@
             margin-top: 8px;
             color: rgba(255,255,255,0.25);
             font-size: 11px;
-            letter-spacing: 1px;
         }
 
-        .receipt-header .admin-tag {
-            display: inline-block;
-            margin-left: 8px;
-            padding: 2px 10px;
-            background: #EF4444;
-            border-radius: 50px;
-            font-size: 9px;
-            font-weight: 700;
-            color: white;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .watermark {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 120px;
-            opacity: 0.02;
-            pointer-events: none;
-            font-weight: 900;
-            color: #C6A43F;
-            user-select: none;
-            letter-spacing: 20px;
-        }
-
-        /* ===== RECEIPT BODY ===== */
         .receipt-body {
             padding: 28px 30px 20px;
         }
@@ -246,23 +193,9 @@
             border: 1px solid rgba(255,255,255,0.04);
         }
 
-        .transaction-type .icon {
-            font-size: 36px;
-            display: block;
-            margin-bottom: 6px;
-        }
-
-        .transaction-type .type-label {
-            color: #C6A43F;
-            font-weight: 700;
-            font-size: 17px;
-        }
-
-        .transaction-type .type-sub {
-            color: rgba(255,255,255,0.3);
-            font-size: 11px;
-            margin-top: 4px;
-        }
+        .transaction-type .icon { font-size: 36px; display: block; margin-bottom: 6px; }
+        .transaction-type .type-label { color: #C6A43F; font-weight: 700; font-size: 17px; }
+        .transaction-type .type-sub { color: rgba(255,255,255,0.3); font-size: 11px; margin-top: 4px; }
 
         .amount-section {
             text-align: center;
@@ -277,17 +210,8 @@
             font-weight: 800;
             color: var(--text-primary);
         }
-
-        .amount-section .amount .currency {
-            color: #C6A43F;
-        }
-
-        .amount-section .amount-label {
-            color: rgba(255,255,255,0.3);
-            font-size: 11px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
+        .amount-section .amount .currency { color: #C6A43F; }
+        .amount-section .amount-label { color: rgba(255,255,255,0.3); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
 
         .detail-row {
             display: flex;
@@ -295,41 +219,12 @@
             padding: 10px 0;
             border-bottom: 1px solid rgba(255,255,255,0.04);
         }
-
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-
-        .detail-label {
-            color: rgba(255,255,255,0.4);
-            font-size: 12px;
-            font-weight: 500;
-        }
-
-        .detail-label i {
-            margin-right: 8px;
-            color: var(--gold);
-            width: 16px;
-        }
-
-        .detail-value {
-            color: var(--text-primary);
-            font-weight: 500;
-            font-size: 13px;
-            text-align: right;
-            word-break: break-word;
-            max-width: 60%;
-        }
-
-        .detail-value .gold-text {
-            color: #C6A43F;
-        }
-
-        .detail-value.mono {
-            font-family: 'Courier New', monospace;
-            font-size: 12px;
-            letter-spacing: 0.5px;
-        }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-label { color: rgba(255,255,255,0.4); font-size: 12px; font-weight: 500; }
+        .detail-label i { margin-right: 8px; color: var(--gold); width: 16px; }
+        .detail-value { color: var(--text-primary); font-weight: 500; font-size: 13px; text-align: right; word-break: break-word; max-width: 60%; }
+        .detail-value .gold-text { color: #C6A43F; }
+        .detail-value.mono { font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 0.5px; }
 
         .info-banner {
             background: rgba(198, 164, 63, 0.06);
@@ -342,81 +237,23 @@
             gap: 12px;
         }
 
-        .info-banner i {
-            color: #C6A43F;
-            font-size: 18px;
-        }
-
-        .info-banner .info-text {
-            color: rgba(255,255,255,0.6);
-            font-size: 12px;
-        }
-
-        .info-banner .info-text strong {
-            color: var(--text-primary);
-        }
-
-        .info-banner .role-badge {
-            margin-left: auto;
-            padding: 4px 12px;
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
+        .info-banner i { color: #C6A43F; font-size: 18px; }
+        .info-banner .info-text { color: rgba(255,255,255,0.6); font-size: 12px; }
+        .info-banner .info-text strong { color: var(--text-primary); }
+        .info-banner .role-badge { margin-left: auto; padding: 4px 12px; border-radius: 50px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .role-recipient { background: rgba(16,185,129,0.15); color: #10B981; }
         .role-sender { background: rgba(245,158,11,0.15); color: #F59E0B; }
         .role-admin { background: rgba(198,164,63,0.15); color: #C6A43F; }
 
-        /* ===== RECEIPT FOOTER ===== */
         .receipt-footer {
             padding: 20px 30px 30px;
             border-top: 1px solid rgba(255,255,255,0.05);
             text-align: center;
         }
+        .receipt-footer .thank-you { color: #C6A43F; font-size: 16px; font-weight: 700; }
+        .receipt-footer .tagline { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 4px; }
+        .receipt-footer .footer-meta { margin-top: 12px; display: flex; justify-content: center; gap: 20px; font-size: 10px; color: rgba(255,255,255,0.12); }
 
-        .receipt-footer .thank-you {
-            color: #C6A43F;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .receipt-footer .tagline {
-            color: rgba(255,255,255,0.2);
-            font-size: 11px;
-            margin-top: 4px;
-        }
-
-        .receipt-footer .footer-meta {
-            margin-top: 12px;
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            font-size: 10px;
-            color: rgba(255,255,255,0.12);
-        }
-
-        .receipt-footer .qr-placeholder {
-            margin: 14px auto 0;
-            width: 56px;
-            height: 56px;
-            background: rgba(198, 164, 63, 0.08);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px dashed rgba(198, 164, 63, 0.12);
-        }
-
-        .receipt-footer .qr-placeholder i {
-            font-size: 22px;
-            color: #C6A43F;
-            opacity: 0.25;
-        }
-
-        /* ===== ACTION BUTTONS ===== */
         .action-buttons {
             display: flex;
             gap: 12px;
@@ -440,42 +277,14 @@
             border: 1px solid var(--border);
             color: var(--text-secondary);
         }
+        .btn-action:hover { transform: translateY(-3px); }
+        .btn-share { background: linear-gradient(135deg, #C6A43F, #9E8032); color: #0A0E1A; border: none; }
+        .btn-share:hover { box-shadow: 0 10px 30px rgba(198,164,63,0.3); }
+        .btn-download { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-secondary); }
+        .btn-download:hover { background: rgba(255,255,255,0.1); }
+        .btn-print { background: rgba(59, 130, 246, 0.1); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.15); }
+        .btn-print:hover { background: rgba(59, 130, 246, 0.2); }
 
-        .btn-action:hover {
-            transform: translateY(-3px);
-        }
-
-        .btn-share {
-            background: linear-gradient(135deg, #C6A43F, #9E8032);
-            color: #0A0E1A;
-            border: none;
-        }
-
-        .btn-share:hover {
-            box-shadow: 0 10px 30px rgba(198, 164, 63, 0.3);
-        }
-
-        .btn-download {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-        }
-
-        .btn-download:hover {
-            background: rgba(255,255,255,0.1);
-        }
-
-        .btn-print {
-            background: rgba(59, 130, 246, 0.1);
-            color: #3B82F6;
-            border: 1px solid rgba(59, 130, 246, 0.15);
-        }
-
-        .btn-print:hover {
-            background: rgba(59, 130, 246, 0.2);
-        }
-
-        /* ===== LOADING / ERROR ===== */
         .loading-state {
             text-align: center;
             padding: 60px 20px;
@@ -500,36 +309,6 @@
         .error-state h3 { color: var(--text-primary); font-size: 20px; margin-bottom: 8px; }
         .error-state p { color: var(--text-secondary); font-size: 14px; }
 
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 500px) {
-            body { padding: 12px; }
-            .receipt-header { padding: 24px 20px 16px; }
-            .receipt-body { padding: 20px; }
-            .receipt-footer { padding: 16px 20px 24px; }
-            .amount-section .amount { font-size: 28px; }
-            .action-buttons { flex-direction: column; }
-            .btn-action { padding: 12px; font-size: 12px; }
-            .detail-value { max-width: 50%; font-size: 12px; }
-            .info-banner { flex-wrap: wrap; }
-            .info-banner .role-badge { margin-left: 0; }
-            .footer-meta { flex-direction: column; gap: 6px; }
-        }
-
-        /* ===== PRINT ===== */
-        @media print {
-            body { background: white !important; padding: 0; }
-            .receipt-wrapper { max-width: 100%; }
-            .back-btn, .action-buttons, .theme-toggle { display: none !important; }
-            .receipt-card { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
-            .receipt-header { background: #f8f8f8 !important; }
-            .receipt-header h1 .gold { -webkit-text-fill-color: #C6A43F !important; }
-            .receipt-header .receipt-id { color: #C6A43F; }
-            .watermark { opacity: 0.01 !important; }
-            .detail-value { color: #111827 !important; }
-            .amount-section .amount { color: #111827 !important; }
-        }
-
-        /* ===== THEME TOGGLE ===== */
         .theme-toggle {
             position: fixed;
             top: 20px;
@@ -559,6 +338,31 @@
             background: linear-gradient(135deg, #C6A43F, #9E8032);
             color: #0A0E1A;
         }
+
+        @media (max-width: 500px) {
+            body { padding: 12px; }
+            .receipt-header { padding: 24px 20px 16px; }
+            .receipt-body { padding: 20px; }
+            .receipt-footer { padding: 16px 20px 24px; }
+            .amount-section .amount { font-size: 28px; }
+            .action-buttons { flex-direction: column; }
+            .btn-action { padding: 12px; font-size: 12px; }
+            .detail-value { max-width: 50%; font-size: 12px; }
+            .info-banner { flex-wrap: wrap; }
+            .info-banner .role-badge { margin-left: 0; }
+            .footer-meta { flex-direction: column; gap: 6px; }
+        }
+
+        @media print {
+            body { background: white !important; padding: 0; }
+            .back-btn, .action-buttons, .theme-toggle { display: none !important; }
+            .receipt-card { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+            .receipt-header { background: #f8f8f8 !important; }
+            .receipt-header h1 .gold { -webkit-text-fill-color: #C6A43F !important; }
+            .receipt-header .receipt-id { color: #C6A43F; }
+            .detail-value { color: #111827 !important; }
+            .amount-section .amount { color: #111827 !important; }
+        }
     </style>
 </head>
 <body data-theme="dark">
@@ -569,20 +373,19 @@
         <button class="theme-option" id="lightOption">☀️</button>
     </div>
 
-    <!-- ===== RECEIPT WRAPPER ===== -->
-    <div class="receipt-wrapper" id="receiptWrapper">
+    <div class="container">
         <a href="javascript:history.back()" class="back-btn">
             <i class="fas fa-arrow-left"></i> Back
         </a>
 
         <div class="receipt-card">
-            <!-- LOADING STATE -->
+            <!-- LOADING -->
             <div class="loading-state" id="loadingState">
                 <div class="loader"></div>
                 <p>Loading receipt...</p>
             </div>
 
-            <!-- ERROR STATE -->
+            <!-- ERROR -->
             <div class="error-state" id="errorState" style="display: none;">
                 <i class="fas fa-exclamation-circle"></i>
                 <h3>Receipt Not Found</h3>
@@ -600,21 +403,20 @@
                     <div class="subtitle">International Banking Excellence</div>
                     <div class="receipt-id" id="receiptRef">#TXN-XXXXXX</div>
                     <div class="receipt-date" id="receiptDate">—</div>
-                    <div class="watermark">RECEIPT</div>
                 </div>
 
-                <div class="receipt-body" id="receiptBody">
+                <div class="receipt-body">
                     <div class="status-badge" id="statusBadge">
                         <i class="fas fa-check-circle"></i> COMPLETED
                     </div>
 
-                    <div class="transaction-type" id="txIconContainer">
+                    <div class="transaction-type">
                         <span class="icon" id="txIcon">💸</span>
                         <div class="type-label" id="txType">Money Transfer</div>
                         <div class="type-sub" id="txTime">—</div>
                     </div>
 
-                    <div class="amount-section" id="amountSection">
+                    <div class="amount-section">
                         <div class="amount-label">Amount</div>
                         <div class="amount"><span class="currency" id="txCurrency">USD</span> <span id="txAmount">0.00</span></div>
                     </div>
@@ -667,14 +469,10 @@
                         <span>🔒 Secured Transaction</span>
                         <span>🌍 Global Transfer</span>
                     </div>
-                    <div class="qr-placeholder">
-                        <i class="fas fa-qrcode"></i>
-                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- ACTION BUTTONS -->
         <div class="action-buttons" id="actionButtons" style="display: none;">
             <button class="btn-action btn-share" onclick="shareReceipt()">
                 <i class="fas fa-share-alt"></i> Share
@@ -693,7 +491,6 @@
         // CONFIGURATION
         // ============================================================
         const API_URL = 'https://prime-heritage-bank.onrender.com';
-        const RECEIPT_HTML = document.getElementById('receiptContent');
 
         // ============================================================
         // THEME
@@ -723,7 +520,6 @@
 
         const reference = getQueryParam('ref');
         const isAdmin = getQueryParam('admin') === 'true';
-        const role = getQueryParam('role') || 'recipient';
 
         // ============================================================
         // LOAD RECEIPT
@@ -887,7 +683,6 @@
                 roleBadge.className = 'role-badge';
             }
 
-            // Update Title
             document.title = `Receipt ${tx.reference || ''} | Prime Heritage Bank`;
         }
 
@@ -905,19 +700,13 @@
         // ============================================================
         async function shareReceipt() {
             try {
-                // Show loading
                 Swal.fire({
                     title: 'Generating receipt image...',
                     allowOutsideClick: false,
-                    didOpen: () => {
-                        Swal.showLoading();
-                    }
+                    didOpen: () => { Swal.showLoading(); }
                 });
 
-                // Get the receipt card
                 const receiptCard = document.querySelector('.receipt-card');
-                
-                // Capture as image
                 const canvas = await html2canvas(receiptCard, {
                     scale: 2,
                     backgroundColor: document.body.getAttribute('data-theme') === 'dark' ? '#0A0E1A' : '#F0F2F5',
@@ -927,11 +716,8 @@
                 });
 
                 const imageDataUrl = canvas.toDataURL('image/png');
-
-                // Close loading
                 Swal.close();
 
-                // Share or download
                 if (navigator.share) {
                     const blob = await fetch(imageDataUrl).then(res => res.blob());
                     const file = new File([blob], 'receipt.png', { type: 'image/png' });
@@ -940,7 +726,6 @@
                         files: [file]
                     });
                 } else {
-                    // Download as image
                     const link = document.createElement('a');
                     link.download = `receipt-${document.getElementById('receiptRef').textContent || 'transaction'}.png`;
                     link.href = imageDataUrl;
@@ -951,7 +736,6 @@
                     Swal.fire({
                         icon: 'success',
                         title: 'Image Downloaded!',
-                        text: 'Receipt saved as image.',
                         timer: 1500,
                         showConfirmButton: false,
                         background: document.body.getAttribute('data-theme') === 'dark' ? '#1a1a2e' : '#fff',
@@ -963,7 +747,7 @@
                 Swal.fire({
                     icon: 'error',
                     title: 'Share Failed',
-                    text: 'Unable to share receipt. Please try downloading instead.',
+                    text: 'Unable to share receipt.',
                     background: document.body.getAttribute('data-theme') === 'dark' ? '#1a1a2e' : '#fff',
                     color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                 });
@@ -971,7 +755,7 @@
         }
 
         // ============================================================
-        // DOWNLOAD RECEIPT AS HTML
+        // DOWNLOAD RECEIPT
         // ============================================================
         function downloadReceipt() {
             const content = document.getElementById('receiptContent');
@@ -989,8 +773,7 @@
                         ${styles}
                         body { padding: 20px; background: ${theme === 'dark' ? '#0A0E1A' : '#F0F2F5'}; }
                         .back-btn, .action-buttons, .theme-toggle { display: none !important; }
-                        .receipt-wrapper { max-width: 500px; margin: 0 auto; }
-                        .watermark { display: none; }
+                        .container { max-width: 500px; margin: 0 auto; }
                         @media print {
                             body { background: white !important; }
                             .receipt-card { box-shadow: none !important; border: 1px solid #ddd !important; }
@@ -999,7 +782,7 @@
                     </style>
                 </head>
                 <body data-theme="${theme}">
-                    <div class="receipt-wrapper">
+                    <div class="container">
                         <div class="receipt-card">
                             ${content.innerHTML}
                         </div>
@@ -1044,9 +827,9 @@
         const token = localStorage.getItem('token');
         if (!token) {
             window.location.href = '/';
+        } else {
+            loadReceipt();
         }
-
-        loadReceipt();
     </script>
 </body>
 </html>
