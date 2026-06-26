@@ -2,7 +2,7 @@
   "name": "prime-heritage-bank",
   "version": "1.0.0",
   "description": "Prime Heritage International Bank - Full Banking Platform",
-  "main": "src/server.js",
+  "main": "server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
