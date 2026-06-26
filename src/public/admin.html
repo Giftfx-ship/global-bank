@@ -68,6 +68,7 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes spin { to { transform: rotate(360deg); } }
 
+        /* ===== HEADER ===== */
         .admin-header {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -79,6 +80,8 @@
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
         }
 
         .admin-header h1 {
@@ -90,6 +93,13 @@
         }
         .admin-header h1 i { -webkit-text-fill-color: var(--gold); margin-right: 10px; }
 
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
         .theme-toggle {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--border);
@@ -97,7 +107,6 @@
             padding: 5px;
             display: flex;
             cursor: pointer;
-            margin-right: 15px;
         }
         .theme-option {
             padding: 8px 18px;
@@ -105,6 +114,10 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         .theme-option.active {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
@@ -128,8 +141,10 @@
             transform: translateY(-2px);
         }
 
+        /* ===== CONTAINER ===== */
         .container { max-width: 1400px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
 
+        /* ===== STATS ===== */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -164,6 +179,7 @@
         .stat-card .value { font-size: 36px; font-weight: 800; color: var(--gold); }
         .stat-card .label { color: var(--text-secondary); margin-top: 8px; font-size: 13px; font-weight: 500; }
 
+        /* ===== SECTION CARD ===== */
         .section-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -203,52 +219,13 @@
             display: inline-flex;
             align-items: center;
             gap: 8px;
+            font-size: 14px;
         }
         .btn-gold:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
         .btn-gold i { font-size: 14px; }
-
-        .search-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 24px;
-        }
-        .search-bar input {
-            flex: 1;
-            padding: 14px 20px;
-            background: var(--input-bg);
-            border: 1.5px solid var(--border);
-            border-radius: 50px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            transition: all 0.3s;
-        }
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            padding: 16px 12px;
-            text-align: left;
-            border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-        }
-        th {
-            color: var(--gold);
-            font-weight: 700;
-            font-size: 13px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-        tr:hover { background: var(--table-hover); transition: background 0.3s; }
 
         .btn-sm {
             background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.1));
@@ -273,9 +250,72 @@
         .btn-danger { border-color: var(--error); color: var(--error); }
         .btn-danger:hover { background: var(--error); color: white; }
 
+        /* ===== SEARCH ===== */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 14px 20px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
+        }
+
+        /* ===== TABLE ===== */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 16px 12px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        th {
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tr:hover { background: var(--table-hover); transition: background 0.3s; }
+
+        .badge {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: #0A0E1A;
+            margin-left: 8px;
+        }
+
+        .badge-danger {
+            background: var(--error);
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 700;
+            color: white;
+            margin-left: 8px;
+        }
+
         .status-active { color: var(--success); font-weight: 600; }
         .status-inactive { color: var(--error); font-weight: 600; }
 
+        /* ===== MODAL ===== */
         .modal {
             display: none;
             position: fixed;
@@ -331,7 +371,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .form-group input, .form-group select {
+        .form-group input, .form-group select, .form-group textarea {
             width: 100%;
             padding: 14px 16px;
             background: var(--input-bg);
@@ -341,11 +381,12 @@
             font-family: 'Inter', sans-serif;
             transition: all 0.3s;
         }
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
         }
+        .form-group textarea { min-height: 80px; resize: vertical; }
 
         .btn {
             width: 100%;
@@ -365,6 +406,20 @@
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
 
+        /* ===== RECEIPT MODAL ===== */
+        .receipt-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border);
+        }
+        .receipt-item:last-child { border-bottom: none; }
+        .receipt-item .amount { font-weight: 700; }
+        .receipt-item .amount.incoming { color: var(--success); }
+        .receipt-item .amount.outgoing { color: var(--error); }
+
+        /* ===== LOADING ===== */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -386,16 +441,7 @@
             margin-bottom: 20px;
         }
 
-        .badge {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            padding: 2px 8px;
-            border-radius: 20px;
-            font-size: 10px;
-            font-weight: 700;
-            color: #0A0E1A;
-            margin-left: 8px;
-        }
-
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2,1fr); }
         }
@@ -408,6 +454,9 @@
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
             .section-header h3 { font-size: 16px; }
+            .admin-header { padding: 12px 16px; }
+            .admin-header h1 { font-size: 18px; }
+            .container { padding: 16px; }
         }
 
         ::-webkit-scrollbar { width: 8px; height: 8px; }
@@ -416,20 +465,25 @@
     </style>
 </head>
 <body data-theme="dark">
+
+    <!-- ===== HEADER ===== -->
     <div class="admin-header">
         <h1><i class="fas fa-crown"></i> Prime Heritage Bank | Admin Portal</h1>
-        <div style="display: flex; align-items: center; gap: 15px;">
+        <div class="header-controls">
             <div class="theme-toggle" onclick="toggleTheme()">
-                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></div>
-                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></div>
+                <button class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></button>
+                <button class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></button>
             </div>
             <button class="logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </div>
 
+    <!-- ===== MAIN CONTENT ===== -->
     <div class="container">
+        <!-- Stats -->
         <div class="stats-grid" id="statsGrid"></div>
 
+        <!-- Users Table -->
         <div class="section-card">
             <div class="section-header">
                 <h3><i class="fas fa-users"></i> User Management</h3>
@@ -450,7 +504,7 @@
                             <th>Balance</th>
                             <th>Status</th>
                             <th>Actions</th>
-                            <th>Receipt</th>
+                            <th>Receipts</th>
                         </tr>
                     </thead>
                     <tbody id="usersBody"></tbody>
@@ -459,7 +513,7 @@
         </div>
     </div>
 
-    <!-- Send Money Modal -->
+    <!-- ===== SEND MONEY MODAL ===== -->
     <div id="sendModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -477,7 +531,7 @@
             </div>
             <div class="form-group">
                 <label><i class="fas fa-dollar-sign"></i> Amount</label>
-                <input type="number" id="sendAmount" placeholder="0.00" step="0.01">
+                <input type="number" id="sendAmount" placeholder="0.00" step="0.01" min="0.01">
             </div>
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Currency</label>
@@ -496,38 +550,47 @@
         </div>
     </div>
 
-    <!-- View Receipt Modal -->
+    <!-- ===== VIEW RECEIPTS MODAL ===== -->
     <div id="receiptModal" class="modal">
-        <div class="modal-content" style="max-width: 900px;">
+        <div class="modal-content" style="max-width: 700px;">
             <div class="modal-header">
-                <h3><i class="fas fa-receipt"></i> Transaction Receipt - <span id="receiptUser">User</span></h3>
+                <h3><i class="fas fa-receipt"></i> Transaction History - <span id="receiptUser">User</span></h3>
                 <button class="close-modal" onclick="closeModal('receiptModal')">&times;</button>
             </div>
-            <div id="receiptContent"></div>
+            <div id="receiptContent" style="max-height:400px;overflow-y:auto;">
+                <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                    <i class="fas fa-spinner fa-pulse" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                    <p>Loading transactions...</p>
+                </div>
+            </div>
             <div style="margin-top: 24px; display: flex; gap: 12px;">
-                <button class="btn-gold" style="flex:1;" onclick="openReceiptInNewTab()"><i class="fas fa-external-link-alt"></i> Open in New Tab</button>
-                <button class="btn" style="flex:1; background: rgba(100,100,100,0.3);" onclick="closeModal('receiptModal')">Close</button>
+                <button class="btn-gold" style="flex:1;" onclick="closeModal('receiptModal')">Close</button>
             </div>
         </div>
     </div>
 
+    <!-- ===== LOADING OVERLAY ===== -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
         <div style="color: var(--gold); margin-top: 20px;">Processing...</div>
     </div>
 
     <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
         const API_URL = 'https://prime-heritage-bank.onrender.com';
         let users = [];
         let currentReceiptRef = null;
 
+        // ============================================================
+        // THEME
+        // ============================================================
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('adminTheme', theme);
-            document.getElementById('darkOption').classList.remove('active');
-            document.getElementById('lightOption').classList.remove('active');
-            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
-            else document.getElementById('lightOption').classList.add('active');
+            document.getElementById('darkOption').classList.toggle('active', theme === 'dark');
+            document.getElementById('lightOption').classList.toggle('active', theme === 'light');
         }
 
         function toggleTheme() {
@@ -538,9 +601,20 @@
         const savedTheme = localStorage.getItem('adminTheme') || 'dark';
         setTheme(savedTheme);
 
-        function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        // ============================================================
+        // UTILITY
+        // ============================================================
+        function showLoading(show) {
+            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        function openModal(id) {
+            document.getElementById(id).style.display = 'flex';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
 
         function filterUsers() {
             const search = document.getElementById('searchInput').value.toLowerCase();
@@ -552,19 +626,36 @@
             renderUsers(filtered);
         }
 
+        // ============================================================
+        // RENDER USERS
+        // ============================================================
         function renderUsers(userList = users) {
             const tbody = document.getElementById('usersBody');
             tbody.innerHTML = '';
+            
+            if (userList.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary);">
+                            <i class="fas fa-users" style="font-size:32px;display:block;margin-bottom:12px;opacity:0.3;"></i>
+                            No users found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
             for (let u of userList) {
                 const isAdmin = u.is_admin;
-                const receiptCount = u.receiptCount || 0;
+                const receiptCount = u.transactionCount || 0;
+                
                 tbody.innerHTML += `
                     <tr>
                         <td>
                             <strong>${u.full_name}</strong><br>
                             <small style="color:var(--text-secondary)">${u.email}</small>
                             ${isAdmin ? '<span class="badge">Admin</span>' : ''}
-                            ${u.is_unlimited ? '<span class="badge" style="background:#EF4444;">Unlimited</span>' : ''}
+                            ${u.is_unlimited ? '<span class="badge-danger">Unlimited</span>' : ''}
                         </td>
                         <td>
                             <small><i class="fas fa-hashtag" style="color:var(--gold);"></i> ${u.account_number}</small><br>
@@ -596,6 +687,9 @@
             }
         }
 
+        // ============================================================
+        // UPDATE STATS
+        // ============================================================
         function updateStats(stats) {
             if (!stats) return;
             document.getElementById('statsGrid').innerHTML = `
@@ -622,6 +716,9 @@
             `;
         }
 
+        // ============================================================
+        // USER MANAGEMENT
+        // ============================================================
         function openSendModal(id, name, acc) {
             document.getElementById('sendUserId').value = id;
             document.getElementById('sendUserDisplay').value = `${name} (${acc})`;
@@ -691,13 +788,16 @@
 
         async function deleteUser(userId) {
             const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
             Swal.fire({
                 title: `Delete ${user.full_name}?`,
                 text: 'This is permanent! All user data will be lost.',
                 icon: 'warning',
                 showCancelButton: true,
                 confirmButtonColor: '#EF4444',
-                confirmButtonText: 'Delete'
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     showLoading(true);
@@ -724,12 +824,16 @@
 
         async function toggleUserStatus(userId) {
             const user = users.find(u => u.id === userId);
+            if (!user) return;
+            
             Swal.fire({
                 title: `${user.is_active ? 'Freeze' : 'Activate'} ${user.full_name}?`,
+                text: user.is_active ? 'User will not be able to log in.' : 'User will regain access.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: user.is_active ? '#EF4444' : '#10B981',
-                confirmButtonText: user.is_active ? 'Freeze' : 'Activate'
+                confirmButtonText: user.is_active ? 'Freeze' : 'Activate',
+                cancelButtonText: 'Cancel'
             }).then(async (result) => {
                 if (result.isConfirmed) {
                     showLoading(true);
@@ -758,72 +862,102 @@
             });
         }
 
+        // ============================================================
+        // VIEW RECEIPTS
+        // ============================================================
         async function viewUserReceipts(userId, userName) {
             document.getElementById('receiptUser').textContent = userName;
-            const user = users.find(u => u.id === userId);
+            const contentDiv = document.getElementById('receiptContent');
             
-            if (!user || !user.transactions || user.transactions.length === 0) {
-                document.getElementById('receiptContent').innerHTML = `
-                    <div style="text-align:center;padding:40px;color:var(--text-secondary);">
-                        <i class="fas fa-receipt" style="font-size:48px;margin-bottom:16px;display:block;opacity:0.3;"></i>
-                        <p>No transactions found for this user.</p>
-                    </div>
-                `;
-                openModal('receiptModal');
-                return;
-            }
-
-            let html = '<div style="max-height:400px;overflow-y:auto;">';
-            user.transactions.slice(0, 20).forEach(tx => {
-                const isIncoming = tx.to_user_id === userId;
-                const amount = tx.amount || 0;
-                const currency = tx.currency || 'USD';
-                const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent';
-                const ref = tx.reference || tx.id;
-                
-                html += `
-                    <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border);">
-                        <div>
-                            <div style="color:var(--text-primary);font-weight:600;font-size:13px;">
-                                ${isIncoming ? '📥 Received' : '📤 Sent'}
-                                ${tx.type ? ` - ${tx.type}` : ''}
-                            </div>
-                            <div style="color:var(--text-secondary);font-size:11px;">${date}</div>
-                            <div style="color:var(--text-secondary);font-size:10px;font-family:monospace;">${ref}</div>
-                        </div>
-                        <div style="text-align:right;">
-                            <div style="font-weight:700;color:${isIncoming ? 'var(--success)' : 'var(--error)'};">
-                                ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
-                            </div>
-                            <button class="btn-sm" onclick="viewReceipt('${ref}')" style="margin-top:4px;">
-                                <i class="fas fa-receipt"></i> View
-                            </button>
-                        </div>
-                    </div>
-                `;
-            });
-            html += '</div>';
+            contentDiv.innerHTML = `
+                <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                    <i class="fas fa-spinner fa-pulse" style="font-size:32px;display:block;margin-bottom:12px;"></i>
+                    <p>Loading transactions...</p>
+                </div>
+            `;
             
-            document.getElementById('receiptContent').innerHTML = html;
             openModal('receiptModal');
+
+            try {
+                const token = localStorage.getItem('token');
+                const res = await fetch(`${API_URL}/api/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                const allUsers = await res.json();
+                const user = allUsers.find(u => u.id === userId);
+                
+                if (!user || !user.transactions || user.transactions.length === 0) {
+                    contentDiv.innerHTML = `
+                        <div style="text-align:center;padding:40px;color:var(--text-secondary);">
+                            <i class="fas fa-receipt" style="font-size:48px;display:block;margin-bottom:16px;opacity:0.3;"></i>
+                            <p>No transactions found for this user.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let html = '';
+                user.transactions.slice(0, 20).forEach(tx => {
+                    const isIncoming = tx.to_user_id === userId;
+                    const amount = tx.amount || 0;
+                    const currency = tx.currency || 'USD';
+                    const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent';
+                    const ref = tx.reference || tx.id;
+                    
+                    html += `
+                        <div class="receipt-item">
+                            <div>
+                                <div style="color:var(--text-primary);font-weight:600;font-size:13px;">
+                                    ${isIncoming ? '📥 Received' : '📤 Sent'}
+                                    ${tx.type ? ` - ${tx.type}` : ''}
+                                </div>
+                                <div style="color:var(--text-secondary);font-size:11px;">${date}</div>
+                                <div style="color:var(--text-secondary);font-size:10px;font-family:monospace;">${ref}</div>
+                            </div>
+                            <div style="text-align:right;">
+                                <div style="font-weight:700;color:${isIncoming ? 'var(--success)' : 'var(--error)'};">
+                                    ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
+                                </div>
+                                <button class="btn-sm" onclick="viewReceipt('${ref}')" style="margin-top:4px;">
+                                    <i class="fas fa-receipt"></i> View
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                contentDiv.innerHTML = html;
+
+            } catch (e) {
+                contentDiv.innerHTML = `
+                    <div style="text-align:center;padding:40px;color:var(--error);">
+                        <i class="fas fa-exclamation-circle" style="font-size:48px;display:block;margin-bottom:16px;"></i>
+                        <p>Failed to load transactions.</p>
+                    </div>
+                `;
+            }
         }
 
         function viewReceipt(ref) {
             window.open(`/receipt.html?ref=${ref}&admin=true`, '_blank');
         }
 
-        function openReceiptInNewTab() {
-            // This will be handled by individual receipt buttons
-        }
-
+        // ============================================================
+        // BBC CODE GENERATION
+        // ============================================================
         function openGenerateBBCModal() {
+            const userOptions = users
+                .filter(u => !u.is_admin)
+                .map(u => `<option value="${u.id}">${u.full_name} (${u.account_number})</option>`)
+                .join('');
+
             Swal.fire({
                 title: 'Generate BBC Codes',
                 html: `
                     <div class="form-group">
                         <label>Select User</label>
                         <select id="bbcUserId" style="width:100%;padding:12px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
-                            ${users.filter(u => !u.is_admin).map(u => `<option value="${u.id}">${u.full_name} (${u.account_number})</option>`).join('')}
+                            ${userOptions}
                         </select>
                     </div>
                     <div class="form-group">
@@ -892,21 +1026,32 @@
             });
         }
 
+        // ============================================================
+        // LOAD USERS
+        // ============================================================
         async function loadUsers() {
             showLoading(true);
             try {
+                const token = localStorage.getItem('token');
+                if (!token) {
+                    window.location.href = '/';
+                    return;
+                }
+
                 const res = await fetch(`${API_URL}/api/admin/users`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-                if (res.status === 403) {
+                
+                if (res.status === 403 || res.status === 401) {
                     Swal.fire('Error', 'Admin access only', 'error');
                     logout();
                     return;
                 }
+                
                 users = await res.json();
                 
                 const statsRes = await fetch(`${API_URL}/api/admin/stats`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 const stats = await statsRes.json();
                 
@@ -920,17 +1065,28 @@
             }
         }
 
+        // ============================================================
+        // LOGOUT
+        // ============================================================
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
             window.location.href = '/';
         }
 
+        // ============================================================
+        // AUTO-REFRESH
+        // ============================================================
+        setInterval(loadUsers, 30000);
+
+        // ============================================================
+        // INIT
+        // ============================================================
         if (!localStorage.getItem('token')) {
             window.location.href = '/';
+        } else {
+            loadUsers();
         }
-
-        loadUsers();
     </script>
 </body>
 </html>
