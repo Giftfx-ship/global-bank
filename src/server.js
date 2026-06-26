@@ -316,200 +316,530 @@ const sendTestEmail = async () => {
 
 // ==================== EMAIL TEMPLATES ====================
 const getWelcomeHTML = (userData) => {
-  const { full_name, email } = userData;
+  const { full_name, email, account_level } = userData;
   return `
     <!DOCTYPE html>
-    <html>
+    <html lang="en">
     <head>
       <meta charset="UTF-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
       <title>Welcome to Prime Heritage Bank</title>
       <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-          font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: #0A0E1A;
+          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+          background: #080C18;
           margin: 0;
-          padding: 20px;
+          padding: 40px 20px;
           -webkit-font-smoothing: antialiased;
+          -moz-osx-font-smoothing: grayscale;
         }
-        .container {
+
+        .email-wrapper {
           max-width: 600px;
           margin: 0 auto;
-          background: #0F1622;
-          border-radius: 24px;
+          background: #0E1525;
+          border-radius: 28px;
           overflow: hidden;
-          box-shadow: 0 25px 60px rgba(0,0,0,0.5);
-          border: 1px solid rgba(198, 164, 63, 0.15);
+          box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(198,164,63,0.06);
+          position: relative;
         }
+
+        .email-wrapper::before {
+          content: '';
+          position: absolute;
+          top: -40%;
+          right: -30%;
+          width: 70%;
+          height: 70%;
+          background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%);
+          pointer-events: none;
+        }
+
+        /* ===== HEADER ===== */
         .header {
-          background: linear-gradient(135deg, #0A0E1A 0%, #16213E 50%, #1a1a2e 100%);
-          padding: 40px 30px 30px;
+          background: linear-gradient(160deg, #080C18 0%, #111D35 45%, #0E1525 100%);
+          padding: 44px 40px 30px;
           text-align: center;
-          border-bottom: 1px solid rgba(198, 164, 63, 0.2);
+          position: relative;
+          border-bottom: 1px solid rgba(198,164,63,0.08);
         }
+
+        .header::after {
+          content: '';
+          position: absolute;
+          bottom: -1px;
+          left: 10%;
+          right: 10%;
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(198,164,63,0.2), rgba(198,164,63,0.4), rgba(198,164,63,0.2), transparent);
+          background-size: 200% 100%;
+          animation: shimmer 4s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        .header .crest {
+          font-size: 38px;
+          display: block;
+          margin-bottom: 10px;
+          letter-spacing: -2px;
+          opacity: 0.9;
+        }
+
         .header h1 {
+          font-family: 'Playfair Display', serif;
           color: #FFFFFF;
+          font-size: 26px;
+          font-weight: 700;
+          letter-spacing: 2px;
           margin: 0;
-          font-size: 28px;
-          font-weight: 800;
-          letter-spacing: 1px;
         }
+
         .header h1 .gold {
-          background: linear-gradient(135deg, #C6A43F, #D4B85A);
+          background: linear-gradient(135deg, #C6A43F, #D4B85A, #C6A43F);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
+          background-size: 200% 200%;
+          animation: goldShine 4s ease-in-out infinite;
         }
-        .header .subtitle {
-          color: rgba(255,255,255,0.4);
-          font-size: 11px;
+
+        @keyframes goldShine {
+          0%, 100% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+        }
+
+        .header .tagline {
+          color: rgba(255,255,255,0.15);
+          font-size: 9px;
+          letter-spacing: 5px;
+          text-transform: uppercase;
+          margin-top: 6px;
+          font-weight: 400;
+        }
+
+        .header .badge {
+          display: inline-block;
+          margin-top: 14px;
+          padding: 4px 20px;
+          background: rgba(198,164,63,0.06);
+          border: 1px solid rgba(198,164,63,0.08);
+          border-radius: 50px;
+          color: rgba(198,164,63,0.5);
+          font-size: 8px;
           letter-spacing: 3px;
           text-transform: uppercase;
-          margin-top: 4px;
-          font-weight: 300;
+          font-weight: 500;
         }
-        .content {
-          padding: 40px 35px;
-          background: #0F1622;
+
+        /* ===== BODY ===== */
+        .body-content {
+          padding: 38px 40px 30px;
+          background: #0E1525;
+          position: relative;
         }
+
         .greeting {
+          font-family: 'Playfair Display', serif;
           font-size: 24px;
           font-weight: 700;
           color: #FFFFFF;
-          margin-bottom: 6px;
+          margin-bottom: 4px;
+          letter-spacing: -0.3px;
         }
+
         .greeting .highlight {
-          background: linear-gradient(135deg, #C6A43F, #D4B85A);
+          background: linear-gradient(135deg, #C6A43F, #E8D07A);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
         }
-        .greeting .wave { display: inline-block; animation: wave 2s infinite; }
+
+        .greeting .wave {
+          display: inline-block;
+          animation: wave 2.5s infinite;
+        }
+
         @keyframes wave {
           0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(20deg); }
-          75% { transform: rotate(-10deg); }
+          25% { transform: rotate(16deg); }
+          75% { transform: rotate(-6deg); }
         }
-        .message {
-          color: rgba(255,255,255,0.7);
-          line-height: 1.8;
-          font-size: 15px;
-          margin: 16px 0 24px;
-        }
-        .message strong { color: #FFFFFF; font-weight: 600; }
-        .features {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 12px;
-          margin: 24px 0;
-        }
-        .feature {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
-          padding: 16px 18px;
-          border-radius: 16px;
-        }
-        .feature .icon { font-size: 28px; display: block; margin-bottom: 6px; }
-        .feature .label { font-weight: 700; color: #FFFFFF; font-size: 13px; display: block; }
-        .feature .desc { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
-        .account-details {
-          background: rgba(255,255,255,0.03);
-          border: 1px solid rgba(255,255,255,0.06);
-          border-radius: 16px;
-          padding: 20px 24px;
-          margin: 24px 0;
-        }
-        .account-details .title {
-          color: rgba(255,255,255,0.3);
+
+        .greeting-sub {
+          color: rgba(255,255,255,0.2);
           font-size: 11px;
-          text-transform: uppercase;
-          letter-spacing: 1.5px;
-          margin: 0 0 12px 0;
-          font-weight: 600;
+          letter-spacing: 1px;
+          font-weight: 300;
+          margin-bottom: 16px;
         }
-        .account-details .row {
+
+        .message-text {
+          color: rgba(255,255,255,0.65);
+          line-height: 1.9;
+          font-size: 14px;
+          font-weight: 300;
+          margin-bottom: 24px;
+        }
+
+        .message-text strong {
+          color: #FFFFFF;
+          font-weight: 500;
+        }
+
+        .message-text .highlight-text {
+          color: #C6A43F;
+        }
+
+        .divider-line {
+          height: 1px;
+          background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent);
+          margin: 24px 0 28px;
+        }
+
+        /* ===== ACCOUNT CARD ===== */
+        .account-card {
+          background: rgba(255,255,255,0.015);
+          border: 1px solid rgba(255,255,255,0.04);
+          border-radius: 16px;
+          padding: 22px 26px;
+          margin-bottom: 24px;
+          position: relative;
+          overflow: hidden;
+        }
+
+        .account-card::before {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: linear-gradient(135deg, rgba(198,164,63,0.02), transparent);
+          pointer-events: none;
+        }
+
+        .account-card .card-title {
+          color: rgba(255,255,255,0.2);
+          font-size: 8px;
+          text-transform: uppercase;
+          letter-spacing: 2.5px;
+          margin-bottom: 14px;
+          font-weight: 600;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .account-card .card-title i {
+          font-style: normal;
+          font-size: 12px;
+        }
+
+        .account-card .row {
           display: flex;
           justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-          font-size: 14px;
+          align-items: center;
+          padding: 7px 0;
+          border-bottom: 1px solid rgba(255,255,255,0.02);
+          font-size: 13px;
         }
-        .account-details .row:last-child { border-bottom: none; }
-        .account-details .label { color: rgba(255,255,255,0.4); }
-        .account-details .value { color: #FFFFFF; font-weight: 600; font-family: 'Courier New', monospace; }
-        .account-details .value.gold { color: #C6A43F; }
+
+        .account-card .row:last-child {
+          border-bottom: none;
+        }
+
+        .account-card .label {
+          color: rgba(255,255,255,0.25);
+          font-weight: 400;
+          font-size: 11px;
+          letter-spacing: 0.3px;
+        }
+
+        .account-card .value {
+          color: #FFFFFF;
+          font-weight: 500;
+          font-family: 'JetBrains Mono', 'Inter', monospace;
+          font-size: 12px;
+          letter-spacing: 0.3px;
+        }
+
+        .account-card .value.golden {
+          color: #C6A43F;
+        }
+
+        .account-card .value.status {
+          color: #34D399;
+          display: flex;
+          align-items: center;
+          gap: 6px;
+        }
+
+        .account-card .value.status::before {
+          content: '';
+          display: inline-block;
+          width: 5px;
+          height: 5px;
+          background: #34D399;
+          border-radius: 50%;
+          animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 1; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* ===== FEATURES ===== */
+        .features-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 8px;
+          margin: 22px 0 28px;
+        }
+
+        .feature-item {
+          background: rgba(255,255,255,0.015);
+          border: 1px solid rgba(255,255,255,0.03);
+          border-radius: 14px;
+          padding: 14px 16px;
+          text-align: center;
+          transition: all 0.3s ease;
+        }
+
+        .feature-item .icon {
+          font-size: 22px;
+          display: block;
+          margin-bottom: 4px;
+          opacity: 0.8;
+        }
+
+        .feature-item .label {
+          font-weight: 500;
+          color: rgba(255,255,255,0.7);
+          font-size: 11px;
+          display: block;
+          letter-spacing: 0.2px;
+        }
+
+        .feature-item .desc {
+          color: rgba(255,255,255,0.2);
+          font-size: 9px;
+          margin-top: 2px;
+          letter-spacing: 0.5px;
+        }
+
+        /* ===== BUTTONS ===== */
+        .btn-wrap {
+          text-align: center;
+          margin: 26px 0 4px;
+        }
+
         .btn-primary {
           display: inline-block;
-          background: linear-gradient(135deg, #C6A43F, #9E8032);
-          color: #0A0E1A;
-          padding: 14px 40px;
+          background: linear-gradient(135deg, #C6A43F, #A8882E);
+          color: #080C18;
+          padding: 16px 52px;
           text-decoration: none;
-          border-radius: 12px;
-          font-weight: 700;
-          font-size: 16px;
-          margin: 10px 0 5px;
-          box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+          border-radius: 60px;
+          font-weight: 600;
+          font-size: 14px;
+          font-family: 'Inter', sans-serif;
+          letter-spacing: 0.5px;
+          box-shadow: 0 8px 32px rgba(198,164,63,0.15);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: none;
+          cursor: pointer;
+          width: 100%;
+          text-align: center;
         }
+
         .btn-primary:hover {
           transform: translateY(-2px);
-          box-shadow: 0 8px 25px rgba(198,164,63,0.4);
+          box-shadow: 0 12px 48px rgba(198,164,63,0.25);
         }
+
+        .btn-primary:active {
+          transform: translateY(0px);
+        }
+
         .btn-secondary {
           display: inline-block;
           background: transparent;
-          color: rgba(255,255,255,0.7);
-          padding: 12px 30px;
+          color: rgba(255,255,255,0.35);
+          padding: 12px 36px;
           text-decoration: none;
-          border-radius: 12px;
+          border-radius: 60px;
           font-weight: 500;
-          font-size: 14px;
-          border: 1px solid rgba(255,255,255,0.1);
-          margin: 5px 0;
+          font-size: 12px;
+          font-family: 'Inter', sans-serif;
+          border: 1px solid rgba(255,255,255,0.04);
+          margin-top: 10px;
+          transition: all 0.3s ease;
+          width: 100%;
+          text-align: center;
         }
+
         .btn-secondary:hover {
-          border-color: #C6A43F;
+          border-color: rgba(198,164,63,0.2);
           color: #C6A43F;
         }
-        .text-center { text-align: center; }
-        .footer {
-          background: rgba(255,255,255,0.02);
-          padding: 30px 35px;
+
+        .btn-group {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer-section {
+          background: rgba(255,255,255,0.005);
+          padding: 28px 40px 24px;
           text-align: center;
-          border-top: 1px solid rgba(255,255,255,0.05);
+          border-top: 1px solid rgba(255,255,255,0.02);
         }
-        .footer p {
-          color: rgba(255,255,255,0.3);
+
+        .footer-section .brand-name {
+          color: rgba(255,255,255,0.25);
+          font-weight: 500;
           font-size: 12px;
-          margin: 4px 0;
-          line-height: 1.6;
+          letter-spacing: 2px;
+          font-family: 'Playfair Display', serif;
         }
-        .footer .brand { color: rgba(255,255,255,0.5); font-weight: 600; }
-        @media (max-width: 480px) {
-          .features { grid-template-columns: 1fr; }
-          .content { padding: 25px 20px; }
+
+        .footer-section p {
+          color: rgba(255,255,255,0.08);
+          font-size: 9px;
+          margin: 4px 0;
+          line-height: 1.8;
+          font-weight: 300;
+          letter-spacing: 0.3px;
+        }
+
+        .footer-section .social-icons {
+          margin: 14px 0 10px;
+          display: flex;
+          justify-content: center;
+          gap: 16px;
+        }
+
+        .footer-section .social-icons span {
+          color: rgba(255,255,255,0.04);
+          font-size: 16px;
+          transition: all 0.3s;
+          cursor: default;
+        }
+
+        .footer-section .social-icons span:hover {
+          color: rgba(198,164,63,0.2);
+        }
+
+        .footer-section .disclaimer {
+          font-size: 8px;
+          color: rgba(255,255,255,0.03);
+          margin-top: 14px;
+          padding-top: 14px;
+          border-top: 1px solid rgba(255,255,255,0.02);
+          letter-spacing: 0.5px;
+        }
+
+        .footer-section .email-ref {
+          font-size: 8px;
+          color: rgba(255,255,255,0.04);
+          font-family: 'JetBrains Mono', monospace;
+          letter-spacing: 0.3px;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 520px) {
+          body { padding: 16px 12px; }
+          .email-wrapper { border-radius: 20px; }
+          .header { padding: 32px 20px 22px; }
           .header h1 { font-size: 22px; }
+          .body-content { padding: 26px 20px 20px; }
           .greeting { font-size: 20px; }
-          .account-details .row { flex-direction: column; padding: 10px 0; gap: 4px; }
-          .btn-primary, .btn-secondary { width: 100%; text-align: center; }
+          .features-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+          .feature-item { padding: 12px 10px; }
+          .feature-item .icon { font-size: 18px; }
+          .feature-item .label { font-size: 10px; }
+          .account-card { padding: 16px 18px; }
+          .account-card .row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 0; }
+          .account-card .value { text-align: left; }
+          .btn-primary { padding: 14px 28px; font-size: 13px; }
+          .btn-secondary { padding: 10px 20px; font-size: 11px; }
+          .footer-section { padding: 20px; }
+          .header .crest { font-size: 32px; }
+        }
+
+        /* ===== LIGHT MODE ===== */
+        @media (prefers-color-scheme: light) {
+          body { background: #f4f6f9; }
+          .email-wrapper {
+            background: #ffffff;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02);
+          }
+          .header {
+            background: linear-gradient(160deg, #ffffff 0%, #f8f6f0 45%, #ffffff 100%);
+            border-bottom: 1px solid rgba(198,164,63,0.08);
+          }
+          .header h1 { color: #0A0E1A; }
+          .header .tagline { color: rgba(0,0,0,0.08); }
+          .header .badge { color: rgba(198,164,63,0.4); border-color: rgba(198,164,63,0.1); }
+          .body-content { background: #ffffff; }
+          .greeting { color: #0A0E1A; }
+          .greeting-sub { color: rgba(0,0,0,0.15); }
+          .message-text { color: rgba(0,0,0,0.55); }
+          .message-text strong { color: #0A0E1A; }
+          .account-card { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
+          .account-card .value { color: #0A0E1A; }
+          .account-card .label { color: rgba(0,0,0,0.25); }
+          .account-card .card-title { color: rgba(0,0,0,0.15); }
+          .feature-item { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
+          .feature-item .label { color: rgba(0,0,0,0.6); }
+          .feature-item .desc { color: rgba(0,0,0,0.15); }
+          .btn-secondary { color: rgba(0,0,0,0.3); border-color: rgba(0,0,0,0.04); }
+          .btn-secondary:hover { border-color: #C6A43F; color: #C6A43F; }
+          .footer-section { border-color: rgba(0,0,0,0.02); }
+          .footer-section .brand-name { color: rgba(0,0,0,0.2); }
+          .footer-section p { color: rgba(0,0,0,0.06); }
+          .footer-section .social-icons span { color: rgba(0,0,0,0.04); }
+          .divider-line { background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent); }
+          .account-card::before { background: linear-gradient(135deg, rgba(198,164,63,0.03), transparent); }
         }
       </style>
     </head>
     <body>
-      <div class="container">
+      <div class="email-wrapper">
+        <!-- HEADER -->
         <div class="header">
+          <span class="crest">✦</span>
           <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="subtitle">INTERNATIONAL BANKING</div>
+          <div class="tagline">International Private Banking</div>
+          <div class="badge">✦ Established 2026 ✦</div>
         </div>
-        <div class="content">
+
+        <!-- BODY -->
+        <div class="body-content">
           <div class="greeting">
-            <span class="wave">👋</span> Hello, <span class="highlight">${full_name}</span>!
+            <span class="wave">👋</span> Welcome, <span class="highlight">${full_name}</span>
           </div>
-          <div class="message">
-            <strong>Welcome to Prime Heritage International Bank!</strong><br>
-            Your global banking journey begins now. We're thrilled to have you join our community 
-            of international banking. Your account has been successfully created.
+          <div class="greeting-sub">Your Private Banking Journey Begins</div>
+
+          <div class="message-text">
+            <strong>We are honoured to welcome you to Prime Heritage International Bank.</strong><br>
+            Your account has been established with the highest standards of <span class="highlight-text">security</span> and <span class="highlight-text">service excellence</span>. We are committed to delivering an unparalleled private banking experience.
           </div>
-          <div class="account-details">
-            <div class="title">📋 Account Summary</div>
+
+          <div class="divider-line"></div>
+
+          <!-- ACCOUNT CARD -->
+          <div class="account-card">
+            <div class="card-title"><i>▸</i> Account Summary</div>
             <div class="row">
               <span class="label">Account Holder</span>
               <span class="value">${full_name}</span>
@@ -520,51 +850,66 @@ const getWelcomeHTML = (userData) => {
             </div>
             <div class="row">
               <span class="label">Account Level</span>
-              <span class="value gold">Standard</span>
+              <span class="value golden">${account_level || 'Standard'}</span>
             </div>
             <div class="row">
               <span class="label">Status</span>
-              <span class="value" style="color: #34D399;">✓ Active</span>
+              <span class="value status">Active</span>
             </div>
           </div>
-          <div class="features">
-            <div class="feature">
+
+          <!-- FEATURES -->
+          <div class="features-grid">
+            <div class="feature-item">
               <span class="icon">🌍</span>
               <span class="label">Multi-Currency</span>
-              <span class="desc">USD, EUR, GBP, NGN</span>
+              <span class="desc">USD • EUR • GBP • NGN</span>
             </div>
-            <div class="feature">
+            <div class="feature-item">
               <span class="icon">💳</span>
               <span class="label">Global Cards</span>
-              <span class="desc">Visa & Mastercard</span>
+              <span class="desc">Visa • Mastercard • AMEX</span>
             </div>
-            <div class="feature">
+            <div class="feature-item">
               <span class="icon">🔐</span>
               <span class="label">BBC Security</span>
               <span class="desc">3-Step Verification</span>
             </div>
-            <div class="feature">
+            <div class="feature-item">
               <span class="icon">⚡</span>
               <span class="label">Instant Transfers</span>
-              <span class="desc">SWIFT & SEPA Ready</span>
+              <span class="desc">SWIFT • SEPA • ACH</span>
             </div>
           </div>
-          <div class="text-center">
-            <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/dashboard.html" class="btn-primary">🚀 Go to Dashboard</a>
-            <br>
-            <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/login.html" class="btn-secondary">🔐 Sign In</a>
+
+          <!-- BUTTONS -->
+          <div class="btn-wrap">
+            <div class="btn-group">
+              <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/dashboard.html" class="btn-primary">🚀 Access Your Dashboard</a>
+              <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/login.html" class="btn-secondary">🔐 Secure Sign In</a>
+            </div>
           </div>
         </div>
-        <div class="footer">
-          <p>© ${new Date().getFullYear()} <span class="brand">Prime Heritage International Bank</span>. All rights reserved.</p>
-          <p>This email was sent to <strong style="color: rgba(255,255,255,0.4);">${email}</strong></p>
+
+        <!-- FOOTER -->
+        <div class="footer-section">
+          <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+          <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+          <div class="social-icons">
+            <span>📱</span>
+            <span>🌐</span>
+            <span>🔒</span>
+            <span>⚡</span>
+          </div>
+          <p>© ${new Date().getFullYear()} Prime Heritage International Bank. All rights reserved.</p>
+          <div class="email-ref">✉ ${email}</div>
+          <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
         </div>
       </div>
     </body>
     </html>
   `;
 };
-
 const getReceiptHTML = (transaction, user) => {
   const receiptUrl = `${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/receipt.html?ref=${transaction.reference}`;
   const txDate = new Date(transaction.created_at || Date.now());
