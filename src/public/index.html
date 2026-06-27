@@ -892,7 +892,7 @@
                         </div>
                     </div>
                     <div class="checkbox-group" onclick="toggleCheckbox(event)">
-    <input type="checkbox" id="termsCheckbox">
+    <input type="checkbox" id="termsCheckbox" onclick="event.stopPropagation()">
     <label for="termsCheckbox">
         I agree to the
         <a href="#" onclick="event.stopPropagation()">Terms & Conditions</a>
@@ -1146,11 +1146,13 @@
                 if (next) next.focus();
             }
         }
-function toggleCheckbox(event) {
+            function toggleCheckbox(event) {
     if (event.target.tagName.toLowerCase() === 'a') return;
 
-    const checkbox = document.getElementById('termsCheckbox');
-    checkbox.checked = !checkbox.checked;
+    if (event.target.id !== 'termsCheckbox') {
+        const checkbox = document.getElementById('termsCheckbox');
+        checkbox.checked = !checkbox.checked;
+    }
 }
         
 
