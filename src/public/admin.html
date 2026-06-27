@@ -250,6 +250,27 @@
         .btn-danger { border-color: var(--error); color: var(--error); }
         .btn-danger:hover { background: var(--error); color: white; }
 
+        .copy-code-btn {
+            background: rgba(198,164,63,0.15);
+            border: none;
+            border-radius: 30px;
+            padding: 4px 14px;
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 11px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+        .copy-code-btn:hover {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+            transform: scale(1.05);
+        }
+
         /* ===== SEARCH ===== */
         .search-bar {
             display: flex;
@@ -301,7 +322,6 @@
             color: #0A0E1A;
             margin-left: 8px;
         }
-
         .badge-danger {
             background: var(--error);
             padding: 2px 8px;
@@ -311,7 +331,6 @@
             color: white;
             margin-left: 8px;
         }
-
         .status-active { color: var(--success); font-weight: 600; }
         .status-inactive { color: var(--error); font-weight: 600; }
 
@@ -419,6 +438,11 @@
         .receipt-item .amount.incoming { color: var(--success); }
         .receipt-item .amount.outgoing { color: var(--error); }
 
+        /* ===== BBC TABLE ===== */
+        .status-active-bbc { color: var(--success); font-weight: 600; }
+        .status-used { color: var(--error); font-weight: 600; }
+        .status-expired { color: var(--warning); font-weight: 600; }
+
         /* ===== LOADING ===== */
         .loading-overlay {
             display: none;
@@ -441,29 +465,6 @@
             margin-bottom: 20px;
         }
 
-        /* ===== COPY BUTTON ===== */
-        .copy-code-btn {
-            background: rgba(198,164,63,0.15);
-            border: none;
-            border-radius: 30px;
-            padding: 4px 14px;
-            color: var(--gold);
-            font-weight: 600;
-            font-size: 11px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            white-space: nowrap;
-        }
-        .copy-code-btn:hover {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: #0A0E1A;
-            transform: scale(1.05);
-        }
-
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 1024px) {
             .stats-grid { grid-template-columns: repeat(2,1fr); }
         }
@@ -530,6 +531,36 @@
                         </tr>
                     </thead>
                     <tbody id="usersBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- BBC Codes Table -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3><i class="fas fa-key"></i> BBC Code Management</h3>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-gold" onclick="loadBBCodes()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                </div>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="bbcTable">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>Code</th>
+                            <th>Step</th>
+                            <th>Status</th>
+                            <th>Expires</th>
+                        </tr>
+                    </thead>
+                    <tbody id="bbcBody">
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary);">
+                                <i class="fas fa-spinner fa-pulse"></i> Loading BBC codes...
+                            </td>
+                        </tr>
+                    </tbody>
                 </table>
             </div>
         </div>
@@ -647,9 +678,6 @@
             renderUsers(filtered);
         }
 
-        // ============================================================
-        // COPY TO CLIPBOARD
-        // ============================================================
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
                 Swal.fire({
@@ -662,7 +690,6 @@
                     color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                 });
             }).catch(() => {
-                // Fallback
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
                 document.body.appendChild(textarea);
@@ -1099,6 +1126,116 @@
         }
 
         // ============================================================
+        // LOAD BBC CODES (Active & Inactive)
+        // ============================================================
+        async function loadBBCodes() {
+            try {
+                const token = localStorage.getItem('token');
+                if (!token) return;
+
+                const res = await fetch(`${API_URL}/api/admin/bbc/all`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (!res.ok) {
+                    throw new Error('Failed to fetch BBC codes');
+                }
+
+                const data = await res.json();
+                renderBBCodes(data);
+            } catch (e) {
+                console.error('Load BBC codes error:', e);
+                // Fallback: try per user
+                try {
+                    const usersRes = await fetch(`${API_URL}/api/admin/users`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const allUsers = await usersRes.json();
+                    let allCodes = [];
+                    for (const user of allUsers) {
+                        const codesRes = await fetch(`${API_URL}/api/admin/bbc/${user.id}`, {
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                        });
+                        const codes = await codesRes.json();
+                        if (codes && codes.length) {
+                            allCodes = allCodes.concat(codes.map(c => ({ ...c, user_name: user.full_name })));
+                        }
+                    }
+                    renderBBCodes(allCodes);
+                } catch (e2) {
+                    document.getElementById('bbcBody').innerHTML = `
+                        <tr>
+                            <td colspan="5" style="text-align:center;padding:20px;color:var(--error);">
+                                <i class="fas fa-exclamation-triangle"></i> Failed to load BBC codes
+                            </td>
+                        </tr>
+                    `;
+                }
+            }
+        }
+
+        function renderBBCodes(codes) {
+            const tbody = document.getElementById('bbcBody');
+            
+            if (!codes || codes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary);">
+                            <i class="fas fa-key" style="font-size:32px;display:block;margin-bottom:12px;opacity:0.3;"></i>
+                            No BBC codes generated yet
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            // Sort: Active first, then expired/used
+            const sorted = codes.sort((a, b) => {
+                const aActive = !a.is_used && new Date(a.expires_at) > new Date();
+                const bActive = !b.is_used && new Date(b.expires_at) > new Date();
+                return aActive === bActive ? 0 : aActive ? -1 : 1;
+            });
+
+            const stepLabels = { 1: 'Authorization', 2: 'Security', 3: 'Final' };
+            const stepColors = { 1: '#C6A43F', 2: '#3B82F6', 3: '#8B5CF6' };
+
+            tbody.innerHTML = sorted.map(c => {
+                const isActive = !c.is_used && new Date(c.expires_at) > new Date();
+                const expires = new Date(c.expires_at).toLocaleString();
+                const stepLabel = stepLabels[c.step] || 'Step ' + c.step;
+                const stepColor = stepColors[c.step] || '#6B7280';
+                
+                let statusHtml = '';
+                if (isActive) {
+                    statusHtml = `<span class="status-active-bbc"><i class="fas fa-circle" style="font-size:8px;color:var(--success);margin-right:6px;"></i> Active</span>`;
+                } else if (c.is_used) {
+                    statusHtml = `<span class="status-used"><i class="fas fa-times-circle" style="margin-right:6px;"></i> Used</span>`;
+                } else {
+                    statusHtml = `<span class="status-expired"><i class="fas fa-clock" style="margin-right:6px;"></i> Expired</span>`;
+                }
+
+                return `
+                    <tr>
+                        <td><strong>${c.user_name || c.user_id || 'Unknown'}</strong></td>
+                        <td style="font-family:monospace;color:var(--gold);font-weight:600;font-size:14px;letter-spacing:0.5px;">
+                            ${c.code}
+                            <button class="btn-sm" onclick="copyToClipboard('${c.code}')" style="margin-left:8px;padding:2px 10px;font-size:9px;">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </td>
+                        <td>
+                            <span style="display:inline-block;padding:2px 12px;border-radius:30px;font-size:10px;font-weight:600;background:${stepColor}22;color:${stepColor};border:1px solid ${stepColor}44;">
+                                ${stepLabel}
+                            </span>
+                        </td>
+                        <td>${statusHtml}</td>
+                        <td style="font-size:12px;color:var(--text-secondary);">${expires}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ============================================================
         // LOAD USERS
         // ============================================================
         async function loadUsers() {
@@ -1129,6 +1266,7 @@
                 
                 renderUsers();
                 updateStats(stats);
+                loadBBCodes();
             } catch(e) {
                 console.error(e);
                 Swal.fire('Error', 'Failed to load data', 'error');
