@@ -511,7 +511,7 @@ const generateBBCode = (step, type = 'transaction') => {
     3: 'TRANSACTION_AUTHORIZED'
   };
   
-  // ✅ FIXED: Generate 6-digit numeric code only
+  // ✅ Generate 6-digit numeric code only
   const numericCode = Math.floor(100000 + Math.random() * 900000).toString();
   const code = prefixes[step] + '-' + numericCode;
   
@@ -1617,6 +1617,7 @@ const getTestHTML = () => {
 </html>
   `;
 };
+
 // ==================== EMAIL FUNCTIONS ====================
 
 const sendWelcomeEmail = async (userData) => {
@@ -1655,7 +1656,7 @@ const sendTestEmail = async () => {
   try {
     const html = getTestHTML();
     const result = await sendEmailViaNetlify(
-      'devvgift@gmail.com',
+      'devgift@gmail.com',  // ✅ FIXED: Correct email address
       '🚀 Prime Heritage Bank - Server Started!',
       html
     );
