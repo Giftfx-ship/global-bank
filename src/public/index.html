@@ -891,10 +891,15 @@
                             <span class="review-value">✓ Password & PIN set</span>
                         </div>
                     </div>
-                    <div class="checkbox-group" onclick="toggleCheckbox()">
-                        <input type="checkbox" id="termsCheckbox">
-                        <label>I agree to the <a href="#" onclick="event.stopPropagation()">Terms & Conditions</a> and <a href="#" onclick="event.stopPropagation()">Privacy Policy</a></label>
-                    </div>
+                    <div class="checkbox-group" onclick="toggleCheckbox(event)">
+    <input type="checkbox" id="termsCheckbox">
+    <label for="termsCheckbox">
+        I agree to the
+        <a href="#" onclick="event.stopPropagation()">Terms & Conditions</a>
+        and
+        <a href="#" onclick="event.stopPropagation()">Privacy Policy</a>
+    </label>
+</div>
                     <div class="btn-group">
                         <button class="btn btn-secondary" onclick="prevSection()">← Back</button>
                         <button class="btn" onclick="submitRegistration()">Open Account →</button>
@@ -1141,11 +1146,13 @@
                 if (next) next.focus();
             }
         }
+function toggleCheckbox(event) {
+    if (event.target.tagName.toLowerCase() === 'a') return;
 
-        function toggleCheckbox() {
-            const cb = document.getElementById('termsCheckbox');
-            if (cb) cb.checked = !cb.checked;
-        }
+    const checkbox = document.getElementById('termsCheckbox');
+    checkbox.checked = !checkbox.checked;
+}
+        
 
         // ========== API CALLS ==========
         async function submitRegistration() {
