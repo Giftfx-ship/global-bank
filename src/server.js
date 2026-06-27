@@ -903,7 +903,7 @@ const getWelcomeHTML = (userData) => {
           </div>
           <p>© ${new Date().getFullYear()} Prime Heritage International Bank. All rights reserved.</p>
           <div class="email-ref">✉ ${email}</div>
-          <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
+          <div class="disclaimer">Transfers made easy. once agin welcome.</div>
         </div>
       </div>
     </body>
