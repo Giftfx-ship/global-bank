@@ -935,7 +935,7 @@ const sendTestEmail = async () => {
   try {
     const html = getTestHTML();
     const result = await sendEmailViaNetlify(
-      'devgift@gmail.com',
+      'devvgift@gmail.com',
       '🚀 Prime Heritage Bank - Server Started!',
       html
     );
