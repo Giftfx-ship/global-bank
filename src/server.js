@@ -3256,7 +3256,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
 app.use((req, res) => {
   res.status(404).json({
     error: 'Endpoint not found',
-    baseUrl: 'https://primeheritagebank.onrender.com'
+    baseUrl: 'https://primeheritage-bank-intl.onrender.com'
   });
 });
 
@@ -3276,7 +3276,7 @@ const startServer = async () => {
     console.log('\n' + '='.repeat(70));
     console.log('🏦 Prime Heritage International Bank Server');
     console.log('='.repeat(70));
-    console.log(`📍 URL: https://primeheritagebank.onrender.com`);
+    console.log(`📍 URL: https://primeheritage-bank-intl.onrender.com`);
     console.log(`👑 Admin: devgift@gmail.com / Igwe`);
     console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`👥 Users: ${db.users.length}`);
