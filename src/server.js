@@ -191,8 +191,10 @@ const loanSchema = new mongoose.Schema({
   user_id: { type: String, required: true },
   amount: { type: Number, required: true },
   currency: { type: String, default: 'USD' },
-  term_months: { type: Number, default: 36 },
-  interest_rate: { type: Number, default: 5.5 },
+  purpose: { type: String, default: 'Personal' },
+  tenure_months: { type: Number, default: 36 },
+  interest_rate: { type: Number, default: 12 },
+  monthly_payment: { type: Number, default: 0 },
   status: { type: String, default: 'pending' },
   created_at: { type: Date, default: Date.now }
 });
@@ -388,8 +390,29 @@ const db = {
     find: async (filter) => {
       try { return await Loan.find(filter || {}); } catch(e) { return memoryDB.loans; }
     },
+    findOne: async (filter) => {
+      try { return await Loan.findOne(filter); } catch(e) { return memoryDB.loans.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
     create: async (data) => {
       try { return await Loan.create(data); } catch(e) { memoryDB.loans.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await Loan.updateOne(filter, update); } catch(e) {
+        const loan = memoryDB.loans.find(l => {
+          for (const key in filter) { if (l[key] !== filter[key]) return false; } return true;
+        });
+        if (loan) { Object.assign(loan, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await Loan.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.loans.findIndex(l => {
+          for (const key in filter) { if (l[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.loans.splice(idx, 1);
+      }
     }
   },
   supportTickets: {
@@ -447,7 +470,7 @@ const generateCardNumber = () => {
   return num;
 };
 
-// ==================== BBC CODE GENERATION ====================
+// ==================== BBC CODE GENERATION (6 DIGITS ONLY) ====================
 const generateBBCode = (step, type = 'transaction') => {
   const prefixes = { 1: 'ALPHA', 2: 'BETA', 3: 'GAMMA' };
   const displayMessages = {
@@ -487,9 +510,11 @@ const generateBBCode = (step, type = 'transaction') => {
     2: 'ACCOUNT_VALIDATED',
     3: 'TRANSACTION_AUTHORIZED'
   };
-  const code = prefixes[step] + '-' + 
-               Math.random().toString(36).substring(2, 6).toUpperCase() + '-' + 
-               Math.random().toString(36).substring(2, 6).toUpperCase();
+  
+  // ✅ FIXED: Generate 6-digit numeric code only
+  const numericCode = Math.floor(100000 + Math.random() * 900000).toString();
+  const code = prefixes[step] + '-' + numericCode;
+  
   return {
     code,
     step,
@@ -985,7 +1010,7 @@ const sendTestEmail = async () => {
   try {
     const html = getTestHTML();
     const result = await sendEmailViaNetlify(
-      'devvgift@gmail.com',
+      'devgift@gmail.com',
       '🚀 Prime Heritage Bank - Server Started!',
       html
     );
@@ -1631,20 +1656,25 @@ app.get('/api/loans', authMiddleware, async (req, res) => {
 
 app.post('/api/loans', authMiddleware, async (req, res) => {
   try {
-    const { amount, currency, term_months, purpose } = req.body;
+    const { amount, currency, purpose, tenure_months } = req.body;
     
     if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Valid amount is required' });
+      return res.status(400).json({ error: 'Valid loan amount is required' });
     }
+    
+    const interestRate = 12;
+    const totalInterest = amount * (interestRate / 100);
+    const monthlyPayment = (amount + totalInterest) / (tenure_months || 36);
     
     const loan = {
       id: uuidv4(),
       user_id: req.user.id,
-      amount,
+      amount: amount,
       currency: currency || 'USD',
-      term_months: term_months || 36,
-      interest_rate: 5.5,
       purpose: purpose || 'Personal',
+      tenure_months: tenure_months || 36,
+      interest_rate: interestRate,
+      monthly_payment: parseFloat(monthlyPayment.toFixed(2)),
       status: 'pending',
       created_at: new Date().toISOString()
     };
@@ -1652,6 +1682,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
     await db.loans.create(loan);
     res.json({ success: true, loan });
   } catch (error) {
+    log.error('Loan application error:', error);
     res.status(500).json({ error: 'Failed to apply for loan' });
   }
 });
