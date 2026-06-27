@@ -594,7 +594,7 @@
                     document.getElementById('c1_1').focus();
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 1 Complete',
+                        title: 'Authorization Required',
                         text: 'Enter your BBC Authorization Code to continue',
                         confirmButtonColor: '#C6A43F'
                     });
@@ -635,7 +635,7 @@
                     document.getElementById('c2_1').focus();
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 2 Complete',
+                        title: 'Security Check',
                         text: 'Enter your BBC Security Code to continue',
                         confirmButtonColor: '#C6A43F'
                     });
@@ -676,7 +676,7 @@
                     document.getElementById('c3_1').focus();
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 3 Complete',
+                        title: 'Final Verification',
                         text: 'Enter your BBC Final Code to complete the withdrawal',
                         confirmButtonColor: '#C6A43F'
                     });
@@ -721,7 +721,6 @@
                                 <p><strong>Amount:</strong> $${parseFloat(document.getElementById('amount').value).toFixed(2)}</p>
                                 <p><strong>Bank:</strong> ${document.getElementById('bankName').value}</p>
                                 <p><strong>Reference:</strong> ${currentRef}</p>
-                                <p><strong>New Balance:</strong> $${data.newBalance?.toFixed(2) || '0.00'}</p>
                                 <p style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
                                     ⏱️ Processing Time: 1-3 business days
                                 </p>
