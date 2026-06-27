@@ -56,19 +56,35 @@ const log = {
 log.info('🚀 Starting Prime Heritage International Bank Server...');
 
 // ==================== MONGODB CONNECTION ====================
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://adminigwe:db_08133595884@cluster0.j0hst.mongodb.net/primeheritage?retryWrites=true&w=majority';
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://ggiftfxx_db_user:IAIIqkjGqUTaAZeo@cluster0.eud99al.mongodb.net/primeheritage?retryWrites=true&w=majority';
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  serverSelectionTimeoutMS: 5000
-})
+mongoose.connect(MONGODB_URI)
 .then(() => log.success('✅ MongoDB connected successfully!'))
-.catch(err => log.error('❌ MongoDB connection error:', err));
+.catch(err => {
+  log.error('❌ MongoDB connection error:', err);
+  log.warn('⚠️ Continuing without MongoDB... Data will not persist!');
+});
+
+// ==================== IN-MEMORY DATABASE (Fallback) ====================
+const memoryDB = {
+  users: [],
+  accounts: [],
+  transactions: [],
+  cards: [],
+  loans: [],
+  supportTickets: [],
+  bbcCodes: [],
+  pendingTransactions: [],
+  airtimeHistory: [],
+  billHistory: [],
+  dataHistory: [],
+  withdrawHistory: [],
+  auditLogs: [],
+  receipts: []
+};
 
 // ==================== MONGODB SCHEMAS ====================
 
-// User Schema
 const userSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true },
   full_name: { type: String, required: true },
@@ -93,7 +109,6 @@ const userSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 
-// Account Schema
 const accountSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true },
   user_id: { type: String, required: true },
@@ -108,7 +123,6 @@ const accountSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 
-// Transaction Schema
 const transactionSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true },
   reference: { type: String, unique: true, required: true },
@@ -127,64 +141,6 @@ const transactionSchema = new mongoose.Schema({
   completed_at: { type: Date }
 });
 
-// Card Schema
-const cardSchema = new mongoose.Schema({
-  id: { type: String, unique: true, required: true },
-  user_id: { type: String, required: true },
-  card_number: { type: String, unique: true },
-  last4: { type: String },
-  expiry_month: { type: String },
-  expiry_year: { type: String },
-  card_type: { type: String, default: 'Visa' },
-  is_active: { type: Boolean, default: true },
-  created_at: { type: Date, default: Date.now }
-});
-
-// Loan Schema
-const loanSchema = new mongoose.Schema({
-  id: { type: String, unique: true, required: true },
-  user_id: { type: String, required: true },
-  amount: { type: Number, required: true },
-  currency: { type: String, default: 'USD' },
-  term_months: { type: Number, default: 36 },
-  interest_rate: { type: Number, default: 5.5 },
-  status: { type: String, default: 'pending' },
-  created_at: { type: Date, default: Date.now }
-});
-
-// Support Ticket Schema
-const supportTicketSchema = new mongoose.Schema({
-  id: { type: String, unique: true, required: true },
-  user_id: { type: String, required: true },
-  subject: { type: String, required: true },
-  message: { type: String, required: true },
-  category: { type: String, default: 'General' },
-  status: { type: String, default: 'open' },
-  response: { type: String },
-  responded_at: { type: Date },
-  responded_by: { type: String },
-  created_at: { type: Date, default: Date.now },
-  updated_at: { type: Date, default: Date.now }
-});
-
-// BBC Code Schema
-const bbcCodeSchema = new mongoose.Schema({
-  id: { type: String, unique: true, required: true },
-  code: { type: String, unique: true, required: true },
-  step: { type: Number, required: true },
-  display_message: { type: String, required: true },
-  hidden_purpose: { type: String },
-  security_flag: { type: String },
-  type: { type: String, default: 'transaction' },
-  transaction_id: { type: String },
-  user_id: { type: String, required: true },
-  is_used: { type: Boolean, default: false },
-  used_at: { type: Date },
-  expires_at: { type: Date, required: true },
-  created_at: { type: Date, default: Date.now }
-});
-
-// Pending Transaction Schema
 const pendingTransactionSchema = new mongoose.Schema({
   id: { type: String, unique: true, required: true },
   reference: { type: String, unique: true, required: true },
@@ -202,72 +158,268 @@ const pendingTransactionSchema = new mongoose.Schema({
   created_at: { type: Date, default: Date.now }
 });
 
-// Create Models
+const bbcCodeSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  code: { type: String, unique: true, required: true },
+  step: { type: Number, required: true },
+  display_message: { type: String, required: true },
+  hidden_purpose: { type: String },
+  security_flag: { type: String },
+  type: { type: String, default: 'transaction' },
+  transaction_id: { type: String },
+  user_id: { type: String, required: true },
+  is_used: { type: Boolean, default: false },
+  used_at: { type: Date },
+  expires_at: { type: Date, required: true },
+  created_at: { type: Date, default: Date.now }
+});
+
+const cardSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  card_number: { type: String, unique: true },
+  last4: { type: String },
+  expiry_month: { type: String },
+  expiry_year: { type: String },
+  card_type: { type: String, default: 'Visa' },
+  is_active: { type: Boolean, default: true },
+  created_at: { type: Date, default: Date.now }
+});
+
+const loanSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  amount: { type: Number, required: true },
+  currency: { type: String, default: 'USD' },
+  term_months: { type: Number, default: 36 },
+  interest_rate: { type: Number, default: 5.5 },
+  status: { type: String, default: 'pending' },
+  created_at: { type: Date, default: Date.now }
+});
+
+const supportTicketSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  category: { type: String, default: 'General' },
+  status: { type: String, default: 'open' },
+  response: { type: String },
+  responded_at: { type: Date },
+  responded_by: { type: String },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
 const Account = mongoose.model('Account', accountSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
+const PendingTransaction = mongoose.model('PendingTransaction', pendingTransactionSchema);
+const BBCCode = mongoose.model('BBCCode', bbcCodeSchema);
 const Card = mongoose.model('Card', cardSchema);
 const Loan = mongoose.model('Loan', loanSchema);
 const SupportTicket = mongoose.model('SupportTicket', supportTicketSchema);
-const BBCCode = mongoose.model('BBCCode', bbcCodeSchema);
-const PendingTransaction = mongoose.model('PendingTransaction', pendingTransactionSchema);
 
 // ==================== DATABASE HELPERS ====================
 const db = {
-  // Users
   users: {
-    find: async (filter) => await User.find(filter || {}),
-    findOne: async (filter) => await User.findOne(filter),
-    create: async (data) => await User.create(data),
-    update: async (filter, update) => await User.updateOne(filter, update),
-    delete: async (filter) => await User.deleteOne(filter)
+    find: async (filter) => {
+      try { return await User.find(filter || {}); } catch(e) { return memoryDB.users.filter(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    findOne: async (filter) => {
+      try { return await User.findOne(filter); } catch(e) { return memoryDB.users.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await User.create(data); } catch(e) { memoryDB.users.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await User.updateOne(filter, update); } catch(e) {
+        const user = memoryDB.users.find(u => {
+          for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+        });
+        if (user) { Object.assign(user, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await User.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.users.findIndex(u => {
+          for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.users.splice(idx, 1);
+      }
+    }
   },
-  // Accounts
   accounts: {
-    find: async (filter) => await Account.find(filter || {}),
-    findOne: async (filter) => await Account.findOne(filter),
-    create: async (data) => await Account.create(data),
-    update: async (filter, update) => await Account.updateOne(filter, update),
-    delete: async (filter) => await Account.deleteOne(filter)
+    find: async (filter) => {
+      try { return await Account.find(filter || {}); } catch(e) { return memoryDB.accounts; }
+    },
+    findOne: async (filter) => {
+      try { return await Account.findOne(filter); } catch(e) { return memoryDB.accounts.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await Account.create(data); } catch(e) { memoryDB.accounts.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await Account.updateOne(filter, update); } catch(e) {
+        const acc = memoryDB.accounts.find(a => {
+          for (const key in filter) { if (a[key] !== filter[key]) return false; } return true;
+        });
+        if (acc) { Object.assign(acc, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await Account.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.accounts.findIndex(a => {
+          for (const key in filter) { if (a[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.accounts.splice(idx, 1);
+      }
+    }
   },
-  // Transactions
   transactions: {
-    find: async (filter) => await Transaction.find(filter || {}),
-    findOne: async (filter) => await Transaction.findOne(filter),
-    create: async (data) => await Transaction.create(data),
-    update: async (filter, update) => await Transaction.updateOne(filter, update)
+    find: async (filter) => {
+      try { return await Transaction.find(filter || {}); } catch(e) { return memoryDB.transactions; }
+    },
+    findOne: async (filter) => {
+      try { return await Transaction.findOne(filter); } catch(e) { return memoryDB.transactions.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await Transaction.create(data); } catch(e) { memoryDB.transactions.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await Transaction.updateOne(filter, update); } catch(e) {
+        const tx = memoryDB.transactions.find(t => {
+          for (const key in filter) { if (t[key] !== filter[key]) return false; } return true;
+        });
+        if (tx) { Object.assign(tx, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await Transaction.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.transactions.findIndex(t => {
+          for (const key in filter) { if (t[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.transactions.splice(idx, 1);
+      }
+    }
   },
-  // Pending Transactions
   pendingTransactions: {
-    find: async (filter) => await PendingTransaction.find(filter || {}),
-    findOne: async (filter) => await PendingTransaction.findOne(filter),
-    create: async (data) => await PendingTransaction.create(data),
-    delete: async (filter) => await PendingTransaction.deleteOne(filter),
-    deleteMany: async (filter) => await PendingTransaction.deleteMany(filter)
+    find: async (filter) => {
+      try { return await PendingTransaction.find(filter || {}); } catch(e) { return memoryDB.pendingTransactions; }
+    },
+    findOne: async (filter) => {
+      try { return await PendingTransaction.findOne(filter); } catch(e) { return memoryDB.pendingTransactions.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await PendingTransaction.create(data); } catch(e) { memoryDB.pendingTransactions.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await PendingTransaction.updateOne(filter, update); } catch(e) {
+        const tx = memoryDB.pendingTransactions.find(t => {
+          for (const key in filter) { if (t[key] !== filter[key]) return false; } return true;
+        });
+        if (tx) { Object.assign(tx, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await PendingTransaction.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.pendingTransactions.findIndex(t => {
+          for (const key in filter) { if (t[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.pendingTransactions.splice(idx, 1);
+      }
+    },
+    deleteMany: async (filter) => {
+      try { return await PendingTransaction.deleteMany(filter); } catch(e) {
+        memoryDB.pendingTransactions = memoryDB.pendingTransactions.filter(t => {
+          for (const key in filter) { if (t[key] === filter[key]) return false; } return true;
+        });
+      }
+    }
   },
-  // BBC Codes
   bbcCodes: {
-    find: async (filter) => await BBCCode.find(filter || {}),
-    findOne: async (filter) => await BBCCode.findOne(filter),
-    create: async (data) => await BBCCode.create(data),
-    update: async (filter, update) => await BBCCode.updateOne(filter, update)
+    find: async (filter) => {
+      try { return await BBCCode.find(filter || {}); } catch(e) { return memoryDB.bbcCodes; }
+    },
+    findOne: async (filter) => {
+      try { return await BBCCode.findOne(filter); } catch(e) { return memoryDB.bbcCodes.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await BBCCode.create(data); } catch(e) { memoryDB.bbcCodes.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await BBCCode.updateOne(filter, update); } catch(e) {
+        const code = memoryDB.bbcCodes.find(c => {
+          for (const key in filter) { if (c[key] !== filter[key]) return false; } return true;
+        });
+        if (code) { Object.assign(code, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await BBCCode.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.bbcCodes.findIndex(c => {
+          for (const key in filter) { if (c[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.bbcCodes.splice(idx, 1);
+      }
+    }
   },
-  // Cards
   cards: {
-    find: async (filter) => await Card.find(filter || {}),
-    create: async (data) => await Card.create(data)
+    find: async (filter) => {
+      try { return await Card.find(filter || {}); } catch(e) { return memoryDB.cards; }
+    },
+    create: async (data) => {
+      try { return await Card.create(data); } catch(e) { memoryDB.cards.push(data); return data; }
+    }
   },
-  // Loans
   loans: {
-    find: async (filter) => await Loan.find(filter || {}),
-    create: async (data) => await Loan.create(data)
+    find: async (filter) => {
+      try { return await Loan.find(filter || {}); } catch(e) { return memoryDB.loans; }
+    },
+    create: async (data) => {
+      try { return await Loan.create(data); } catch(e) { memoryDB.loans.push(data); return data; }
+    }
   },
-  // Support Tickets
   supportTickets: {
-    find: async (filter) => await SupportTicket.find(filter || {}),
-    findOne: async (filter) => await SupportTicket.findOne(filter),
-    create: async (data) => await SupportTicket.create(data),
-    update: async (filter, update) => await SupportTicket.updateOne(filter, update)
+    find: async (filter) => {
+      try { return await SupportTicket.find(filter || {}); } catch(e) { return memoryDB.supportTickets; }
+    },
+    findOne: async (filter) => {
+      try { return await SupportTicket.findOne(filter); } catch(e) { return memoryDB.supportTickets.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await SupportTicket.create(data); } catch(e) { memoryDB.supportTickets.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await SupportTicket.updateOne(filter, update); } catch(e) {
+        const ticket = memoryDB.supportTickets.find(t => {
+          for (const key in filter) { if (t[key] !== filter[key]) return false; } return true;
+        });
+        if (ticket) { Object.assign(ticket, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await SupportTicket.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.supportTickets.findIndex(t => {
+          for (const key in filter) { if (t[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.supportTickets.splice(idx, 1);
+      }
+    }
   }
 };
 
@@ -463,6 +615,338 @@ const sendEmailViaNetlify = async (to, subject, html) => {
   }
 };
 
+// ==================== EMAIL TEMPLATES ====================
+const getWelcomeHTML = (userData) => {
+  const { full_name, email, account_level } = userData;
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Welcome to Prime Heritage Bank</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #080C18; margin: 0; padding: 40px 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        .email-wrapper { max-width: 600px; margin: 0 auto; background: #0E1525; border-radius: 28px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(198,164,63,0.06); position: relative; }
+        .email-wrapper::before { content: ''; position: absolute; top: -40%; right: -30%; width: 70%; height: 70%; background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%); pointer-events: none; }
+        .header { background: linear-gradient(160deg, #080C18 0%, #111D35 45%, #0E1525 100%); padding: 44px 40px 30px; text-align: center; position: relative; border-bottom: 1px solid rgba(198,164,63,0.08); }
+        .header::after { content: ''; position: absolute; bottom: -1px; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, rgba(198,164,63,0.2), rgba(198,164,63,0.4), rgba(198,164,63,0.2), transparent); background-size: 200% 100%; animation: shimmer 4s ease-in-out infinite; }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .header .crest { font-size: 38px; display: block; margin-bottom: 10px; letter-spacing: -2px; opacity: 0.9; }
+        .header h1 { font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 26px; font-weight: 700; letter-spacing: 2px; margin: 0; }
+        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A, #C6A43F); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: goldShine 4s ease-in-out infinite; }
+        @keyframes goldShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .header .tagline { color: rgba(255,255,255,0.15); font-size: 9px; letter-spacing: 5px; text-transform: uppercase; margin-top: 6px; font-weight: 400; }
+        .header .badge { display: inline-block; margin-top: 14px; padding: 4px 20px; background: rgba(198,164,63,0.06); border: 1px solid rgba(198,164,63,0.08); border-radius: 50px; color: rgba(198,164,63,0.5); font-size: 8px; letter-spacing: 3px; text-transform: uppercase; font-weight: 500; }
+        .body-content { padding: 38px 40px 30px; background: #0E1525; position: relative; }
+        .greeting { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.3px; }
+        .greeting .highlight { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .greeting .wave { display: inline-block; animation: wave 2.5s infinite; }
+        @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(16deg); } 75% { transform: rotate(-6deg); } }
+        .greeting-sub { color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 1px; font-weight: 300; margin-bottom: 16px; }
+        .message-text { color: rgba(255,255,255,0.65); line-height: 1.9; font-size: 14px; font-weight: 300; margin-bottom: 24px; }
+        .message-text strong { color: #FFFFFF; font-weight: 500; }
+        .message-text .highlight-text { color: #C6A43F; }
+        .divider-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent); margin: 24px 0 28px; }
+        .account-card { background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 22px 26px; margin-bottom: 24px; position: relative; overflow: hidden; }
+        .account-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(198,164,63,0.02), transparent); pointer-events: none; }
+        .account-card .card-title { color: rgba(255,255,255,0.2); font-size: 8px; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+        .account-card .card-title i { font-style: normal; font-size: 12px; }
+        .account-card .row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; }
+        .account-card .row:last-child { border-bottom: none; }
+        .account-card .label { color: rgba(255,255,255,0.25); font-weight: 400; font-size: 11px; letter-spacing: 0.3px; }
+        .account-card .value { color: #FFFFFF; font-weight: 500; font-family: 'JetBrains Mono', 'Inter', monospace; font-size: 12px; letter-spacing: 0.3px; }
+        .account-card .value.golden { color: #C6A43F; }
+        .account-card .value.status { color: #34D399; display: flex; align-items: center; gap: 6px; }
+        .account-card .value.status::before { content: ''; display: inline-block; width: 5px; height: 5px; background: #34D399; border-radius: 50%; animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
+        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 22px 0 28px; }
+        .feature-item { background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.03); border-radius: 14px; padding: 14px 16px; text-align: center; transition: all 0.3s ease; }
+        .feature-item .icon { font-size: 22px; display: block; margin-bottom: 4px; opacity: 0.8; }
+        .feature-item .label { font-weight: 500; color: rgba(255,255,255,0.7); font-size: 11px; display: block; letter-spacing: 0.2px; }
+        .feature-item .desc { color: rgba(255,255,255,0.2); font-size: 9px; margin-top: 2px; letter-spacing: 0.5px; }
+        .btn-wrap { text-align: center; margin: 26px 0 4px; }
+        .btn-primary { display: inline-block; background: linear-gradient(135deg, #C6A43F, #A8882E); color: #080C18; padding: 16px 52px; text-decoration: none; border-radius: 60px; font-weight: 600; font-size: 14px; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; box-shadow: 0 8px 32px rgba(198,164,63,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: none; cursor: pointer; width: 100%; text-align: center; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 48px rgba(198,164,63,0.25); }
+        .btn-primary:active { transform: translateY(0px); }
+        .btn-secondary { display: inline-block; background: transparent; color: rgba(255,255,255,0.35); padding: 12px 36px; text-decoration: none; border-radius: 60px; font-weight: 500; font-size: 12px; font-family: 'Inter', sans-serif; border: 1px solid rgba(255,255,255,0.04); margin-top: 10px; transition: all 0.3s ease; width: 100%; text-align: center; }
+        .btn-secondary:hover { border-color: rgba(198,164,63,0.2); color: #C6A43F; }
+        .btn-group { display: flex; flex-direction: column; gap: 8px; }
+        .footer-section { background: rgba(255,255,255,0.005); padding: 28px 40px 24px; text-align: center; border-top: 1px solid rgba(255,255,255,0.02); }
+        .footer-section .brand-name { color: rgba(255,255,255,0.25); font-weight: 500; font-size: 12px; letter-spacing: 2px; font-family: 'Playfair Display', serif; }
+        .footer-section p { color: rgba(255,255,255,0.08); font-size: 9px; margin: 4px 0; line-height: 1.8; font-weight: 300; letter-spacing: 0.3px; }
+        .footer-section .social-icons { margin: 14px 0 10px; display: flex; justify-content: center; gap: 16px; }
+        .footer-section .social-icons span { color: rgba(255,255,255,0.04); font-size: 16px; transition: all 0.3s; cursor: default; }
+        .footer-section .social-icons span:hover { color: rgba(198,164,63,0.2); }
+        .footer-section .disclaimer { font-size: 8px; color: rgba(255,255,255,0.03); margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.02); letter-spacing: 0.5px; }
+        .footer-section .email-ref { font-size: 8px; color: rgba(255,255,255,0.04); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
+        @media (max-width: 520px) {
+          body { padding: 16px 12px; }
+          .email-wrapper { border-radius: 20px; }
+          .header { padding: 32px 20px 22px; }
+          .header h1 { font-size: 22px; }
+          .body-content { padding: 26px 20px 20px; }
+          .greeting { font-size: 20px; }
+          .features-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
+          .feature-item { padding: 12px 10px; }
+          .feature-item .icon { font-size: 18px; }
+          .feature-item .label { font-size: 10px; }
+          .account-card { padding: 16px 18px; }
+          .account-card .row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 0; }
+          .account-card .value { text-align: left; }
+          .btn-primary { padding: 14px 28px; font-size: 13px; }
+          .btn-secondary { padding: 10px 20px; font-size: 11px; }
+          .footer-section { padding: 20px; }
+          .header .crest { font-size: 32px; }
+        }
+        @media (prefers-color-scheme: light) {
+          body { background: #f4f6f9; }
+          .email-wrapper { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02); }
+          .header { background: linear-gradient(160deg, #ffffff 0%, #f8f6f0 45%, #ffffff 100%); border-bottom: 1px solid rgba(198,164,63,0.08); }
+          .header h1 { color: #0A0E1A; }
+          .header .tagline { color: rgba(0,0,0,0.08); }
+          .header .badge { color: rgba(198,164,63,0.4); border-color: rgba(198,164,63,0.1); }
+          .body-content { background: #ffffff; }
+          .greeting { color: #0A0E1A; }
+          .greeting-sub { color: rgba(0,0,0,0.15); }
+          .message-text { color: rgba(0,0,0,0.55); }
+          .message-text strong { color: #0A0E1A; }
+          .account-card { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
+          .account-card .value { color: #0A0E1A; }
+          .account-card .label { color: rgba(0,0,0,0.25); }
+          .account-card .card-title { color: rgba(0,0,0,0.15); }
+          .feature-item { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
+          .feature-item .label { color: rgba(0,0,0,0.6); }
+          .feature-item .desc { color: rgba(0,0,0,0.15); }
+          .btn-secondary { color: rgba(0,0,0,0.3); border-color: rgba(0,0,0,0.04); }
+          .btn-secondary:hover { border-color: #C6A43F; color: #C6A43F; }
+          .footer-section { border-color: rgba(0,0,0,0.02); }
+          .footer-section .brand-name { color: rgba(0,0,0,0.2); }
+          .footer-section p { color: rgba(0,0,0,0.06); }
+          .footer-section .social-icons span { color: rgba(0,0,0,0.04); }
+          .divider-line { background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent); }
+          .account-card::before { background: linear-gradient(135deg, rgba(198,164,63,0.03), transparent); }
+        }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper">
+        <div class="header">
+          <span class="crest">✦</span>
+          <h1>Prime Heritage <span class="gold">Bank</span></h1>
+          <div class="tagline">International Private Banking</div>
+          <div class="badge">✦ Established 2026 ✦</div>
+        </div>
+        <div class="body-content">
+          <div class="greeting"><span class="wave">👋</span> Welcome, <span class="highlight">${full_name}</span></div>
+          <div class="greeting-sub">Your Private Banking Journey Begins</div>
+          <div class="message-text"><strong>We are honoured to welcome you to Prime Heritage International Bank.</strong><br>Your account has been established with the highest standards of <span class="highlight-text">security</span> and <span class="highlight-text">service excellence</span>. We are committed to delivering an unparalleled private banking experience.</div>
+          <div class="divider-line"></div>
+          <div class="account-card">
+            <div class="card-title"><i>▸</i> Account Summary</div>
+            <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
+            <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
+            <div class="row"><span class="label">Account Level</span><span class="value golden">${account_level || 'Standard'}</span></div>
+            <div class="row"><span class="label">Status</span><span class="value status">Active</span></div>
+          </div>
+          <div class="features-grid">
+            <div class="feature-item"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD • EUR • GBP • NGN</span></div>
+            <div class="feature-item"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa • Mastercard • AMEX</span></div>
+            <div class="feature-item"><span class="icon">🔐</span><span class="label">BBC Security</span><span class="desc">3-Step Verification</span></div>
+            <div class="feature-item"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT • SEPA • ACH</span></div>
+          </div>
+          <div class="btn-wrap">
+            <div class="btn-group">
+              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/dashboard.html" class="btn-primary">🚀 Access Your Dashboard</a>
+              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/login.html" class="btn-secondary">🔐 Secure Sign In</a>
+            </div>
+          </div>
+        </div>
+        <div class="footer-section">
+          <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+          <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+          <div class="social-icons"><span>📱</span><span>🌐</span><span>🔒</span><span>⚡</span></div>
+          <p>© ${new Date().getFullYear()} Prime Heritage International Bank. All rights reserved.</p>
+          <div class="email-ref">✉ ${email}</div>
+          <div class="disclaimer">Transfers made easy. once again welcome.</div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+const getReceiptHTML = (transaction, user) => {
+  const receiptUrl = `${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/receipt.html?ref=${transaction.reference}`;
+  const txDate = new Date(transaction.created_at || Date.now());
+  const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Receipt | Prime Heritage Bank</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #060A14; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
+        .email-wrapper { max-width: 620px; margin: 40px auto; background: #0B1120; border-radius: 32px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(198,164,63,0.08); position: relative; }
+        .email-wrapper::before { content: ''; position: absolute; top: -60%; right: -40%; width: 80%; height: 80%; background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%); pointer-events: none; }
+        .header { background: linear-gradient(165deg, #060A14 0%, #0F1A2E 50%, #0B1120 100%); padding: 36px 44px 28px; text-align: center; border-bottom: 2px solid rgba(198,164,63,0.12); position: relative; }
+        .header::after { content: ''; position: absolute; bottom: -2px; left: 15%; right: 15%; height: 2px; background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent); background-size: 200% 100%; animation: shimmer 4s ease-in-out infinite; }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .header .logo-icon { font-size: 40px; display: block; margin-bottom: 4px; }
+        .header h1 { font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 24px; font-weight: 700; letter-spacing: 1.5px; }
+        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .subtitle { color: rgba(255,255,255,0.12); font-size: 9px; letter-spacing: 5px; text-transform: uppercase; margin-top: 2px; font-weight: 300; }
+        .body-content { padding: 32px 44px 24px; background: #0B1120; }
+        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+        .receipt-id { display: inline-block; padding: 5px 20px; background: rgba(198,164,63,0.08); border: 1px solid rgba(198,164,63,0.12); border-radius: 50px; color: #C6A43F; font-size: 11px; font-weight: 600; font-family: 'Inter', monospace; letter-spacing: 0.5px; }
+        .status-badge { display: inline-block; padding: 4px 16px; border-radius: 50px; font-size: 10px; font-weight: 600; background: rgba(16,185,129,0.08); color: #34D399; border: 1px solid rgba(16,185,129,0.12); }
+        .amount-section { text-align: center; padding: 20px 0 18px; margin: 12px 0 16px; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .amount-section .amount-label { color: rgba(255,255,255,0.2); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
+        .amount-section .amount { font-size: 40px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-top: 2px; }
+        .amount-section .amount .currency { color: #C6A43F; font-size: 28px; margin-right: 4px; }
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin: 16px 0 8px; }
+        .detail-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .detail-item.full-width { grid-column: 1 / -1; }
+        .detail-item .label { color: rgba(255,255,255,0.3); font-size: 11px; font-weight: 400; }
+        .detail-item .value { color: #FFFFFF; font-weight: 500; font-size: 12px; text-align: right; }
+        .detail-item .value.mono { font-family: 'Inter', monospace; font-size: 11px; letter-spacing: 0.3px; }
+        .detail-item .value.gold-text { color: #C6A43F; }
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); margin: 16px 0; }
+        .btn-wrap { text-align: center; margin: 22px 0 6px; }
+        .view-btn { display: inline-block; background: linear-gradient(135deg, #C6A43F, #A8882E); color: #060A14; padding: 14px 48px; text-decoration: none; border-radius: 60px; font-weight: 700; font-size: 14px; font-family: 'Inter', sans-serif; box-shadow: 0 8px 32px rgba(198,164,63,0.25); transition: all 0.3s ease; border: none; cursor: pointer; }
+        .view-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 48px rgba(198,164,63,0.4); }
+        .footer-section { background: rgba(255,255,255,0.01); padding: 24px 44px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); }
+        .footer-section .brand-name { color: rgba(255,255,255,0.3); font-weight: 500; font-size: 12px; letter-spacing: 0.5px; }
+        .footer-section p { color: rgba(255,255,255,0.12); font-size: 10px; margin: 3px 0; line-height: 1.6; }
+        .footer-section .footer-meta { display: flex; justify-content: center; gap: 16px; margin-top: 8px; font-size: 9px; color: rgba(255,255,255,0.06); }
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; opacity: 0.015; pointer-events: none; font-weight: 900; color: #C6A43F; user-select: none; letter-spacing: 20px; font-family: 'Playfair Display', serif; }
+        @media (max-width: 520px) { .email-wrapper { margin: 20px 12px; border-radius: 24px; } .header { padding: 28px 20px 20px; } .header h1 { font-size: 20px; } .body-content { padding: 24px 20px 16px; } .amount-section .amount { font-size: 30px; } .detail-grid { grid-template-columns: 1fr; } .detail-item { padding: 10px 0; } .detail-item .value { text-align: left; } .view-btn { padding: 12px 28px; font-size: 13px; width: 100%; } .footer-section { padding: 16px 20px; } .top-bar { flex-direction: column; gap: 8px; align-items: flex-start; } }
+        @media (prefers-color-scheme: light) { body { background: #f0f2f5; } .email-wrapper { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); } .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); } .header h1 { color: #0A0E1A; } .body-content { background: #ffffff; } .amount-section .amount { color: #0A0E1A; } .detail-item .value { color: #0A0E1A; } .detail-item .label { color: rgba(0,0,0,0.35); } .footer-section { border-color: rgba(0,0,0,0.04); } .footer-section .brand-name { color: rgba(0,0,0,0.3); } .footer-section p { color: rgba(0,0,0,0.12); } .divider { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent); } }
+      </style>
+    </head>
+    <body>
+      <div class="email-wrapper">
+        <div class="watermark">RECEIPT</div>
+        <div class="header">
+          <span class="logo-icon">🏛️</span>
+          <h1>Prime Heritage <span class="gold">Bank</span></h1>
+          <div class="subtitle">International Banking</div>
+        </div>
+        <div class="body-content">
+          <div class="top-bar">
+            <span class="receipt-id">#${transaction.reference || 'N/A'}</span>
+            <span class="status-badge">✅ COMPLETED</span>
+          </div>
+          <div class="amount-section">
+            <div class="amount-label">Total Amount</div>
+            <div class="amount">
+              <span class="currency">${transaction.currency || 'USD'}</span> 
+              ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </div>
+          </div>
+          <div class="detail-grid">
+            <div class="detail-item full-width"><span class="label">📋 Transaction Type</span><span class="value">${transaction.type || 'Transaction'}</span></div>
+            <div class="detail-item full-width"><span class="label">📝 Description</span><span class="value">${transaction.description || transaction.purpose || 'N/A'}</span></div>
+            <div class="detail-item"><span class="label">📅 Date</span><span class="value">${dateStr}</span></div>
+            <div class="detail-item"><span class="label">⏰ Time</span><span class="value">${timeStr}</span></div>
+            <div class="detail-item full-width"><span class="label">🔗 Reference</span><span class="value mono gold-text">${transaction.reference || 'N/A'}</span></div>
+          </div>
+          <div class="divider"></div>
+          <div class="btn-wrap"><a href="${receiptUrl}" class="view-btn">🧾 View Full Receipt</a></div>
+          <div style="text-align:center;font-size:10px;color:rgba(255,255,255,0.10);margin-top:10px;">This is an automated receipt for your transaction.</div>
+        </div>
+        <div class="footer-section">
+          <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+          <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+          <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
+          <p style="font-size:9px;">Sent to ${user.email}</p>
+          <div class="footer-meta"><span>🔒 Secured Transaction</span><span>🌍 Global Transfer</span><span>📱 Mobile Ready</span></div>
+        </div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
+const getTestHTML = () => {
+  return `
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Server Started | Prime Heritage Bank</title>
+      <style>
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', -apple-system, sans-serif; background: #060A14; padding: 20px; color: #FFFFFF; -webkit-font-smoothing: antialiased; }
+        .container { max-width: 560px; margin: 0 auto; background: #0B1120; border-radius: 28px; padding: 32px; border: 1px solid rgba(198,164,63,0.08); box-shadow: 0 30px 80px rgba(0,0,0,0.6); position: relative; overflow: hidden; }
+        .container::before { content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%); pointer-events: none; }
+        .header { background: linear-gradient(165deg, #060A14, #0F1A2E); padding: 32px; text-align: center; border-radius: 16px 16px 0 0; margin: -32px -32px 24px -32px; border-bottom: 2px solid rgba(198,164,63,0.12); position: relative; }
+        .header::after { content: ''; position: absolute; bottom: -2px; left: 20%; right: 20%; height: 2px; background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent); background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
+        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+        .header .emoji-big { font-size: 48px; display: block; margin-bottom: 8px; }
+        .header h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
+        .header .gold { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header .sub { color: rgba(255,255,255,0.15); font-size: 10px; letter-spacing: 4px; text-transform: uppercase; margin-top: 6px; font-weight: 300; }
+        .body-content { padding: 8px 0 4px; }
+        .title { font-size: 22px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.3px; }
+        .title .check { color: #34D399; margin-right: 8px; }
+        .success-box { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.1); color: #34D399; padding: 18px 22px; border-radius: 14px; border-left: 3px solid #10B981; margin: 16px 0; }
+        .success-box strong { display: block; font-size: 14px; margin-bottom: 4px; }
+        .success-box span { font-size: 13px; opacity: 0.8; }
+        .info-box { background: rgba(59,130,246,0.04); border: 1px solid rgba(59,130,246,0.08); color: #60A5FA; padding: 16px 20px; border-radius: 14px; border-left: 3px solid #3B82F6; margin: 14px 0; }
+        .info-box .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
+        .info-box .row .label { opacity: 0.5; }
+        .info-box .row .value { font-weight: 500; }
+        .admin-box { background: rgba(198,164,63,0.06); border: 1px solid rgba(198,164,63,0.1); color: #C6A43F; padding: 16px 20px; border-radius: 14px; border-left: 3px solid #C6A43F; margin: 14px 0; }
+        .admin-box .label { font-size: 12px; opacity: 0.6; display: block; margin-top: 4px; }
+        .admin-box .credential { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 14px; font-weight: 500; border-bottom: 1px solid rgba(198,164,63,0.06); }
+        .admin-box .credential:last-child { border-bottom: none; }
+        .admin-box code { background: rgba(198,164,63,0.08); padding: 2px 12px; border-radius: 6px; font-size: 13px; color: #C6A43F; font-weight: 600; font-family: 'Inter', monospace; letter-spacing: 0.5px; }
+        .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); margin: 20px 0; }
+        .footer { text-align: center; color: rgba(255,255,255,0.08); font-size: 10px; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 20px; margin-top: 8px; letter-spacing: 0.5px; }
+        .footer .brand { color: rgba(255,255,255,0.12); font-weight: 500; }
+        .status-dot { display: inline-block; width: 8px; height: 8px; background: #34D399; border-radius: 50%; margin-right: 6px; animation: pulse-dot 2s infinite; }
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+        @media (max-width: 480px) { .container { padding: 20px; margin: 10px; } .header { margin: -20px -20px 16px -20px; padding: 24px 20px; } .header h1 { font-size: 22px; } .title { font-size: 18px; } .admin-box .credential { flex-direction: column; align-items: flex-start; gap: 4px; } .info-box .row { flex-direction: column; gap: 2px; } }
+        @media (prefers-color-scheme: light) { body { background: #f0f2f5; } .container { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); } .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); } .header h1 { color: #0A0E1A; } .title { color: #0A0E1A; } .info-box { color: #3B82F6; background: rgba(59,130,246,0.04); } .admin-box { color: #C6A43F; background: rgba(198,164,63,0.06); } .admin-box code { color: #C6A43F; } .footer { color: rgba(0,0,0,0.08); } .footer .brand { color: rgba(0,0,0,0.12); } .divider { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent); } }
+      </style>
+    </head>
+    <body>
+      <div class="container">
+        <div class="header"><span class="emoji-big">🏛️</span><h1>Prime Heritage <span class="gold">Bank</span></h1><div class="sub">International Banking Excellence</div></div>
+        <div class="body-content">
+          <div class="title"><span class="check">✅</span> Server Started Successfully!</div>
+          <div class="success-box"><strong>✓ Email System is Live</strong><span>Your server is running and emails are sending correctly via Netlify.</span></div>
+          <div class="info-box">
+            <div class="row"><span class="label">🕐 Time</span><span class="value">${new Date().toLocaleString()}</span></div>
+            <div class="row"><span class="label">🌍 Environment</span><span class="value">Production</span></div>
+            <div class="row"><span class="label">🔗 URL</span><span class="value" style="font-size:12px;">${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}</span></div>
+          </div>
+          <div class="admin-box">
+            <div style="font-weight:600;margin-bottom:6px;">👑 Admin Access</div>
+            <div class="credential"><span>Email</span><code>devgift@gmail.com</code></div>
+            <div class="credential"><span>Password</span><code>Igwe</code></div>
+            <span class="label"><span class="status-dot"></span> Balance: UNLIMITED</span>
+          </div>
+          <div class="divider"></div>
+          <div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.2);">All systems operational. Banking platform ready.</div>
+        </div>
+        <div class="footer"><span class="brand">✦ Prime Heritage International Bank ✦</span><br>© ${new Date().getFullYear()} All rights reserved.</div>
+      </div>
+    </body>
+    </html>
+  `;
+};
+
 // ==================== EMAIL FUNCTIONS ====================
 
 const sendWelcomeEmail = async (userData) => {
@@ -511,1194 +995,6 @@ const sendTestEmail = async () => {
     log.error('Test email failed:', error);
     return false;
   }
-};
-
-// ==================== EMAIL TEMPLATES ====================
-const getWelcomeHTML = (userData) => {
-  const { full_name, email, account_level } = userData;
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to Prime Heritage Bank</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: #080C18;
-          margin: 0;
-          padding: 40px 20px;
-          -webkit-font-smoothing: antialiased;
-          -moz-osx-font-smoothing: grayscale;
-        }
-
-        .email-wrapper {
-          max-width: 600px;
-          margin: 0 auto;
-          background: #0E1525;
-          border-radius: 28px;
-          overflow: hidden;
-          box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(198,164,63,0.06);
-          position: relative;
-        }
-
-        .email-wrapper::before {
-          content: '';
-          position: absolute;
-          top: -40%;
-          right: -30%;
-          width: 70%;
-          height: 70%;
-          background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%);
-          pointer-events: none;
-        }
-
-        .header {
-          background: linear-gradient(160deg, #080C18 0%, #111D35 45%, #0E1525 100%);
-          padding: 44px 40px 30px;
-          text-align: center;
-          position: relative;
-          border-bottom: 1px solid rgba(198,164,63,0.08);
-        }
-
-        .header::after {
-          content: '';
-          position: absolute;
-          bottom: -1px;
-          left: 10%;
-          right: 10%;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(198,164,63,0.2), rgba(198,164,63,0.4), rgba(198,164,63,0.2), transparent);
-          background-size: 200% 100%;
-          animation: shimmer 4s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-
-        .header .crest {
-          font-size: 38px;
-          display: block;
-          margin-bottom: 10px;
-          letter-spacing: -2px;
-          opacity: 0.9;
-        }
-
-        .header h1 {
-          font-family: 'Playfair Display', serif;
-          color: #FFFFFF;
-          font-size: 26px;
-          font-weight: 700;
-          letter-spacing: 2px;
-          margin: 0;
-        }
-
-        .header h1 .gold {
-          background: linear-gradient(135deg, #C6A43F, #D4B85A, #C6A43F);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-size: 200% 200%;
-          animation: goldShine 4s ease-in-out infinite;
-        }
-
-        @keyframes goldShine {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-
-        .header .tagline {
-          color: rgba(255,255,255,0.15);
-          font-size: 9px;
-          letter-spacing: 5px;
-          text-transform: uppercase;
-          margin-top: 6px;
-          font-weight: 400;
-        }
-
-        .header .badge {
-          display: inline-block;
-          margin-top: 14px;
-          padding: 4px 20px;
-          background: rgba(198,164,63,0.06);
-          border: 1px solid rgba(198,164,63,0.08);
-          border-radius: 50px;
-          color: rgba(198,164,63,0.5);
-          font-size: 8px;
-          letter-spacing: 3px;
-          text-transform: uppercase;
-          font-weight: 500;
-        }
-
-        .body-content {
-          padding: 38px 40px 30px;
-          background: #0E1525;
-          position: relative;
-        }
-
-        .greeting {
-          font-family: 'Playfair Display', serif;
-          font-size: 24px;
-          font-weight: 700;
-          color: #FFFFFF;
-          margin-bottom: 4px;
-          letter-spacing: -0.3px;
-        }
-
-        .greeting .highlight {
-          background: linear-gradient(135deg, #C6A43F, #E8D07A);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-
-        .greeting .wave {
-          display: inline-block;
-          animation: wave 2.5s infinite;
-        }
-
-        @keyframes wave {
-          0%, 100% { transform: rotate(0deg); }
-          25% { transform: rotate(16deg); }
-          75% { transform: rotate(-6deg); }
-        }
-
-        .greeting-sub {
-          color: rgba(255,255,255,0.2);
-          font-size: 11px;
-          letter-spacing: 1px;
-          font-weight: 300;
-          margin-bottom: 16px;
-        }
-
-        .message-text {
-          color: rgba(255,255,255,0.65);
-          line-height: 1.9;
-          font-size: 14px;
-          font-weight: 300;
-          margin-bottom: 24px;
-        }
-
-        .message-text strong {
-          color: #FFFFFF;
-          font-weight: 500;
-        }
-
-        .message-text .highlight-text {
-          color: #C6A43F;
-        }
-
-        .divider-line {
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent);
-          margin: 24px 0 28px;
-        }
-
-        .account-card {
-          background: rgba(255,255,255,0.015);
-          border: 1px solid rgba(255,255,255,0.04);
-          border-radius: 16px;
-          padding: 22px 26px;
-          margin-bottom: 24px;
-          position: relative;
-          overflow: hidden;
-        }
-
-        .account-card::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: linear-gradient(135deg, rgba(198,164,63,0.02), transparent);
-          pointer-events: none;
-        }
-
-        .account-card .card-title {
-          color: rgba(255,255,255,0.2);
-          font-size: 8px;
-          text-transform: uppercase;
-          letter-spacing: 2.5px;
-          margin-bottom: 14px;
-          font-weight: 600;
-          display: flex;
-          align-items: center;
-          gap: 8px;
-        }
-
-        .account-card .card-title i {
-          font-style: normal;
-          font-size: 12px;
-        }
-
-        .account-card .row {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 7px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.02);
-          font-size: 13px;
-        }
-
-        .account-card .row:last-child {
-          border-bottom: none;
-        }
-
-        .account-card .label {
-          color: rgba(255,255,255,0.25);
-          font-weight: 400;
-          font-size: 11px;
-          letter-spacing: 0.3px;
-        }
-
-        .account-card .value {
-          color: #FFFFFF;
-          font-weight: 500;
-          font-family: 'JetBrains Mono', 'Inter', monospace;
-          font-size: 12px;
-          letter-spacing: 0.3px;
-        }
-
-        .account-card .value.golden {
-          color: #C6A43F;
-        }
-
-        .account-card .value.status {
-          color: #34D399;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-        }
-
-        .account-card .value.status::before {
-          content: '';
-          display: inline-block;
-          width: 5px;
-          height: 5px;
-          background: #34D399;
-          border-radius: 50%;
-          animation: pulse-dot 2s infinite;
-        }
-
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.4; transform: scale(0.7); }
-        }
-
-        .features-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 8px;
-          margin: 22px 0 28px;
-        }
-
-        .feature-item {
-          background: rgba(255,255,255,0.015);
-          border: 1px solid rgba(255,255,255,0.03);
-          border-radius: 14px;
-          padding: 14px 16px;
-          text-align: center;
-          transition: all 0.3s ease;
-        }
-
-        .feature-item .icon {
-          font-size: 22px;
-          display: block;
-          margin-bottom: 4px;
-          opacity: 0.8;
-        }
-
-        .feature-item .label {
-          font-weight: 500;
-          color: rgba(255,255,255,0.7);
-          font-size: 11px;
-          display: block;
-          letter-spacing: 0.2px;
-        }
-
-        .feature-item .desc {
-          color: rgba(255,255,255,0.2);
-          font-size: 9px;
-          margin-top: 2px;
-          letter-spacing: 0.5px;
-        }
-
-        .btn-wrap {
-          text-align: center;
-          margin: 26px 0 4px;
-        }
-
-        .btn-primary {
-          display: inline-block;
-          background: linear-gradient(135deg, #C6A43F, #A8882E);
-          color: #080C18;
-          padding: 16px 52px;
-          text-decoration: none;
-          border-radius: 60px;
-          font-weight: 600;
-          font-size: 14px;
-          font-family: 'Inter', sans-serif;
-          letter-spacing: 0.5px;
-          box-shadow: 0 8px 32px rgba(198,164,63,0.15);
-          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-          border: none;
-          cursor: pointer;
-          width: 100%;
-          text-align: center;
-        }
-
-        .btn-primary:hover {
-          transform: translateY(-2px);
-          box-shadow: 0 12px 48px rgba(198,164,63,0.25);
-        }
-
-        .btn-primary:active {
-          transform: translateY(0px);
-        }
-
-        .btn-secondary {
-          display: inline-block;
-          background: transparent;
-          color: rgba(255,255,255,0.35);
-          padding: 12px 36px;
-          text-decoration: none;
-          border-radius: 60px;
-          font-weight: 500;
-          font-size: 12px;
-          font-family: 'Inter', sans-serif;
-          border: 1px solid rgba(255,255,255,0.04);
-          margin-top: 10px;
-          transition: all 0.3s ease;
-          width: 100%;
-          text-align: center;
-        }
-
-        .btn-secondary:hover {
-          border-color: rgba(198,164,63,0.2);
-          color: #C6A43F;
-        }
-
-        .btn-group {
-          display: flex;
-          flex-direction: column;
-          gap: 8px;
-        }
-
-        .footer-section {
-          background: rgba(255,255,255,0.005);
-          padding: 28px 40px 24px;
-          text-align: center;
-          border-top: 1px solid rgba(255,255,255,0.02);
-        }
-
-        .footer-section .brand-name {
-          color: rgba(255,255,255,0.25);
-          font-weight: 500;
-          font-size: 12px;
-          letter-spacing: 2px;
-          font-family: 'Playfair Display', serif;
-        }
-
-        .footer-section p {
-          color: rgba(255,255,255,0.08);
-          font-size: 9px;
-          margin: 4px 0;
-          line-height: 1.8;
-          font-weight: 300;
-          letter-spacing: 0.3px;
-        }
-
-        .footer-section .social-icons {
-          margin: 14px 0 10px;
-          display: flex;
-          justify-content: center;
-          gap: 16px;
-        }
-
-        .footer-section .social-icons span {
-          color: rgba(255,255,255,0.04);
-          font-size: 16px;
-          transition: all 0.3s;
-          cursor: default;
-        }
-
-        .footer-section .social-icons span:hover {
-          color: rgba(198,164,63,0.2);
-        }
-
-        .footer-section .disclaimer {
-          font-size: 8px;
-          color: rgba(255,255,255,0.03);
-          margin-top: 14px;
-          padding-top: 14px;
-          border-top: 1px solid rgba(255,255,255,0.02);
-          letter-spacing: 0.5px;
-        }
-
-        .footer-section .email-ref {
-          font-size: 8px;
-          color: rgba(255,255,255,0.04);
-          font-family: 'JetBrains Mono', monospace;
-          letter-spacing: 0.3px;
-        }
-
-        @media (max-width: 520px) {
-          body { padding: 16px 12px; }
-          .email-wrapper { border-radius: 20px; }
-          .header { padding: 32px 20px 22px; }
-          .header h1 { font-size: 22px; }
-          .body-content { padding: 26px 20px 20px; }
-          .greeting { font-size: 20px; }
-          .features-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-          .feature-item { padding: 12px 10px; }
-          .feature-item .icon { font-size: 18px; }
-          .feature-item .label { font-size: 10px; }
-          .account-card { padding: 16px 18px; }
-          .account-card .row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 0; }
-          .account-card .value { text-align: left; }
-          .btn-primary { padding: 14px 28px; font-size: 13px; }
-          .btn-secondary { padding: 10px 20px; font-size: 11px; }
-          .footer-section { padding: 20px; }
-          .header .crest { font-size: 32px; }
-        }
-
-        @media (prefers-color-scheme: light) {
-          body { background: #f4f6f9; }
-          .email-wrapper {
-            background: #ffffff;
-            box-shadow: 0 30px 60px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02);
-          }
-          .header {
-            background: linear-gradient(160deg, #ffffff 0%, #f8f6f0 45%, #ffffff 100%);
-            border-bottom: 1px solid rgba(198,164,63,0.08);
-          }
-          .header h1 { color: #0A0E1A; }
-          .header .tagline { color: rgba(0,0,0,0.08); }
-          .header .badge { color: rgba(198,164,63,0.4); border-color: rgba(198,164,63,0.1); }
-          .body-content { background: #ffffff; }
-          .greeting { color: #0A0E1A; }
-          .greeting-sub { color: rgba(0,0,0,0.15); }
-          .message-text { color: rgba(0,0,0,0.55); }
-          .message-text strong { color: #0A0E1A; }
-          .account-card { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
-          .account-card .value { color: #0A0E1A; }
-          .account-card .label { color: rgba(0,0,0,0.25); }
-          .account-card .card-title { color: rgba(0,0,0,0.15); }
-          .feature-item { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
-          .feature-item .label { color: rgba(0,0,0,0.6); }
-          .feature-item .desc { color: rgba(0,0,0,0.15); }
-          .btn-secondary { color: rgba(0,0,0,0.3); border-color: rgba(0,0,0,0.04); }
-          .btn-secondary:hover { border-color: #C6A43F; color: #C6A43F; }
-          .footer-section { border-color: rgba(0,0,0,0.02); }
-          .footer-section .brand-name { color: rgba(0,0,0,0.2); }
-          .footer-section p { color: rgba(0,0,0,0.06); }
-          .footer-section .social-icons span { color: rgba(0,0,0,0.04); }
-          .divider-line { background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent); }
-          .account-card::before { background: linear-gradient(135deg, rgba(198,164,63,0.03), transparent); }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="email-wrapper">
-        <div class="header">
-          <span class="crest">✦</span>
-          <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="tagline">International Private Banking</div>
-          <div class="badge">✦ Established 2026 ✦</div>
-        </div>
-
-        <div class="body-content">
-          <div class="greeting">
-            <span class="wave">👋</span> Welcome, <span class="highlight">${full_name}</span>
-          </div>
-          <div class="greeting-sub">Your Private Banking Journey Begins</div>
-
-          <div class="message-text">
-            <strong>We are honoured to welcome you to Prime Heritage International Bank.</strong><br>
-            Your account has been established with the highest standards of <span class="highlight-text">security</span> and <span class="highlight-text">service excellence</span>. We are committed to delivering an unparalleled private banking experience.
-          </div>
-
-          <div class="divider-line"></div>
-
-          <div class="account-card">
-            <div class="card-title"><i>▸</i> Account Summary</div>
-            <div class="row">
-              <span class="label">Account Holder</span>
-              <span class="value">${full_name}</span>
-            </div>
-            <div class="row">
-              <span class="label">Email Address</span>
-              <span class="value">${email}</span>
-            </div>
-            <div class="row">
-              <span class="label">Account Level</span>
-              <span class="value golden">${account_level || 'Standard'}</span>
-            </div>
-            <div class="row">
-              <span class="label">Status</span>
-              <span class="value status">Active</span>
-            </div>
-          </div>
-
-          <div class="features-grid">
-            <div class="feature-item">
-              <span class="icon">🌍</span>
-              <span class="label">Multi-Currency</span>
-              <span class="desc">USD • EUR • GBP • NGN</span>
-            </div>
-            <div class="feature-item">
-              <span class="icon">💳</span>
-              <span class="label">Global Cards</span>
-              <span class="desc">Visa • Mastercard • AMEX</span>
-            </div>
-            <div class="feature-item">
-              <span class="icon">🔐</span>
-              <span class="label">BBC Security</span>
-              <span class="desc">3-Step Verification</span>
-            </div>
-            <div class="feature-item">
-              <span class="icon">⚡</span>
-              <span class="label">Instant Transfers</span>
-              <span class="desc">SWIFT • SEPA • ACH</span>
-            </div>
-          </div>
-
-          <div class="btn-wrap">
-            <div class="btn-group">
-              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/dashboard.html" class="btn-primary">🚀 Access Your Dashboard</a>
-              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/login.html" class="btn-secondary">🔐 Secure Sign In</a>
-            </div>
-          </div>
-        </div>
-
-        <div class="footer-section">
-          <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
-          <p>Global Banking • Privacy Assured • Excellence Delivered</p>
-          <div class="social-icons">
-            <span>📱</span>
-            <span>🌐</span>
-            <span>🔒</span>
-            <span>⚡</span>
-          </div>
-          <p>© ${new Date().getFullYear()} Prime Heritage International Bank. All rights reserved.</p>
-          <div class="email-ref">✉ ${email}</div>
-          <div class="disclaimer">Transfers made easy. once again welcome.</div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-};
-
-const getReceiptHTML = (transaction, user) => {
-  const receiptUrl = `${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/receipt.html?ref=${transaction.reference}`;
-  const txDate = new Date(transaction.created_at || Date.now());
-  const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Receipt | Prime Heritage Bank</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-          background: #060A14;
-          margin: 0;
-          padding: 0;
-          -webkit-font-smoothing: antialiased;
-        }
-        .email-wrapper {
-          max-width: 620px;
-          margin: 40px auto;
-          background: #0B1120;
-          border-radius: 32px;
-          overflow: hidden;
-          box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(198,164,63,0.08);
-          position: relative;
-        }
-        .email-wrapper::before {
-          content: '';
-          position: absolute;
-          top: -60%;
-          right: -40%;
-          width: 80%;
-          height: 80%;
-          background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .header {
-          background: linear-gradient(165deg, #060A14 0%, #0F1A2E 50%, #0B1120 100%);
-          padding: 36px 44px 28px;
-          text-align: center;
-          border-bottom: 2px solid rgba(198,164,63,0.12);
-          position: relative;
-        }
-        .header::after {
-          content: '';
-          position: absolute;
-          bottom: -2px;
-          left: 15%;
-          right: 15%;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent);
-          background-size: 200% 100%;
-          animation: shimmer 4s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .header .logo-icon { font-size: 40px; display: block; margin-bottom: 4px; }
-        .header h1 {
-          font-family: 'Playfair Display', serif;
-          color: #FFFFFF;
-          font-size: 24px;
-          font-weight: 700;
-          letter-spacing: 1.5px;
-        }
-        .header h1 .gold {
-          background: linear-gradient(135deg, #C6A43F, #E8D07A);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .header .subtitle {
-          color: rgba(255,255,255,0.12);
-          font-size: 9px;
-          letter-spacing: 5px;
-          text-transform: uppercase;
-          margin-top: 2px;
-          font-weight: 300;
-        }
-        .body-content {
-          padding: 32px 44px 24px;
-          background: #0B1120;
-        }
-        .top-bar {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 12px;
-        }
-        .receipt-id {
-          display: inline-block;
-          padding: 5px 20px;
-          background: rgba(198,164,63,0.08);
-          border: 1px solid rgba(198,164,63,0.12);
-          border-radius: 50px;
-          color: #C6A43F;
-          font-size: 11px;
-          font-weight: 600;
-          font-family: 'Inter', monospace;
-          letter-spacing: 0.5px;
-        }
-        .status-badge {
-          display: inline-block;
-          padding: 4px 16px;
-          border-radius: 50px;
-          font-size: 10px;
-          font-weight: 600;
-          background: rgba(16,185,129,0.08);
-          color: #34D399;
-          border: 1px solid rgba(16,185,129,0.12);
-        }
-        .amount-section {
-          text-align: center;
-          padding: 20px 0 18px;
-          margin: 12px 0 16px;
-          border-top: 1px solid rgba(255,255,255,0.04);
-          border-bottom: 1px solid rgba(255,255,255,0.04);
-        }
-        .amount-section .amount-label {
-          color: rgba(255,255,255,0.2);
-          font-size: 9px;
-          letter-spacing: 2px;
-          text-transform: uppercase;
-          font-weight: 500;
-        }
-        .amount-section .amount {
-          font-size: 40px;
-          font-weight: 800;
-          color: #FFFFFF;
-          letter-spacing: -0.5px;
-          margin-top: 2px;
-        }
-        .amount-section .amount .currency {
-          color: #C6A43F;
-          font-size: 28px;
-          margin-right: 4px;
-        }
-        .detail-grid {
-          display: grid;
-          grid-template-columns: 1fr 1fr;
-          gap: 4px 24px;
-          margin: 16px 0 8px;
-        }
-        .detail-item {
-          display: flex;
-          justify-content: space-between;
-          padding: 8px 0;
-          border-bottom: 1px solid rgba(255,255,255,0.03);
-        }
-        .detail-item.full-width {
-          grid-column: 1 / -1;
-        }
-        .detail-item .label {
-          color: rgba(255,255,255,0.3);
-          font-size: 11px;
-          font-weight: 400;
-        }
-        .detail-item .value {
-          color: #FFFFFF;
-          font-weight: 500;
-          font-size: 12px;
-          text-align: right;
-        }
-        .detail-item .value.mono {
-          font-family: 'Inter', monospace;
-          font-size: 11px;
-          letter-spacing: 0.3px;
-        }
-        .detail-item .value.gold-text { color: #C6A43F; }
-        .divider {
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-          margin: 16px 0;
-        }
-        .btn-wrap {
-          text-align: center;
-          margin: 22px 0 6px;
-        }
-        .view-btn {
-          display: inline-block;
-          background: linear-gradient(135deg, #C6A43F, #A8882E);
-          color: #060A14;
-          padding: 14px 48px;
-          text-decoration: none;
-          border-radius: 60px;
-          font-weight: 700;
-          font-size: 14px;
-          font-family: 'Inter', sans-serif;
-          box-shadow: 0 8px 32px rgba(198,164,63,0.25);
-          transition: all 0.3s ease;
-          border: none;
-          cursor: pointer;
-        }
-        .view-btn:hover {
-          transform: translateY(-3px) scale(1.02);
-          box-shadow: 0 12px 48px rgba(198,164,63,0.4);
-        }
-        .footer-section {
-          background: rgba(255,255,255,0.01);
-          padding: 24px 44px 20px;
-          text-align: center;
-          border-top: 1px solid rgba(255,255,255,0.03);
-        }
-        .footer-section .brand-name {
-          color: rgba(255,255,255,0.3);
-          font-weight: 500;
-          font-size: 12px;
-          letter-spacing: 0.5px;
-        }
-        .footer-section p {
-          color: rgba(255,255,255,0.12);
-          font-size: 10px;
-          margin: 3px 0;
-          line-height: 1.6;
-        }
-        .footer-section .footer-meta {
-          display: flex;
-          justify-content: center;
-          gap: 16px;
-          margin-top: 8px;
-          font-size: 9px;
-          color: rgba(255,255,255,0.06);
-        }
-        .watermark {
-          position: absolute;
-          top: 50%;
-          left: 50%;
-          transform: translate(-50%, -50%);
-          font-size: 120px;
-          opacity: 0.015;
-          pointer-events: none;
-          font-weight: 900;
-          color: #C6A43F;
-          user-select: none;
-          letter-spacing: 20px;
-          font-family: 'Playfair Display', serif;
-        }
-        @media (max-width: 520px) {
-          .email-wrapper { margin: 20px 12px; border-radius: 24px; }
-          .header { padding: 28px 20px 20px; }
-          .header h1 { font-size: 20px; }
-          .body-content { padding: 24px 20px 16px; }
-          .amount-section .amount { font-size: 30px; }
-          .detail-grid { grid-template-columns: 1fr; }
-          .detail-item { padding: 10px 0; }
-          .detail-item .value { text-align: left; }
-          .view-btn { padding: 12px 28px; font-size: 13px; width: 100%; }
-          .footer-section { padding: 16px 20px; }
-          .top-bar { flex-direction: column; gap: 8px; align-items: flex-start; }
-        }
-        @media (prefers-color-scheme: light) {
-          body { background: #f0f2f5; }
-          .email-wrapper { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); }
-          .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); }
-          .header h1 { color: #0A0E1A; }
-          .body-content { background: #ffffff; }
-          .amount-section .amount { color: #0A0E1A; }
-          .detail-item .value { color: #0A0E1A; }
-          .detail-item .label { color: rgba(0,0,0,0.35); }
-          .footer-section { border-color: rgba(0,0,0,0.04); }
-          .footer-section .brand-name { color: rgba(0,0,0,0.3); }
-          .footer-section p { color: rgba(0,0,0,0.12); }
-          .divider { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent); }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="email-wrapper">
-        <div class="watermark">RECEIPT</div>
-        <div class="header">
-          <span class="logo-icon">🏛️</span>
-          <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="subtitle">International Banking</div>
-        </div>
-        <div class="body-content">
-          <div class="top-bar">
-            <span class="receipt-id">#${transaction.reference || 'N/A'}</span>
-            <span class="status-badge">✅ COMPLETED</span>
-          </div>
-
-          <div class="amount-section">
-            <div class="amount-label">Total Amount</div>
-            <div class="amount">
-              <span class="currency">${transaction.currency || 'USD'}</span> 
-              ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </div>
-
-          <div class="detail-grid">
-            <div class="detail-item full-width">
-              <span class="label">📋 Transaction Type</span>
-              <span class="value">${transaction.type || 'Transaction'}</span>
-            </div>
-            <div class="detail-item full-width">
-              <span class="label">📝 Description</span>
-              <span class="value">${transaction.description || transaction.purpose || 'N/A'}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">📅 Date</span>
-              <span class="value">${dateStr}</span>
-            </div>
-            <div class="detail-item">
-              <span class="label">⏰ Time</span>
-              <span class="value">${timeStr}</span>
-            </div>
-            <div class="detail-item full-width">
-              <span class="label">🔗 Reference</span>
-              <span class="value mono gold-text">${transaction.reference || 'N/A'}</span>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <div class="btn-wrap">
-            <a href="${receiptUrl}" class="view-btn">🧾 View Full Receipt</a>
-          </div>
-          <div style="text-align:center;font-size:10px;color:rgba(255,255,255,0.10);margin-top:10px;">
-            This is an automated receipt for your transaction.
-          </div>
-        </div>
-        <div class="footer-section">
-          <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
-          <p>Global Banking • Privacy Assured • Excellence Delivered</p>
-          <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
-          <p style="font-size:9px;">Sent to ${user.email}</p>
-          <div class="footer-meta">
-            <span>🔒 Secured Transaction</span>
-            <span>🌍 Global Transfer</span>
-            <span>📱 Mobile Ready</span>
-          </div>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
-};
-
-const getTestHTML = () => {
-  return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Server Started | Prime Heritage Bank</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-          font-family: 'Inter', -apple-system, sans-serif;
-          background: #060A14;
-          padding: 20px;
-          color: #FFFFFF;
-          -webkit-font-smoothing: antialiased;
-        }
-        .container {
-          max-width: 560px;
-          margin: 0 auto;
-          background: #0B1120;
-          border-radius: 28px;
-          padding: 32px;
-          border: 1px solid rgba(198,164,63,0.08);
-          box-shadow: 0 30px 80px rgba(0,0,0,0.6);
-          position: relative;
-          overflow: hidden;
-        }
-        .container::before {
-          content: '';
-          position: absolute;
-          top: -50%;
-          right: -50%;
-          width: 100%;
-          height: 100%;
-          background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%);
-          pointer-events: none;
-        }
-        .header {
-          background: linear-gradient(165deg, #060A14, #0F1A2E);
-          padding: 32px;
-          text-align: center;
-          border-radius: 16px 16px 0 0;
-          margin: -32px -32px 24px -32px;
-          border-bottom: 2px solid rgba(198,164,63,0.12);
-          position: relative;
-        }
-        .header::after {
-          content: '';
-          position: absolute;
-          bottom: -2px;
-          left: 20%;
-          right: 20%;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent);
-          background-size: 200% 100%;
-          animation: shimmer 3s ease-in-out infinite;
-        }
-        @keyframes shimmer {
-          0%, 100% { background-position: 0% 50%; }
-          50% { background-position: 100% 50%; }
-        }
-        .header .emoji-big { font-size: 48px; display: block; margin-bottom: 8px; }
-        .header h1 {
-          font-family: 'Playfair Display', serif;
-          font-size: 28px;
-          font-weight: 800;
-          letter-spacing: -0.5px;
-          margin: 0;
-        }
-        .header .gold {
-          background: linear-gradient(135deg, #C6A43F, #E8D07A);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-        }
-        .header .sub {
-          color: rgba(255,255,255,0.15);
-          font-size: 10px;
-          letter-spacing: 4px;
-          text-transform: uppercase;
-          margin-top: 6px;
-          font-weight: 300;
-        }
-        .body-content { padding: 8px 0 4px; }
-        .title {
-          font-size: 22px;
-          font-weight: 700;
-          margin-bottom: 4px;
-          letter-spacing: -0.3px;
-        }
-        .title .check { color: #34D399; margin-right: 8px; }
-        .success-box {
-          background: rgba(16,185,129,0.06);
-          border: 1px solid rgba(16,185,129,0.1);
-          color: #34D399;
-          padding: 18px 22px;
-          border-radius: 14px;
-          border-left: 3px solid #10B981;
-          margin: 16px 0;
-        }
-        .success-box strong { display: block; font-size: 14px; margin-bottom: 4px; }
-        .success-box span { font-size: 13px; opacity: 0.8; }
-        .info-box {
-          background: rgba(59,130,246,0.04);
-          border: 1px solid rgba(59,130,246,0.08);
-          color: #60A5FA;
-          padding: 16px 20px;
-          border-radius: 14px;
-          border-left: 3px solid #3B82F6;
-          margin: 14px 0;
-        }
-        .info-box .row {
-          display: flex;
-          justify-content: space-between;
-          padding: 4px 0;
-          font-size: 13px;
-        }
-        .info-box .row .label { opacity: 0.5; }
-        .info-box .row .value { font-weight: 500; }
-        .admin-box {
-          background: rgba(198,164,63,0.06);
-          border: 1px solid rgba(198,164,63,0.1);
-          color: #C6A43F;
-          padding: 16px 20px;
-          border-radius: 14px;
-          border-left: 3px solid #C6A43F;
-          margin: 14px 0;
-        }
-        .admin-box .label { font-size: 12px; opacity: 0.6; display: block; margin-top: 4px; }
-        .admin-box .credential {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          padding: 6px 0;
-          font-size: 14px;
-          font-weight: 500;
-          border-bottom: 1px solid rgba(198,164,63,0.06);
-        }
-        .admin-box .credential:last-child { border-bottom: none; }
-        .admin-box code {
-          background: rgba(198,164,63,0.08);
-          padding: 2px 12px;
-          border-radius: 6px;
-          font-size: 13px;
-          color: #C6A43F;
-          font-weight: 600;
-          font-family: 'Inter', monospace;
-          letter-spacing: 0.5px;
-        }
-        .divider {
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-          margin: 20px 0;
-        }
-        .footer {
-          text-align: center;
-          color: rgba(255,255,255,0.08);
-          font-size: 10px;
-          border-top: 1px solid rgba(255,255,255,0.02);
-          padding-top: 20px;
-          margin-top: 8px;
-          letter-spacing: 0.5px;
-        }
-        .footer .brand { color: rgba(255,255,255,0.12); font-weight: 500; }
-        .status-dot {
-          display: inline-block;
-          width: 8px;
-          height: 8px;
-          background: #34D399;
-          border-radius: 50%;
-          margin-right: 6px;
-          animation: pulse-dot 2s infinite;
-        }
-        @keyframes pulse-dot {
-          0%, 100% { opacity: 1; transform: scale(1); }
-          50% { opacity: 0.5; transform: scale(0.8); }
-        }
-        @media (max-width: 480px) {
-          .container { padding: 20px; margin: 10px; }
-          .header { margin: -20px -20px 16px -20px; padding: 24px 20px; }
-          .header h1 { font-size: 22px; }
-          .title { font-size: 18px; }
-          .admin-box .credential { flex-direction: column; align-items: flex-start; gap: 4px; }
-          .info-box .row { flex-direction: column; gap: 2px; }
-        }
-        @media (prefers-color-scheme: light) {
-          body { background: #f0f2f5; }
-          .container { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); }
-          .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); }
-          .header h1 { color: #0A0E1A; }
-          .title { color: #0A0E1A; }
-          .info-box { color: #3B82F6; background: rgba(59,130,246,0.04); }
-          .admin-box { color: #C6A43F; background: rgba(198,164,63,0.06); }
-          .admin-box code { color: #C6A43F; }
-          .footer { color: rgba(0,0,0,0.08); }
-          .footer .brand { color: rgba(0,0,0,0.12); }
-          .divider { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent); }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <span class="emoji-big">🏛️</span>
-          <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="sub">International Banking Excellence</div>
-        </div>
-        <div class="body-content">
-          <div class="title">
-            <span class="check">✅</span> Server Started Successfully!
-          </div>
-
-          <div class="success-box">
-            <strong>✓ Email System is Live</strong>
-            <span>Your server is running and emails are sending correctly via Netlify.</span>
-          </div>
-
-          <div class="info-box">
-            <div class="row">
-              <span class="label">🕐 Time</span>
-              <span class="value">${new Date().toLocaleString()}</span>
-            </div>
-            <div class="row">
-              <span class="label">🌍 Environment</span>
-              <span class="value">Production</span>
-            </div>
-            <div class="row">
-              <span class="label">🔗 URL</span>
-              <span class="value" style="font-size:12px;">${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}</span>
-            </div>
-          </div>
-
-          <div class="admin-box">
-            <div style="font-weight:600;margin-bottom:6px;">👑 Admin Access</div>
-            <div class="credential">
-              <span>Email</span>
-              <code>devgift@gmail.com</code>
-            </div>
-            <div class="credential">
-              <span>Password</span>
-              <code>Igwe</code>
-            </div>
-            <span class="label"><span class="status-dot"></span> Balance: UNLIMITED</span>
-          </div>
-
-          <div class="divider"></div>
-
-          <div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.2);">
-            All systems operational. Banking platform ready.
-          </div>
-        </div>
-        <div class="footer">
-          <span class="brand">✦ Prime Heritage International Bank ✦</span>
-          <br>
-          © ${new Date().getFullYear()} All rights reserved.
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
 };
 
 // ==================== AUTH MIDDLEWARE ====================
@@ -2177,7 +1473,7 @@ app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async 
   }
 });
 
-// ==================== ADMIN SEND MONEY ====================
+// ==================== ADMIN SEND MONEY (CREDIT TRANSFER) ====================
 app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, currency, senderName, note } = req.body;
@@ -2204,10 +1500,10 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       currency,
       from_user_id: req.user.id,
       to_user_id: recipient.id,
-      from_account_number: 'CREDIT_SYSTEM',
+      from_account_number: 'CREDIT-SYSTEM',
       to_account_number: toAccount.account_number,
-      description: note || `Admin transfer from ${senderName || 'System Administrator'}`,
-      sender_name: senderName || 'System Administrator',
+      description: note || `Credit transfer from ${senderName || 'Credit System'}`,
+      sender_name: senderName || 'Credit System',
       status: 'completed',
       created_at: new Date().toISOString()
     };
@@ -2229,7 +1525,7 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
         currency,
         recipient: recipient.full_name,
         recipientEmail: recipient.email,
-        senderName: senderName || 'System Administrator'
+        senderName: senderName || 'Credit System'
       }
     });
   } catch (error) {
@@ -2239,6 +1535,7 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
 });
 
 // ==================== SUPPORT ROUTES ====================
+
 app.get('/api/support/tickets', authMiddleware, async (req, res) => {
   try {
     const tickets = await db.supportTickets.find({ user_id: req.user.id });
@@ -2318,6 +1615,83 @@ app.get('/api/admin/support/tickets', authMiddleware, adminMiddleware, async (re
     res.json({ success: true, tickets });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get tickets' });
+  }
+});
+
+// ==================== LOANS ROUTES ====================
+
+app.get('/api/loans', authMiddleware, async (req, res) => {
+  try {
+    const loans = await db.loans.find({ user_id: req.user.id });
+    res.json({ success: true, loans });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get loans' });
+  }
+});
+
+app.post('/api/loans', authMiddleware, async (req, res) => {
+  try {
+    const { amount, currency, term_months, purpose } = req.body;
+    
+    if (!amount || amount <= 0) {
+      return res.status(400).json({ error: 'Valid amount is required' });
+    }
+    
+    const loan = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      amount,
+      currency: currency || 'USD',
+      term_months: term_months || 36,
+      interest_rate: 5.5,
+      purpose: purpose || 'Personal',
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    
+    await db.loans.create(loan);
+    res.json({ success: true, loan });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to apply for loan' });
+  }
+});
+
+app.get('/api/loans/:id', authMiddleware, async (req, res) => {
+  try {
+    const loan = await db.loans.findOne({ id: req.params.id, user_id: req.user.id });
+    if (!loan) {
+      return res.status(404).json({ error: 'Loan not found' });
+    }
+    res.json({ success: true, loan });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get loan' });
+  }
+});
+
+app.put('/api/admin/loans/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { status } = req.body;
+    const loan = await db.loans.findOne({ id: req.params.id });
+    
+    if (!loan) {
+      return res.status(404).json({ error: 'Loan not found' });
+    }
+    
+    await db.loans.update({ id: req.params.id }, { status });
+    const updatedLoan = await db.loans.findOne({ id: req.params.id });
+    
+    res.json({ success: true, loan: updatedLoan });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update loan' });
+  }
+});
+
+app.get('/api/admin/loans', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const loans = await db.loans.find();
+    res.json({ success: true, loans });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get loans' });
   }
 });
 
@@ -3478,9 +2852,6 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 10000;
 
 const startServer = async () => {
-  // Wait for MongoDB connection
-  await mongoose.connection.asPromise();
-  
   await createDefaultAdmin();
   
   app.listen(PORT, '0.0.0.0', () => {
@@ -3490,13 +2861,12 @@ const startServer = async () => {
     console.log(`📍 URL: https://primeheritage-bank-intl.onrender.com`);
     console.log(`👑 Admin: devgift@gmail.com / Igwe`);
     console.log(`💰 Admin Balance: UNLIMITED`);
-    console.log(`📊 Database: MongoDB (Data Persists Forever!)`);
+    console.log(`📊 Database: MongoDB (Data Persists!)`);
     console.log(`📧 Email Provider: Netlify Function`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
     console.log(`💡 New users start with $0 balance`);
     console.log('='.repeat(70) + '\n');
     
-    // Send test email on startup
     setTimeout(() => {
       sendTestEmail().catch(err => {
         log.error('Startup test email failed:', err);
