@@ -974,11 +974,18 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
+// ==================== RATE LIMITER ====================
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
-  message: { error: 'Too many requests, try again later.' }
+  windowMs: 15 * 60 * 1000,  // 15 minutes
+  max: 100,                   // 100 requests per window
+  message: { error: 'Too many requests, try again later.' },
+  skip: (req) => {
+    // ✅ Skip rate limiting for admin routes
+    return req.path.startsWith('/admin');
+  }
 });
+
+// Apply to all API routes
 app.use('/api', limiter);
 
 // ==================== CONSTANTS ====================
