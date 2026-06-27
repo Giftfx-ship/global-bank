@@ -122,6 +122,9 @@
             font-size: 14px;
             font-weight: 600;
             color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
         }
         .theme-option.active {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
@@ -275,6 +278,12 @@
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
+        }
+
+        .btn-secondary {
+            background: rgba(198,164,63,0.1);
+            color: var(--gold);
+            border: 1px solid var(--gold);
         }
 
         .bottom-nav {
@@ -584,24 +593,30 @@
                     })
                 });
                 const data = await res.json();
+                console.log('Step 1 response:', data);
+                
                 if (data.success) {
                     currentRef = data.reference;
+                    console.log('Current reference set to:', currentRef);
+                    
                     document.getElementById('step1Form').style.display = 'none';
                     document.getElementById('codeForm').style.display = 'block';
                     document.getElementById('codeStep1').style.display = 'block';
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'none';
                     document.getElementById('c1_1').focus();
+                    
                     Swal.fire({
                         icon: 'info',
                         title: 'Authorization Required',
-                        text: 'Enter your BBC Authorization Code to continue',
+                        text: data.message || 'Enter your Authorization Code to continue',
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
                     Swal.fire('Error', data.error || 'Withdrawal failed', 'error');
                 }
             } catch(e) {
+                console.error('Withdraw step1 error:', e);
                 Swal.fire('Error', 'Network error. Please try again.', 'error');
             } finally {
                 showLoading(false);
@@ -620,6 +635,8 @@
 
             showLoading(true);
             try {
+                console.log('Submitting Step 2 with reference:', currentRef, 'code:', code);
+                
                 const res = await fetch(`${API_URL}/api/withdraw/step2`, {
                     method: 'POST',
                     headers: {
@@ -629,6 +646,8 @@
                     body: JSON.stringify({ reference: currentRef, bbcCode: code })
                 });
                 const data = await res.json();
+                console.log('Step 2 response:', data);
+                
                 if (data.success) {
                     document.getElementById('codeStep1').style.display = 'none';
                     document.getElementById('codeStep2').style.display = 'block';
@@ -636,14 +655,15 @@
                     Swal.fire({
                         icon: 'info',
                         title: 'Security Check',
-                        text: 'Enter your BBC Security Code to continue',
+                        text: data.message || 'Enter your Security Code to continue',
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
                     Swal.fire('Error', data.error || 'Invalid authorization code', 'error');
                 }
             } catch(e) {
-                Swal.fire('Error', 'Verification failed', 'error');
+                console.error('SubmitCode1 error:', e);
+                Swal.fire('Error', 'Verification failed: ' + e.message, 'error');
             } finally {
                 showLoading(false);
             }
@@ -661,6 +681,8 @@
 
             showLoading(true);
             try {
+                console.log('Submitting Step 3 with reference:', currentRef, 'code:', code);
+                
                 const res = await fetch(`${API_URL}/api/withdraw/step3`, {
                     method: 'POST',
                     headers: {
@@ -670,6 +692,8 @@
                     body: JSON.stringify({ reference: currentRef, bbcCode: code })
                 });
                 const data = await res.json();
+                console.log('Step 3 response:', data);
+                
                 if (data.success) {
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'block';
@@ -677,14 +701,15 @@
                     Swal.fire({
                         icon: 'info',
                         title: 'Final Verification',
-                        text: 'Enter your BBC Final Code to complete the withdrawal',
+                        text: data.message || 'Enter your Final Code to complete the withdrawal',
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
                     Swal.fire('Error', data.error || 'Invalid security code', 'error');
                 }
             } catch(e) {
-                Swal.fire('Error', 'Verification failed', 'error');
+                console.error('SubmitCode2 error:', e);
+                Swal.fire('Error', 'Verification failed: ' + e.message, 'error');
             } finally {
                 showLoading(false);
             }
@@ -702,6 +727,8 @@
 
             showLoading(true);
             try {
+                console.log('Submitting Step 4 with reference:', currentRef, 'code:', code);
+                
                 const res = await fetch(`${API_URL}/api/withdraw/step4`, {
                     method: 'POST',
                     headers: {
@@ -711,6 +738,8 @@
                     body: JSON.stringify({ reference: currentRef, bbcCode: code })
                 });
                 const data = await res.json();
+                console.log('Step 4 response:', data);
+                
                 if (data.success) {
                     showLoading(false);
                     Swal.fire({
@@ -735,7 +764,8 @@
                     showLoading(false);
                 }
             } catch(e) {
-                Swal.fire('Error', 'Withdrawal failed', 'error');
+                console.error('SubmitCode3 error:', e);
+                Swal.fire('Error', 'Withdrawal failed: ' + e.message, 'error');
                 showLoading(false);
             }
         }
