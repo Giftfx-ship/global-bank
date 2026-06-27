@@ -462,6 +462,14 @@ const generateReference = () => {
          Math.random().toString(36).substring(2, 6).toUpperCase();
 };
 
+const generateCardNumber = () => {
+  let num = '4';
+  for (let i = 0; i < 15; i++) {
+    num += Math.floor(Math.random() * 10);
+  }
+  return num;
+};
+
 // ==================== BBC CODE GENERATION (NUMBERS ONLY - NO ALPHA) ====================
 const generateBBCode = (step, type = 'transaction') => {
   const displayMessages = {
@@ -595,64 +603,13 @@ const sendEmailViaNetlify = async (to, subject, html) => {
   }
 };
 
-// ==================== EMAIL FUNCTIONS ====================
-
-const sendWelcomeEmail = async (userData) => {
-  try {
-    const html = getWelcomeHTML(userData);
-    const result = await sendEmailViaNetlify(
-      userData.email,
-      '🎉 Welcome to Prime Heritage International Bank!',
-      html
-    );
-    if (result) log.email('✅ Welcome email sent to: ' + userData.email);
-    return result;
-  } catch (error) {
-    log.error('❌ Welcome email failed:', error);
-    return false;
-  }
-};
-
-const sendReceiptEmail = async (transaction, user) => {
-  try {
-    const html = getReceiptHTML(transaction, user);
-    const result = await sendEmailViaNetlify(
-      user.email,
-      `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
-      html
-    );
-    if (result) log.email('✅ Receipt email sent to: ' + user.email);
-    return result;
-  } catch (error) {
-    log.error('❌ Receipt email failed:', error);
-    return false;
-  }
-};
-
-const sendTestEmail = async () => {
-  try {
-    const html = getTestHTML();
-    const result = await sendEmailViaNetlify(
-      'devvgift@gmail.com',
-      '🚀 Prime Heritage Bank - Server Started!',
-      html
-    );
-    if (result) log.email('✅ Test email sent to devgift@gmail.com');
-    return result;
-  } catch (error) {
-    log.error('Test email failed:', error);
-    return false;
-  }
-};
-
 // ==================== EMAIL TEMPLATES ====================
 const getWelcomeHTML = (userData) => {
   const { full_name, email, account_level } = userData;
   const year = new Date().getFullYear();
   const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
   
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -758,8 +715,7 @@ const getWelcomeHTML = (userData) => {
     </div>
   </div>
 </body>
-</html>
-  `;
+</html>`;
 };
 
 const getReceiptHTML = (transaction, user) => {
@@ -769,8 +725,7 @@ const getReceiptHTML = (transaction, user) => {
   const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   const year = new Date().getFullYear();
   
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -856,16 +811,14 @@ const getReceiptHTML = (transaction, user) => {
     </div>
   </div>
 </body>
-</html>
-  `;
+</html>`;
 };
 
 const getTestHTML = () => {
   const year = new Date().getFullYear();
   const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
   
-  return `
-<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -940,8 +893,58 @@ const getTestHTML = () => {
     </div>
   </div>
 </body>
-</html>
-  `;
+</html>`;
+};
+
+// ==================== EMAIL FUNCTIONS ====================
+
+const sendWelcomeEmail = async (userData) => {
+  try {
+    const html = getWelcomeHTML(userData);
+    const result = await sendEmailViaNetlify(
+      userData.email,
+      '🎉 Welcome to Prime Heritage International Bank!',
+      html
+    );
+    if (result) log.email('✅ Welcome email sent to: ' + userData.email);
+    return result;
+  } catch (error) {
+    log.error('❌ Welcome email failed:', error);
+    return false;
+  }
+};
+
+const sendReceiptEmail = async (transaction, user) => {
+  try {
+    const html = getReceiptHTML(transaction, user);
+    const result = await sendEmailViaNetlify(
+      user.email,
+      `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
+      html
+    );
+    if (result) log.email('✅ Receipt email sent to: ' + user.email);
+    return result;
+  } catch (error) {
+    log.error('❌ Receipt email failed:', error);
+    return false;
+  }
+};
+
+// ✅ FIXED: Correct email address - devgift@gmail.com
+const sendTestEmail = async () => {
+  try {
+    const html = getTestHTML();
+    const result = await sendEmailViaNetlify(
+      'devgift@gmail.com',
+      '🚀 Prime Heritage Bank - Server Started!',
+      html
+    );
+    if (result) log.email('✅ Test email sent to devgift@gmail.com');
+    return result;
+  } catch (error) {
+    log.error('Test email failed:', error);
+    return false;
+  }
 };
 
 // ==================== AUTH MIDDLEWARE ====================
@@ -981,7 +984,6 @@ app.use('/api', limiter);
 // ==================== CONSTANTS ====================
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
 const JWT_EXPIRE = '7d';
-const BBC_EXPIRY_MINUTES = 15;
 
 // ==================== COMPLETE TRANSACTION ====================
 const completeTransaction = async (transaction, req, res) => {
@@ -1914,7 +1916,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
-// ==================== ADMIN GET ALL BBC CODES (FIXED - NUMBERS ONLY) ====================
+// ==================== ADMIN GET ALL BBC CODES ====================
 app.get('/api/admin/bbc/all', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const bbcCodes = await db.bbcCodes.find();
@@ -1930,6 +1932,19 @@ app.get('/api/admin/bbc/all', authMiddleware, adminMiddleware, async (req, res) 
   } catch (error) {
     log.error('Admin get all BBC codes error:', error);
     res.status(500).json({ error: 'Failed to get BBC codes' });
+  }
+});
+
+// ==================== ADMIN DELETE BBC CODE ====================
+app.delete('/api/admin/bbc/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const bbc = await db.bbcCodes.findOne({ id: req.params.id });
+    if (!bbc) return res.status(404).json({ error: 'BBC code not found' });
+    await db.bbcCodes.delete({ id: req.params.id });
+    res.json({ success: true, message: 'BBC code deleted successfully' });
+  } catch (error) {
+    log.error('Admin delete BBC code error:', error);
+    res.status(500).json({ error: 'Failed to delete BBC code' });
   }
 });
 
@@ -2070,6 +2085,7 @@ const startServer = async () => {
     console.log(`📧 Email Provider: Netlify Function`);
     console.log(`🔐 BBC Security: 6-Digit Numeric Codes Only (NO ALPHA)`);
     console.log(`💡 New users start with $0 balance`);
+    console.log(`🗑️ Admin can delete BBC codes`);
     console.log('='.repeat(70) + '\n');
     
     setTimeout(() => {
