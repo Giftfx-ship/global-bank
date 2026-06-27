@@ -6,6 +6,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const path = require('path');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 const app = express();
@@ -54,22 +55,220 @@ const log = {
 
 log.info('🚀 Starting Prime Heritage International Bank Server...');
 
-// ==================== IN-MEMORY DATABASE ====================
+// ==================== MONGODB CONNECTION ====================
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://adminigwe:db_08133595884@cluster0.j0hst.mongodb.net/primeheritage?retryWrites=true&w=majority';
+
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 5000
+})
+.then(() => log.success('✅ MongoDB connected successfully!'))
+.catch(err => log.error('❌ MongoDB connection error:', err));
+
+// ==================== MONGODB SCHEMAS ====================
+
+// User Schema
+const userSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  full_name: { type: String, required: true },
+  first_name: { type: String, required: true },
+  last_name: { type: String, required: true },
+  email: { type: String, unique: true, required: true },
+  phone: { type: String, required: true },
+  password: { type: String, required: true },
+  transaction_pin: { type: String, required: true },
+  passport_number: { type: String, default: 'N/A' },
+  nationality: { type: String, default: 'N/A' },
+  country_of_residence: { type: String, default: 'N/A' },
+  date_of_birth: { type: String, default: 'N/A' },
+  account_level: { type: String, default: 'standard' },
+  is_active: { type: Boolean, default: true },
+  is_verified: { type: Boolean, default: false },
+  is_admin: { type: Boolean, default: false },
+  is_super_admin: { type: Boolean, default: false },
+  is_unlimited: { type: Boolean, default: false },
+  login_count: { type: Number, default: 0 },
+  last_login: { type: Date, default: null },
+  created_at: { type: Date, default: Date.now }
+});
+
+// Account Schema
+const accountSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  currency: { type: String, required: true },
+  account_number: { type: String, unique: true, required: true },
+  iban: { type: String, unique: true, required: true },
+  swift_code: { type: String },
+  balance: { type: Number, default: 0 },
+  is_primary: { type: Boolean, default: false },
+  account_type: { type: String, default: 'current' },
+  is_active: { type: Boolean, default: true },
+  created_at: { type: Date, default: Date.now }
+});
+
+// Transaction Schema
+const transactionSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  reference: { type: String, unique: true, required: true },
+  type: { type: String, required: true },
+  amount: { type: Number, required: true },
+  currency: { type: String, default: 'USD' },
+  from_user_id: { type: String },
+  to_user_id: { type: String },
+  from_account_number: { type: String },
+  to_account_number: { type: String },
+  description: { type: String },
+  sender_name: { type: String },
+  status: { type: String, default: 'pending' },
+  step: { type: Number, default: 1 },
+  created_at: { type: Date, default: Date.now },
+  completed_at: { type: Date }
+});
+
+// Card Schema
+const cardSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  card_number: { type: String, unique: true },
+  last4: { type: String },
+  expiry_month: { type: String },
+  expiry_year: { type: String },
+  card_type: { type: String, default: 'Visa' },
+  is_active: { type: Boolean, default: true },
+  created_at: { type: Date, default: Date.now }
+});
+
+// Loan Schema
+const loanSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  amount: { type: Number, required: true },
+  currency: { type: String, default: 'USD' },
+  term_months: { type: Number, default: 36 },
+  interest_rate: { type: Number, default: 5.5 },
+  status: { type: String, default: 'pending' },
+  created_at: { type: Date, default: Date.now }
+});
+
+// Support Ticket Schema
+const supportTicketSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  category: { type: String, default: 'General' },
+  status: { type: String, default: 'open' },
+  response: { type: String },
+  responded_at: { type: Date },
+  responded_by: { type: String },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+
+// BBC Code Schema
+const bbcCodeSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  code: { type: String, unique: true, required: true },
+  step: { type: Number, required: true },
+  display_message: { type: String, required: true },
+  hidden_purpose: { type: String },
+  security_flag: { type: String },
+  type: { type: String, default: 'transaction' },
+  transaction_id: { type: String },
+  user_id: { type: String, required: true },
+  is_used: { type: Boolean, default: false },
+  used_at: { type: Date },
+  expires_at: { type: Date, required: true },
+  created_at: { type: Date, default: Date.now }
+});
+
+// Pending Transaction Schema
+const pendingTransactionSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  reference: { type: String, unique: true, required: true },
+  type: { type: String, required: true },
+  amount: { type: Number, required: true },
+  currency: { type: String, default: 'USD' },
+  from_user_id: { type: String },
+  to_user_id: { type: String },
+  from_account_number: { type: String },
+  to_account_number: { type: String },
+  description: { type: String },
+  sender_name: { type: String },
+  status: { type: String, default: 'pending_bbc' },
+  step: { type: Number, default: 1 },
+  created_at: { type: Date, default: Date.now }
+});
+
+// Create Models
+const User = mongoose.model('User', userSchema);
+const Account = mongoose.model('Account', accountSchema);
+const Transaction = mongoose.model('Transaction', transactionSchema);
+const Card = mongoose.model('Card', cardSchema);
+const Loan = mongoose.model('Loan', loanSchema);
+const SupportTicket = mongoose.model('SupportTicket', supportTicketSchema);
+const BBCCode = mongoose.model('BBCCode', bbcCodeSchema);
+const PendingTransaction = mongoose.model('PendingTransaction', pendingTransactionSchema);
+
+// ==================== DATABASE HELPERS ====================
 const db = {
-  users: [],
-  accounts: [],
-  transactions: [],
-  cards: [],
-  loans: [],
-  supportTickets: [],
-  bbcCodes: [],
-  pendingTransactions: [],
-  airtimeHistory: [],
-  billHistory: [],
-  dataHistory: [],
-  withdrawHistory: [],
-  auditLogs: [],
-  receipts: []
+  // Users
+  users: {
+    find: async (filter) => await User.find(filter || {}),
+    findOne: async (filter) => await User.findOne(filter),
+    create: async (data) => await User.create(data),
+    update: async (filter, update) => await User.updateOne(filter, update),
+    delete: async (filter) => await User.deleteOne(filter)
+  },
+  // Accounts
+  accounts: {
+    find: async (filter) => await Account.find(filter || {}),
+    findOne: async (filter) => await Account.findOne(filter),
+    create: async (data) => await Account.create(data),
+    update: async (filter, update) => await Account.updateOne(filter, update),
+    delete: async (filter) => await Account.deleteOne(filter)
+  },
+  // Transactions
+  transactions: {
+    find: async (filter) => await Transaction.find(filter || {}),
+    findOne: async (filter) => await Transaction.findOne(filter),
+    create: async (data) => await Transaction.create(data),
+    update: async (filter, update) => await Transaction.updateOne(filter, update)
+  },
+  // Pending Transactions
+  pendingTransactions: {
+    find: async (filter) => await PendingTransaction.find(filter || {}),
+    findOne: async (filter) => await PendingTransaction.findOne(filter),
+    create: async (data) => await PendingTransaction.create(data),
+    delete: async (filter) => await PendingTransaction.deleteOne(filter),
+    deleteMany: async (filter) => await PendingTransaction.deleteMany(filter)
+  },
+  // BBC Codes
+  bbcCodes: {
+    find: async (filter) => await BBCCode.find(filter || {}),
+    findOne: async (filter) => await BBCCode.findOne(filter),
+    create: async (data) => await BBCCode.create(data),
+    update: async (filter, update) => await BBCCode.updateOne(filter, update)
+  },
+  // Cards
+  cards: {
+    find: async (filter) => await Card.find(filter || {}),
+    create: async (data) => await Card.create(data)
+  },
+  // Loans
+  loans: {
+    find: async (filter) => await Loan.find(filter || {}),
+    create: async (data) => await Loan.create(data)
+  },
+  // Support Tickets
+  supportTickets: {
+    find: async (filter) => await SupportTicket.find(filter || {}),
+    findOne: async (filter) => await SupportTicket.findOne(filter),
+    create: async (data) => await SupportTicket.create(data),
+    update: async (filter, update) => await SupportTicket.updateOne(filter, update)
+  }
 };
 
 // ==================== UTILITY FUNCTIONS ====================
@@ -149,7 +348,7 @@ const generateBBCode = (step, type = 'transaction') => {
   };
 };
 
-const generateBBCodesForTransaction = (transactionId, userId, type = 'transaction') => {
+const generateBBCodesForTransaction = async (transactionId, userId, type = 'transaction') => {
   const bbcCodes = [];
   for (let step = 1; step <= 3; step++) {
     const bbcData = generateBBCode(step, type);
@@ -168,7 +367,7 @@ const generateBBCodesForTransaction = (transactionId, userId, type = 'transactio
       expires_at: new Date(Date.now() + 15 * 60000).toISOString(),
       created_at: new Date().toISOString()
     };
-    db.bbcCodes.push(bbc);
+    await db.bbcCodes.create(bbc);
     bbcCodes.push(bbc);
   }
   return bbcCodes;
@@ -179,7 +378,7 @@ const createDefaultAdmin = async () => {
   log.step('👑', 'Creating default admin account...');
   
   const adminEmail = 'devgift@gmail.com';
-  const existingAdmin = db.users.find(u => u.email === adminEmail);
+  const existingAdmin = await db.users.findOne({ email: adminEmail });
   
   if (!existingAdmin) {
     const hashedPassword = await bcrypt.hash('Igwe', 10);
@@ -208,7 +407,7 @@ const createDefaultAdmin = async () => {
       created_at: new Date().toISOString()
     };
     
-    db.users.push(admin);
+    await db.users.create(admin);
     
     const adminAccount = {
       id: uuidv4(),
@@ -223,7 +422,7 @@ const createDefaultAdmin = async () => {
       is_active: true,
       created_at: new Date().toISOString()
     };
-    db.accounts.push(adminAccount);
+    await db.accounts.create(adminAccount);
     
     log.success('✅ Default admin created');
     log.admin('👑 Admin Credentials:');
@@ -302,7 +501,7 @@ const sendTestEmail = async () => {
   try {
     const html = getTestHTML();
     const result = await sendEmailViaNetlify(
-      'devvgift@gmail.com',
+      'devgift@gmail.com',
       '🚀 Prime Heritage Bank - Server Started!',
       html
     );
@@ -359,7 +558,6 @@ const getWelcomeHTML = (userData) => {
           pointer-events: none;
         }
 
-        /* ===== HEADER ===== */
         .header {
           background: linear-gradient(160deg, #080C18 0%, #111D35 45%, #0E1525 100%);
           padding: 44px 40px 30px;
@@ -438,7 +636,6 @@ const getWelcomeHTML = (userData) => {
           font-weight: 500;
         }
 
-        /* ===== BODY ===== */
         .body-content {
           padding: 38px 40px 30px;
           background: #0E1525;
@@ -502,7 +699,6 @@ const getWelcomeHTML = (userData) => {
           margin: 24px 0 28px;
         }
 
-        /* ===== ACCOUNT CARD ===== */
         .account-card {
           background: rgba(255,255,255,0.015);
           border: 1px solid rgba(255,255,255,0.04);
@@ -595,7 +791,6 @@ const getWelcomeHTML = (userData) => {
           50% { opacity: 0.4; transform: scale(0.7); }
         }
 
-        /* ===== FEATURES ===== */
         .features-grid {
           display: grid;
           grid-template-columns: 1fr 1fr;
@@ -634,7 +829,6 @@ const getWelcomeHTML = (userData) => {
           letter-spacing: 0.5px;
         }
 
-        /* ===== BUTTONS ===== */
         .btn-wrap {
           text-align: center;
           margin: 26px 0 4px;
@@ -696,7 +890,6 @@ const getWelcomeHTML = (userData) => {
           gap: 8px;
         }
 
-        /* ===== FOOTER ===== */
         .footer-section {
           background: rgba(255,255,255,0.005);
           padding: 28px 40px 24px;
@@ -755,7 +948,6 @@ const getWelcomeHTML = (userData) => {
           letter-spacing: 0.3px;
         }
 
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 520px) {
           body { padding: 16px 12px; }
           .email-wrapper { border-radius: 20px; }
@@ -776,7 +968,6 @@ const getWelcomeHTML = (userData) => {
           .header .crest { font-size: 32px; }
         }
 
-        /* ===== LIGHT MODE ===== */
         @media (prefers-color-scheme: light) {
           body { background: #f4f6f9; }
           .email-wrapper {
@@ -815,7 +1006,6 @@ const getWelcomeHTML = (userData) => {
     </head>
     <body>
       <div class="email-wrapper">
-        <!-- HEADER -->
         <div class="header">
           <span class="crest">✦</span>
           <h1>Prime Heritage <span class="gold">Bank</span></h1>
@@ -823,7 +1013,6 @@ const getWelcomeHTML = (userData) => {
           <div class="badge">✦ Established 2026 ✦</div>
         </div>
 
-        <!-- BODY -->
         <div class="body-content">
           <div class="greeting">
             <span class="wave">👋</span> Welcome, <span class="highlight">${full_name}</span>
@@ -837,7 +1026,6 @@ const getWelcomeHTML = (userData) => {
 
           <div class="divider-line"></div>
 
-          <!-- ACCOUNT CARD -->
           <div class="account-card">
             <div class="card-title"><i>▸</i> Account Summary</div>
             <div class="row">
@@ -858,7 +1046,6 @@ const getWelcomeHTML = (userData) => {
             </div>
           </div>
 
-          <!-- FEATURES -->
           <div class="features-grid">
             <div class="feature-item">
               <span class="icon">🌍</span>
@@ -882,16 +1069,14 @@ const getWelcomeHTML = (userData) => {
             </div>
           </div>
 
-          <!-- BUTTONS -->
           <div class="btn-wrap">
             <div class="btn-group">
-              <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/dashboard.html" class="btn-primary">🚀 Access Your Dashboard</a>
-              <a href="${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/login.html" class="btn-secondary">🔐 Secure Sign In</a>
+              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/dashboard.html" class="btn-primary">🚀 Access Your Dashboard</a>
+              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/login.html" class="btn-secondary">🔐 Secure Sign In</a>
             </div>
           </div>
         </div>
 
-        <!-- FOOTER -->
         <div class="footer-section">
           <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
           <p>Global Banking • Privacy Assured • Excellence Delivered</p>
@@ -903,19 +1088,19 @@ const getWelcomeHTML = (userData) => {
           </div>
           <p>© ${new Date().getFullYear()} Prime Heritage International Bank. All rights reserved.</p>
           <div class="email-ref">✉ ${email}</div>
-          <div class="disclaimer">Transfers made easy. once agin welcome.</div>
+          <div class="disclaimer">Transfers made easy. once again welcome.</div>
         </div>
       </div>
     </body>
     </html>
   `;
 };
+
 const getReceiptHTML = (transaction, user) => {
-  const receiptUrl = `${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}/receipt.html?ref=${transaction.reference}`;
+  const receiptUrl = `${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/receipt.html?ref=${transaction.reference}`;
   const txDate = new Date(transaction.created_at || Date.now());
   const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  
   return `
     <!DOCTYPE html>
     <html lang="en">
@@ -1252,6 +1437,7 @@ const getReceiptHTML = (transaction, user) => {
     </html>
   `;
 };
+
 const getTestHTML = () => {
   return `
     <!DOCTYPE html>
@@ -1481,7 +1667,7 @@ const getTestHTML = () => {
             </div>
             <div class="row">
               <span class="label">🔗 URL</span>
-              <span class="value" style="font-size:12px;">${process.env.FRONTEND_URL || 'https://prime-heritage-bank.onrender.com'}</span>
+              <span class="value" style="font-size:12px;">${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}</span>
             </div>
           </div>
 
@@ -1523,7 +1709,7 @@ const authMiddleware = async (req, res, next) => {
       return res.status(401).json({ error: 'No token provided' });
     }
     const decoded = jwt.verify(token, JWT_SECRET);
-    const user = db.users.find(u => u.id === decoded.userId);
+    const user = await db.users.findOne({ id: decoded.userId });
     if (!user || !user.is_active) {
       return res.status(401).json({ error: 'Invalid token' });
     }
@@ -1563,14 +1749,16 @@ const BBC_EXPIRY_MINUTES = 15;
 // ==================== COMPLETE TRANSACTION ====================
 const completeTransaction = async (transaction, req, res) => {
   try {
-    const fromAccount = db.accounts.find(a => a.account_number === transaction.from_account_number);
-    const toAccount = db.accounts.find(a => a.account_number === transaction.to_account_number);
+    const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
+    const toAccount = await db.accounts.findOne({ account_number: transaction.to_account_number });
     
     if (fromAccount && toAccount) {
       if (!req.user.is_unlimited) {
         fromAccount.balance -= transaction.amount;
+        await db.accounts.update({ account_number: transaction.from_account_number }, { balance: fromAccount.balance });
       }
       toAccount.balance += transaction.amount;
+      await db.accounts.update({ account_number: transaction.to_account_number }, { balance: toAccount.balance });
       
       const completedTx = {
         ...transaction,
@@ -1578,10 +1766,10 @@ const completeTransaction = async (transaction, req, res) => {
         completed_at: new Date().toISOString()
       };
       
-      db.transactions.push(completedTx);
-      db.pendingTransactions = db.pendingTransactions.filter(t => t.reference !== transaction.reference);
+      await db.transactions.create(completedTx);
+      await db.pendingTransactions.deleteMany({ reference: transaction.reference });
       
-      const user = db.users.find(u => u.id === req.user.id);
+      const user = await db.users.findOne({ id: req.user.id });
       if (user) {
         sendReceiptEmail(completedTx, user).catch(err => {
           log.error('Background receipt email failed:', err);
@@ -1631,14 +1819,18 @@ app.get('/receipt', servePage('receipt.html'));
 app.get('/receipt.html', servePage('receipt.html'));
 
 // ==================== API: HEALTH ====================
-app.get('/api/health', (req, res) => {
+app.get('/api/health', async (req, res) => {
+  const users = await db.users.find();
+  const accounts = await db.accounts.find();
+  const transactions = await db.transactions.find();
+  const bbcCodes = await db.bbcCodes.find();
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
-    users: db.users.length,
-    accounts: db.accounts.length,
-    transactions: db.transactions.length,
-    bbcCodes: db.bbcCodes.length
+    users: users.length,
+    accounts: accounts.length,
+    transactions: transactions.length,
+    bbcCodes: bbcCodes.length
   });
 });
 
@@ -1657,7 +1849,8 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'All required fields must be filled' });
     }
 
-    if (db.users.find(u => u.email === email)) {
+    const existingUser = await db.users.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
@@ -1687,7 +1880,7 @@ app.post('/api/auth/register', async (req, res) => {
       created_at: new Date().toISOString()
     };
     
-    db.users.push(user);
+    await db.users.create(user);
     log.success('User created:', user.email);
 
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
@@ -1705,7 +1898,7 @@ app.post('/api/auth/register', async (req, res) => {
         is_active: true,
         created_at: new Date().toISOString()
       };
-      db.accounts.push(account);
+      await db.accounts.create(account);
     }
 
     // Send welcome email (non-blocking)
@@ -1715,7 +1908,7 @@ app.post('/api/auth/register', async (req, res) => {
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
-    const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const userAccounts = await db.accounts.find({ user_id: user.id });
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
 
     res.status(201).json({
@@ -1754,7 +1947,7 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password required' });
     }
 
-    const user = db.users.find(u => u.email === email);
+    const user = await db.users.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
@@ -1770,12 +1963,13 @@ app.post('/api/auth/login', async (req, res) => {
 
     user.last_login = new Date().toISOString();
     user.login_count = (user.login_count || 0) + 1;
+    await db.users.update({ email }, { last_login: user.last_login, login_count: user.login_count });
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
 
-    const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const userAccounts = await db.accounts.find({ user_id: user.id });
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
-    const totalBalance = userAccounts.reduce((sum, a) => sum + a.balance, 0);
+    const totalBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
 
     res.json({
       success: true,
@@ -1810,17 +2004,27 @@ app.post('/api/auth/login', async (req, res) => {
 // ==================== API: GET PROFILE ====================
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
-    const user = db.users.find(u => u.id === req.user.id);
+    const user = await db.users.findOne({ id: req.user.id });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
     
-    const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const userAccounts = await db.accounts.find({ user_id: user.id });
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
-    const totalBalance = userAccounts.reduce((sum, a) => sum + a.balance, 0);
+    const totalBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
+    
+    const cards = await db.cards.find({ user_id: user.id });
+    const transactions = await db.transactions.find({
+      $or: [
+        { from_user_id: user.id },
+        { to_user_id: user.id }
+      ]
+    });
+    const loans = await db.loans.find({ user_id: user.id });
+    const supportTickets = await db.supportTickets.find({ user_id: user.id });
     
     const userData = {
-      ...user,
+      ...user._doc,
       password: undefined,
       transaction_pin: undefined,
       accounts: userAccounts,
@@ -1830,13 +2034,10 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
       iban: primaryAccount?.iban || 'N/A',
       swift_code: primaryAccount?.swift_code || 'N/A',
       currency: primaryAccount?.currency || 'USD',
-      cards: db.cards.filter(c => c.user_id === user.id),
-      transactions: db.transactions
-        .filter(t => t.from_user_id === user.id || t.to_user_id === user.id)
-        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-        .slice(0, 50),
-      loans: db.loans.filter(l => l.user_id === user.id),
-      supportTickets: db.supportTickets.filter(s => s.user_id === user.id)
+      cards: cards,
+      transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50),
+      loans: loans,
+      supportTickets: supportTickets
     };
     
     res.json({ success: true, user: userData });
@@ -1849,7 +2050,7 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
 // ==================== API: GET ACCOUNTS ====================
 app.get('/api/accounts', authMiddleware, async (req, res) => {
   try {
-    const accounts = db.accounts.filter(a => a.user_id === req.user.id && a.is_active === true);
+    const accounts = await db.accounts.find({ user_id: req.user.id, is_active: true });
     res.json({ success: true, accounts });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get accounts' });
@@ -1859,36 +2060,41 @@ app.get('/api/accounts', authMiddleware, async (req, res) => {
 // ==================== API: GET TRANSACTIONS ====================
 app.get('/api/transactions', authMiddleware, async (req, res) => {
   try {
-    const transactions = db.transactions
-      .filter(t => t.from_user_id === req.user.id || t.to_user_id === req.user.id)
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
-      .slice(0, 100);
-    res.json({ success: true, transactions });
+    const transactions = await db.transactions.find({
+      $or: [
+        { from_user_id: req.user.id },
+        { to_user_id: req.user.id }
+      ]
+    });
+    res.json({ success: true, transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 100) });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get transactions' });
   }
 });
 
-// ==================== API: GET ALL TRANSACTIONS (View All) ====================
+// ==================== API: GET ALL TRANSACTIONS ====================
 app.get('/api/transactions/all', authMiddleware, async (req, res) => {
   try {
-    const transactions = db.transactions
-      .filter(t => t.from_user_id === req.user.id || t.to_user_id === req.user.id)
-      .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    const transactions = await db.transactions.find({
+      $or: [
+        { from_user_id: req.user.id },
+        { to_user_id: req.user.id }
+      ]
+    });
     
-    const enrichedTransactions = transactions.map(tx => {
-      const sender = db.users.find(u => u.id === tx.from_user_id);
-      const recipient = db.users.find(u => u.id === tx.to_user_id);
+    const enrichedTransactions = await Promise.all(transactions.map(async (tx) => {
+      const sender = await db.users.findOne({ id: tx.from_user_id });
+      const recipient = await db.users.findOne({ id: tx.to_user_id });
       return {
-        ...tx,
+        ...tx._doc,
         sender_name: tx.sender_name || sender?.full_name || 'System',
         recipient_name: recipient?.full_name || 'Unknown'
       };
-    });
+    }));
     
     res.json({
       success: true,
-      transactions: enrichedTransactions,
+      transactions: enrichedTransactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
       count: enrichedTransactions.length
     });
   } catch (error) {
@@ -1902,10 +2108,13 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
     const { reference } = req.params;
     
-    const transaction = db.transactions.find(t => 
-      t.reference === reference && 
-      (t.from_user_id === req.user.id || t.to_user_id === req.user.id)
-    );
+    const transaction = await db.transactions.findOne({
+      reference: reference,
+      $or: [
+        { from_user_id: req.user.id },
+        { to_user_id: req.user.id }
+      ]
+    });
     
     if (!transaction) {
       return res.status(404).json({ error: 'Receipt not found' });
@@ -1918,13 +2127,13 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
       role = 'recipient';
     }
     
-    const sender = db.users.find(u => u.id === transaction.from_user_id);
-    const recipient = db.users.find(u => u.id === transaction.to_user_id);
+    const sender = await db.users.findOne({ id: transaction.from_user_id });
+    const recipient = await db.users.findOne({ id: transaction.to_user_id });
     
     res.json({
       success: true,
       transaction: {
-        ...transaction,
+        ...transaction._doc,
         sender_name: transaction.sender_name || sender?.full_name || 'N/A',
         recipient_name: recipient?.full_name || 'N/A'
       },
@@ -1943,18 +2152,18 @@ app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async 
   try {
     const { reference } = req.params;
     
-    const transaction = db.transactions.find(t => t.reference === reference);
+    const transaction = await db.transactions.findOne({ reference });
     if (!transaction) {
       return res.status(404).json({ error: 'Receipt not found' });
     }
     
-    const sender = db.users.find(u => u.id === transaction.from_user_id);
-    const recipient = db.users.find(u => u.id === transaction.to_user_id);
+    const sender = await db.users.findOne({ id: transaction.from_user_id });
+    const recipient = await db.users.findOne({ id: transaction.to_user_id });
     
     res.json({
       success: true,
       transaction: {
-        ...transaction,
+        ...transaction._doc,
         sender_name: transaction.sender_name || sender?.full_name || 'N/A',
         recipient_name: recipient?.full_name || 'N/A'
       },
@@ -1975,12 +2184,12 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     
     log.admin(`Sending money: ${amount} ${currency} to ${toAccountNumber} from ${senderName}`);
     
-    const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
+    const toAccount = await db.accounts.findOne({ account_number: toAccountNumber });
     if (!toAccount) {
       return res.status(404).json({ error: 'Recipient account not found' });
     }
     
-    const recipient = db.users.find(u => u.id === toAccount.user_id);
+    const recipient = await db.users.findOne({ id: toAccount.user_id });
     if (!recipient) {
       return res.status(404).json({ error: 'Recipient user not found' });
     }
@@ -2003,8 +2212,9 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
       created_at: new Date().toISOString()
     };
     
-    db.transactions.push(transaction);
+    await db.transactions.create(transaction);
     toAccount.balance = (toAccount.balance || 0) + amount;
+    await db.accounts.update({ account_number: toAccountNumber }, { balance: toAccount.balance });
     
     sendReceiptEmail(transaction, recipient).catch(err => {
       log.error('Receipt email failed:', err);
@@ -2029,19 +2239,16 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
 });
 
 // ==================== SUPPORT ROUTES ====================
-
-// Get support tickets for a user
-app.get('/api/support/tickets', authMiddleware, (req, res) => {
+app.get('/api/support/tickets', authMiddleware, async (req, res) => {
   try {
-    const tickets = db.supportTickets.filter(t => t.user_id === req.user.id);
+    const tickets = await db.supportTickets.find({ user_id: req.user.id });
     res.json({ success: true, tickets });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get support tickets' });
   }
 });
 
-// Create a new support ticket
-app.post('/api/support/tickets', authMiddleware, (req, res) => {
+app.post('/api/support/tickets', authMiddleware, async (req, res) => {
   try {
     const { subject, message, category } = req.body;
     
@@ -2060,58 +2267,54 @@ app.post('/api/support/tickets', authMiddleware, (req, res) => {
       updated_at: new Date().toISOString()
     };
     
-    db.supportTickets.push(ticket);
+    await db.supportTickets.create(ticket);
     res.json({ success: true, ticket });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create support ticket' });
   }
 });
 
-// Get a single support ticket
-app.get('/api/support/tickets/:id', authMiddleware, (req, res) => {
+app.get('/api/support/tickets/:id', authMiddleware, async (req, res) => {
   try {
-    const ticket = db.supportTickets.find(t => 
-      t.id === req.params.id && t.user_id === req.user.id
-    );
-    
+    const ticket = await db.supportTickets.findOne({ id: req.params.id, user_id: req.user.id });
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
-    
     res.json({ success: true, ticket });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get ticket' });
   }
 });
 
-// Update support ticket status (admin only)
-app.put('/api/admin/support/tickets/:id', authMiddleware, adminMiddleware, (req, res) => {
+app.put('/api/admin/support/tickets/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { status, response } = req.body;
-    const ticket = db.supportTickets.find(t => t.id === req.params.id);
+    const ticket = await db.supportTickets.findOne({ id: req.params.id });
     
     if (!ticket) {
       return res.status(404).json({ error: 'Ticket not found' });
     }
     
-    if (status) ticket.status = status;
+    const updateData = { updated_at: new Date().toISOString() };
+    if (status) updateData.status = status;
     if (response) {
-      ticket.response = response;
-      ticket.responded_at = new Date().toISOString();
-      ticket.responded_by = req.user.id;
+      updateData.response = response;
+      updateData.responded_at = new Date().toISOString();
+      updateData.responded_by = req.user.id;
     }
-    ticket.updated_at = new Date().toISOString();
     
-    res.json({ success: true, ticket });
+    await db.supportTickets.update({ id: req.params.id }, updateData);
+    const updatedTicket = await db.supportTickets.findOne({ id: req.params.id });
+    
+    res.json({ success: true, ticket: updatedTicket });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update ticket' });
   }
 });
 
-// Get all support tickets (admin only)
-app.get('/api/admin/support/tickets', authMiddleware, adminMiddleware, (req, res) => {
+app.get('/api/admin/support/tickets', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const tickets = db.supportTickets;
+    const tickets = await db.supportTickets.find();
     res.json({ success: true, tickets });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get tickets' });
@@ -2130,17 +2333,17 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
     
-    const toAccount = db.accounts.find(a => a.account_number === toAccountNumber);
+    const toAccount = await db.accounts.findOne({ account_number: toAccountNumber });
     if (!toAccount) {
       return res.status(404).json({ error: 'Recipient account not found' });
     }
     
-    const recipient = db.users.find(u => u.id === toAccount.user_id);
+    const recipient = await db.users.findOne({ id: toAccount.user_id });
     if (!recipient) {
       return res.status(404).json({ error: 'Recipient not found' });
     }
     
-    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === 'USD');
+    const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
     if (!fromAccount) {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
@@ -2168,9 +2371,9 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
       created_at: new Date().toISOString()
     };
     
-    db.pendingTransactions.push(transaction);
+    await db.pendingTransactions.create(transaction);
     
-    const bbcCodes = generateBBCodesForTransaction(reference, req.user.id, 'transaction');
+    const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'transaction');
     const firstBbc = bbcCodes.find(b => b.step === 1);
     
     res.json({
@@ -2190,17 +2393,17 @@ app.post('/api/send/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.from_user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, from_user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 1 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 1,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2210,15 +2413,15 @@ app.post('/api/send/step2', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 2;
+    await db.pendingTransactions.update({ reference }, { step: 2 });
     
-    const step2Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const step2Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2236,17 +2439,17 @@ app.post('/api/send/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.from_user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, from_user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2256,15 +2459,15 @@ app.post('/api/send/step3', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 3;
+    await db.pendingTransactions.update({ reference }, { step: 3 });
     
-    const step3Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const step3Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2282,17 +2485,17 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.from_user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, from_user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2302,8 +2505,7 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
     const result = await completeTransaction(transaction, req, res);
     
@@ -2333,7 +2535,7 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
     
-    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === 'USD');
+    const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
     if (!fromAccount) {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
@@ -2360,9 +2562,9 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
       created_at: new Date().toISOString()
     };
     
-    db.pendingTransactions.push(transaction);
+    await db.pendingTransactions.create(transaction);
     
-    const bbcCodes = generateBBCodesForTransaction(reference, req.user.id, 'airtime');
+    const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'airtime');
     const firstBbc = bbcCodes.find(b => b.step === 1);
     
     res.json({
@@ -2382,17 +2584,17 @@ app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 1 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 1,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2402,15 +2604,15 @@ app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 2;
+    await db.pendingTransactions.update({ reference }, { step: 2 });
     
-    const step2Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const step2Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2428,17 +2630,17 @@ app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2448,15 +2650,15 @@ app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 3;
+    await db.pendingTransactions.update({ reference }, { step: 3 });
     
-    const step3Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const step3Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2474,17 +2676,17 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2494,8 +2696,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
     const result = await completeTransaction(transaction, req, res);
     
@@ -2525,7 +2726,7 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
     
-    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === 'USD');
+    const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
     if (!fromAccount) {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
@@ -2553,9 +2754,9 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
       created_at: new Date().toISOString()
     };
     
-    db.pendingTransactions.push(transaction);
+    await db.pendingTransactions.create(transaction);
     
-    const bbcCodes = generateBBCodesForTransaction(reference, req.user.id, 'bills');
+    const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'bills');
     const firstBbc = bbcCodes.find(b => b.step === 1);
     
     res.json({
@@ -2575,17 +2776,17 @@ app.post('/api/bills/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 1 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 1,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2595,15 +2796,15 @@ app.post('/api/bills/step2', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 2;
+    await db.pendingTransactions.update({ reference }, { step: 2 });
     
-    const step2Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const step2Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2621,17 +2822,17 @@ app.post('/api/bills/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2641,15 +2842,15 @@ app.post('/api/bills/step3', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 3;
+    await db.pendingTransactions.update({ reference }, { step: 3 });
     
-    const step3Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const step3Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2667,17 +2868,17 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2687,8 +2888,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
     const result = await completeTransaction(transaction, req, res);
     
@@ -2718,7 +2918,7 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
     
-    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === 'USD');
+    const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
     if (!fromAccount) {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
@@ -2747,9 +2947,9 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
       created_at: new Date().toISOString()
     };
     
-    db.pendingTransactions.push(transaction);
+    await db.pendingTransactions.create(transaction);
     
-    const bbcCodes = generateBBCodesForTransaction(reference, req.user.id, 'data');
+    const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'data');
     const firstBbc = bbcCodes.find(b => b.step === 1);
     
     res.json({
@@ -2769,17 +2969,17 @@ app.post('/api/data/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 1 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 1,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2789,15 +2989,15 @@ app.post('/api/data/step2', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 2;
+    await db.pendingTransactions.update({ reference }, { step: 2 });
     
-    const step2Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const step2Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2815,17 +3015,17 @@ app.post('/api/data/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2835,15 +3035,15 @@ app.post('/api/data/step3', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 3;
+    await db.pendingTransactions.update({ reference }, { step: 3 });
     
-    const step3Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const step3Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -2861,17 +3061,17 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2881,8 +3081,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
     const result = await completeTransaction(transaction, req, res);
     
@@ -2912,7 +3111,7 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
     
-    const fromAccount = db.accounts.find(a => a.user_id === req.user.id && a.currency === 'USD');
+    const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
     if (!fromAccount) {
       return res.status(404).json({ error: 'Your USD account not found' });
     }
@@ -2940,9 +3139,9 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
       created_at: new Date().toISOString()
     };
     
-    db.pendingTransactions.push(transaction);
+    await db.pendingTransactions.create(transaction);
     
-    const bbcCodes = generateBBCodesForTransaction(reference, req.user.id, 'withdraw');
+    const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'withdraw');
     const firstBbc = bbcCodes.find(b => b.step === 1);
     
     res.json({
@@ -2962,17 +3161,17 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 1 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 1,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -2982,15 +3181,15 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 2;
+    await db.pendingTransactions.update({ reference }, { step: 2 });
     
-    const step2Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const step2Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -3008,17 +3207,17 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 2 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 2,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -3028,15 +3227,15 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     transaction.step = 3;
+    await db.pendingTransactions.update({ reference }, { step: 3 });
     
-    const step3Bbc = db.bbcCodes.find(b => 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const step3Bbc = await db.bbcCodes.findOne({
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     res.json({
       success: true,
@@ -3054,17 +3253,17 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = db.pendingTransactions.find(t => t.reference === reference && t.user_id === req.user.id);
+    const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) {
       return res.status(404).json({ error: 'Transaction not found' });
     }
     
-    const bbc = db.bbcCodes.find(b => 
-      b.code === bbcCode && 
-      b.transaction_id === reference && 
-      b.step === 3 &&
-      !b.is_used
-    );
+    const bbc = await db.bbcCodes.findOne({
+      code: bbcCode,
+      transaction_id: reference,
+      step: 3,
+      is_used: false
+    });
     
     if (!bbc) {
       return res.status(400).json({ error: 'Invalid or expired BBC code' });
@@ -3074,8 +3273,7 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
       return res.status(400).json({ error: 'BBC code expired' });
     }
     
-    bbc.is_used = true;
-    bbc.used_at = new Date().toISOString();
+    await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
     const result = await completeTransaction(transaction, req, res);
     
@@ -3098,10 +3296,21 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
 // ==================== ADMIN ROUTES ====================
 app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const usersWithDetails = db.users.map(user => {
-      const userAccounts = db.accounts.filter(a => a.user_id === user.id);
+    const users = await db.users.find();
+    const usersWithDetails = await Promise.all(users.map(async (user) => {
+      const userAccounts = await db.accounts.find({ user_id: user.id });
       const totalBalance = userAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
       const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
+      
+      const transactions = await db.transactions.find({
+        $or: [
+          { from_user_id: user.id },
+          { to_user_id: user.id }
+        ]
+      });
+      const cards = await db.cards.find({ user_id: user.id });
+      const loans = await db.loans.find({ user_id: user.id });
+      const bbcCodes = await db.bbcCodes.find({ user_id: user.id });
       
       return {
         id: user.id,
@@ -3123,12 +3332,12 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
         currency: primaryAccount?.currency || 'USD',
         totalBalance: totalBalance,
         accountCount: userAccounts.length,
-        transactionCount: db.transactions.filter(t => t.from_user_id === user.id || t.to_user_id === user.id).length,
-        cardCount: db.cards.filter(c => c.user_id === user.id).length,
-        loanCount: db.loans.filter(l => l.user_id === user.id).length,
-        bbcCount: db.bbcCodes.filter(b => b.user_id === user.id).length
+        transactionCount: transactions.length,
+        cardCount: cards.length,
+        loanCount: loans.length,
+        bbcCount: bbcCodes.length
       };
-    });
+    }));
     res.json(usersWithDetails);
   } catch (error) {
     log.error('Admin get users error:', error);
@@ -3139,7 +3348,7 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
 app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId } = req.body;
-    const user = db.users.find(u => u.id === userId);
+    const user = await db.users.findOne({ id: userId });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -3147,6 +3356,7 @@ app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req
       return res.status(400).json({ error: 'Cannot modify admin account' });
     }
     user.is_active = !user.is_active;
+    await db.users.update({ id: userId }, { is_active: user.is_active });
     res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'frozen'}` });
   } catch (error) {
     res.status(500).json({ error: 'Failed to toggle user status' });
@@ -3156,28 +3366,24 @@ app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req
 app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const userId = req.params.id;
-    const userIndex = db.users.findIndex(u => u.id === userId);
-    if (userIndex === -1) {
+    const user = await db.users.findOne({ id: userId });
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    const user = db.users[userIndex];
     if (user.is_admin) {
       return res.status(400).json({ error: 'Cannot delete admin account' });
     }
     if (user.id === req.user.id) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
-    db.accounts = db.accounts.filter(a => a.user_id !== userId);
-    db.transactions = db.transactions.filter(t => t.from_user_id !== userId && t.to_user_id !== userId);
-    db.cards = db.cards.filter(c => c.user_id !== userId);
-    db.loans = db.loans.filter(l => l.user_id !== userId);
-    db.supportTickets = db.supportTickets.filter(s => s.user_id !== userId);
-    db.bbcCodes = db.bbcCodes.filter(b => b.user_id !== userId);
-    db.airtimeHistory = db.airtimeHistory.filter(a => a.user_id !== userId);
-    db.billHistory = db.billHistory.filter(b => b.user_id !== userId);
-    db.dataHistory = db.dataHistory.filter(d => d.user_id !== userId);
-    db.withdrawHistory = db.withdrawHistory.filter(w => w.user_id !== userId);
-    db.users.splice(userIndex, 1);
+    await db.users.delete({ id: userId });
+    await db.accounts.delete({ user_id: userId });
+    await db.transactions.delete({ $or: [{ from_user_id: userId }, { to_user_id: userId }] });
+    await db.cards.delete({ user_id: userId });
+    await db.loans.delete({ user_id: userId });
+    await db.supportTickets.delete({ user_id: userId });
+    await db.bbcCodes.delete({ user_id: userId });
+    await db.pendingTransactions.delete({ $or: [{ from_user_id: userId }, { user_id: userId }] });
     res.json({ success: true, message: `User ${user.full_name} deleted` });
   } catch (error) {
     res.status(500).json({ error: 'Failed to delete user' });
@@ -3186,7 +3392,7 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
 
 app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const bbcCodes = db.bbcCodes.filter(b => b.user_id === req.params.userId);
+    const bbcCodes = await db.bbcCodes.find({ user_id: req.params.userId });
     res.json(bbcCodes);
   } catch (error) {
     res.status(500).json({ error: 'Failed to get BBC codes' });
@@ -3196,7 +3402,7 @@ app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, r
 app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId, step, quantity = 1, expiryDays = 30 } = req.body;
-    const user = db.users.find(u => u.id === userId);
+    const user = await db.users.findOne({ id: userId });
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -3220,7 +3426,7 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
         expires_at: expiryDate.toISOString(),
         created_at: new Date().toISOString()
       };
-      db.bbcCodes.push(bbc);
+      await db.bbcCodes.create(bbc);
       codes.push(bbc);
     }
     
@@ -3232,21 +3438,23 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
 
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const stats = {
-      totalUsers: db.users.length,
-      activeUsers: db.users.filter(u => u.is_active).length,
-      totalAccounts: db.accounts.length,
-      totalBalance: db.accounts.reduce((sum, a) => sum + a.balance, 0),
-      totalTransactions: db.transactions.length,
-      totalBBCodes: db.bbcCodes.length,
-      totalCards: db.cards.length,
-      totalLoans: db.loans.length,
-      totalAirtime: db.airtimeHistory.length,
-      totalBills: db.billHistory.length,
-      totalData: db.dataHistory.length,
-      totalWithdrawals: db.withdrawHistory.length
-    };
-    res.json(stats);
+    const users = await db.users.find();
+    const accounts = await db.accounts.find();
+    const transactions = await db.transactions.find();
+    const bbcCodes = await db.bbcCodes.find();
+    const cards = await db.cards.find();
+    const loans = await db.loans.find();
+    
+    res.json({
+      totalUsers: users.length,
+      activeUsers: users.filter(u => u.is_active).length,
+      totalAccounts: accounts.length,
+      totalBalance: accounts.reduce((sum, a) => sum + a.balance, 0),
+      totalTransactions: transactions.length,
+      totalBBCodes: bbcCodes.length,
+      totalCards: cards.length,
+      totalLoans: loans.length
+    });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get stats' });
   }
@@ -3270,6 +3478,9 @@ app.use((err, req, res, next) => {
 const PORT = process.env.PORT || 10000;
 
 const startServer = async () => {
+  // Wait for MongoDB connection
+  await mongoose.connection.asPromise();
+  
   await createDefaultAdmin();
   
   app.listen(PORT, '0.0.0.0', () => {
@@ -3279,9 +3490,7 @@ const startServer = async () => {
     console.log(`📍 URL: https://primeheritage-bank-intl.onrender.com`);
     console.log(`👑 Admin: devgift@gmail.com / Igwe`);
     console.log(`💰 Admin Balance: UNLIMITED`);
-    console.log(`👥 Users: ${db.users.length}`);
-    console.log(`📊 Accounts: ${db.accounts.length}`);
-    console.log(`📧 Email Templates: INLINE (No external files needed)`);
+    console.log(`📊 Database: MongoDB (Data Persists Forever!)`);
     console.log(`📧 Email Provider: Netlify Function`);
     console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
     console.log(`💡 New users start with $0 balance`);
