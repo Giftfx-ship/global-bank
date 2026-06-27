@@ -747,7 +747,6 @@ const getWelcomeHTML = (userData) => {
       </div>
       <div class="btn-container">
         <a href="${url}/dashboard.html" class="btn-primary">Access Your Dashboard</a>
-        <a href="${url}/login.html" class="btn-secondary">Secure Sign In</a>
       </div>
     </div>
     <div class="footer-section">
@@ -755,7 +754,6 @@ const getWelcomeHTML = (userData) => {
       <p>Global Banking • Privacy Assured • Excellence Delivered</p>
       <div class="social-icons"><span>📱</span><span>🌐</span><span>🔒</span><span>⚡</span></div>
       <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
-      <p style="font-size: 10px;">This email was sent to ${email}</p>
       <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
     </div>
   </div>
