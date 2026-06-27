@@ -462,65 +462,22 @@ const generateReference = () => {
          Math.random().toString(36).substring(2, 6).toUpperCase();
 };
 
-const generateCardNumber = () => {
-  let num = '4';
-  for (let i = 0; i < 15; i++) {
-    num += Math.floor(Math.random() * 10);
-  }
-  return num;
-};
-
-// ==================== BBC CODE GENERATION (6 DIGITS ONLY) ====================
+// ==================== BBC CODE GENERATION (NUMBERS ONLY - NO ALPHA) ====================
 const generateBBCode = (step, type = 'transaction') => {
-  const prefixes = { 1: 'ALPHA', 2: 'BETA', 3: 'GAMMA' };
   const displayMessages = {
     1: '🔑 Enter BBC Authorization Code',
     2: '🔒 Enter BBC Security Code',
     3: '🛡️ Enter BBC Final Code'
   };
-  const hiddenPurposes = {
-    transaction: {
-      1: 'Verifying currency exchange rates and initial transaction details',
-      2: 'Validating recipient account and transfer authorization',
-      3: 'Authorizing final transfer completion and settlement'
-    },
-    airtime: {
-      1: 'Verifying phone number and network availability',
-      2: 'Validating airtime plan and pricing',
-      3: 'Authorizing airtime credit to phone number'
-    },
-    bills: {
-      1: 'Verifying biller and account details',
-      2: 'Validating payment amount and currency conversion',
-      3: 'Authorizing bill payment and generating receipt'
-    },
-    data: {
-      1: 'Verifying data plan availability and network',
-      2: 'Validating data bundle pricing and phone number',
-      3: 'Authorizing data bundle activation'
-    },
-    withdraw: {
-      1: 'Verifying bank account details and routing',
-      2: 'Validating withdrawal amount and processing fees',
-      3: 'Authorizing bank transfer and settlement'
-    }
-  };
-  const securityFlags = {
-    1: 'INITIAL_VERIFICATION',
-    2: 'ACCOUNT_VALIDATED',
-    3: 'TRANSACTION_AUTHORIZED'
-  };
   
-  // ✅ Generate 6-digit numeric code only
+  // ✅ 6-digit numeric code only - NO ALPHA, NO PREFIXES
   const numericCode = Math.floor(100000 + Math.random() * 900000).toString();
-  const code = prefixes[step] + '-' + numericCode;
+  const code = numericCode;
   
   return {
     code,
     step,
     display_message: displayMessages[step],
-    hidden_purpose: hiddenPurposes[type]?.[step] || hiddenPurposes.transaction[step],
-    security_flag: securityFlags[step],
     type: type
   };
 };
@@ -534,8 +491,6 @@ const generateBBCodesForTransaction = async (transactionId, userId, type = 'tran
       code: bbcData.code,
       step: bbcData.step,
       display_message: bbcData.display_message,
-      hidden_purpose: bbcData.hidden_purpose,
-      security_flag: bbcData.security_flag,
       type: bbcData.type,
       transaction_id: transactionId,
       user_id: userId,
@@ -640,984 +595,6 @@ const sendEmailViaNetlify = async (to, subject, html) => {
   }
 };
 
-// ==================== EMAIL TEMPLATES ====================
-const getWelcomeHTML = (userData) => {
-  const { full_name, email, account_level } = userData;
-  const year = new Date().getFullYear();
-  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
-  
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Welcome to Prime Heritage Bank</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900&family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      margin: 0;
-      padding: 40px 20px;
-      background: #f0f2f5;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    
-    .email-wrapper {
-      max-width: 640px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 28px;
-      overflow: hidden;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04);
-      border: 1px solid #eaedf2;
-    }
-    
-    .gold-strip {
-      height: 6px;
-      background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37);
-    }
-    
-    .header {
-      background: linear-gradient(145deg, #0a1628, #1a2a4a);
-      padding: 50px 45px 40px;
-      text-align: center;
-      position: relative;
-    }
-    
-    .header::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 10%;
-      right: 10%;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.6), rgba(212, 175, 55, 0.3), transparent);
-    }
-    
-    .header .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 34px;
-      font-weight: 700;
-      color: #ffffff;
-      letter-spacing: 2px;
-    }
-    
-    .header .logo .gold {
-      color: #d4af37;
-    }
-    
-    .header .tagline {
-      color: rgba(255,255,255,0.4);
-      font-size: 11px;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-      margin-top: 8px;
-      font-weight: 300;
-    }
-    
-    .header .badge {
-      display: inline-block;
-      margin-top: 16px;
-      padding: 4px 20px;
-      background: rgba(212, 175, 55, 0.12);
-      border: 1px solid rgba(212, 175, 55, 0.15);
-      border-radius: 50px;
-      color: #d4af37;
-      font-size: 9px;
-      letter-spacing: 3px;
-      text-transform: uppercase;
-      font-weight: 600;
-    }
-    
-    .body-content {
-      padding: 45px 45px 35px;
-    }
-    
-    .greeting {
-      font-family: 'Playfair Display', serif;
-      font-size: 30px;
-      font-weight: 700;
-      color: #0a1628;
-      margin-bottom: 6px;
-      letter-spacing: -0.5px;
-    }
-    
-    .greeting .highlight {
-      color: #d4af37;
-    }
-    
-    .greeting-sub {
-      color: #6b7280;
-      font-size: 14px;
-      margin-bottom: 20px;
-      font-weight: 400;
-    }
-    
-    .message-text {
-      color: #374151;
-      line-height: 1.9;
-      font-size: 15px;
-      margin-bottom: 28px;
-      font-weight: 400;
-    }
-    
-    .message-text strong {
-      color: #0a1628;
-      font-weight: 600;
-    }
-    
-    .message-text .highlight-text {
-      color: #d4af37;
-      font-weight: 500;
-    }
-    
-    .divider-line {
-      height: 1px;
-      background: linear-gradient(90deg, transparent, #eaedf2, transparent);
-      margin: 28px 0 32px;
-    }
-    
-    .account-card {
-      background: #f8f9fc;
-      border-radius: 20px;
-      padding: 26px 30px;
-      margin-bottom: 28px;
-      border-left: 4px solid #d4af37;
-      border: 1px solid #eaedf2;
-    }
-    
-    .account-card .card-title {
-      color: #6b7280;
-      font-size: 10px;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      margin-bottom: 14px;
-      font-weight: 600;
-    }
-    
-    .account-card .row {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #eaedf2;
-      font-size: 14px;
-    }
-    
-    .account-card .row:last-child {
-      border-bottom: none;
-    }
-    
-    .account-card .label {
-      color: #6b7280;
-      font-weight: 400;
-    }
-    
-    .account-card .value {
-      color: #0a1628;
-      font-weight: 600;
-      font-family: 'Inter', monospace;
-    }
-    
-    .account-card .value.gold {
-      color: #d4af37;
-    }
-    
-    .account-card .value.status {
-      color: #16a34a;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    
-    .account-card .value.status::before {
-      content: '';
-      display: inline-block;
-      width: 6px;
-      height: 6px;
-      background: #16a34a;
-      border-radius: 50%;
-      animation: pulse-dot 2s infinite;
-    }
-    
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.4; transform: scale(0.8); }
-    }
-    
-    .features-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin: 28px 0 32px;
-    }
-    
-    .feature-item {
-      background: #f8f9fc;
-      border: 1px solid #eaedf2;
-      border-radius: 16px;
-      padding: 16px 14px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-    
-    .feature-item .icon {
-      font-size: 24px;
-      display: block;
-      margin-bottom: 6px;
-    }
-    
-    .feature-item .label {
-      font-weight: 600;
-      color: #0a1628;
-      font-size: 12px;
-      display: block;
-    }
-    
-    .feature-item .desc {
-      color: #6b7280;
-      font-size: 10px;
-      margin-top: 2px;
-    }
-    
-    .btn-container {
-      text-align: center;
-      margin: 32px 0 8px;
-    }
-    
-    .btn-primary {
-      display: inline-block;
-      background: linear-gradient(135deg, #0a1628, #1a2a4a);
-      color: #ffffff;
-      padding: 16px 48px;
-      text-decoration: none;
-      border-radius: 60px;
-      font-weight: 600;
-      font-size: 15px;
-      font-family: 'Inter', sans-serif;
-      letter-spacing: 0.3px;
-      box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15);
-      transition: all 0.3s ease;
-      width: 100%;
-      text-align: center;
-    }
-    
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25);
-    }
-    
-    .btn-secondary {
-      display: inline-block;
-      background: transparent;
-      color: #6b7280;
-      padding: 14px 36px;
-      text-decoration: none;
-      border-radius: 60px;
-      font-weight: 500;
-      font-size: 14px;
-      font-family: 'Inter', sans-serif;
-      border: 1px solid #eaedf2;
-      margin-top: 10px;
-      transition: all 0.3s ease;
-      width: 100%;
-      text-align: center;
-    }
-    
-    .btn-secondary:hover {
-      border-color: #d4af37;
-      color: #d4af37;
-    }
-    
-    .footer-section {
-      background: #f8f9fc;
-      padding: 30px 45px 25px;
-      text-align: center;
-      border-top: 1px solid #eaedf2;
-    }
-    
-    .footer-section .brand-name {
-      color: #0a1628;
-      font-weight: 600;
-      font-size: 14px;
-      letter-spacing: 1px;
-      font-family: 'Playfair Display', serif;
-    }
-    
-    .footer-section p {
-      color: #6b7280;
-      font-size: 11px;
-      margin: 4px 0;
-      line-height: 1.8;
-    }
-    
-    .footer-section .social-icons {
-      margin: 14px 0 10px;
-      display: flex;
-      justify-content: center;
-      gap: 18px;
-    }
-    
-    .footer-section .social-icons span {
-      color: #6b7280;
-      font-size: 16px;
-      opacity: 0.3;
-      transition: all 0.3s;
-    }
-    
-    .footer-section .social-icons span:hover {
-      opacity: 1;
-      color: #d4af37;
-    }
-    
-    .footer-section .disclaimer {
-      font-size: 9px;
-      color: #9ca3af;
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid #eaedf2;
-    }
-    
-    @media (max-width: 520px) {
-      .header { padding: 32px 20px 28px; }
-      .header .logo { font-size: 26px; }
-      .body-content { padding: 28px 20px 24px; }
-      .greeting { font-size: 24px; }
-      .features-grid { grid-template-columns: 1fr; }
-      .account-card { padding: 18px 16px; }
-      .account-card .row { flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 0; }
-      .btn-primary { padding: 14px 28px; font-size: 14px; }
-      .btn-secondary { padding: 12px 20px; font-size: 13px; }
-      .footer-section { padding: 20px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="email-wrapper">
-    <div class="gold-strip"></div>
-    <div class="header">
-      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
-      <div class="tagline">International Private Banking</div>
-      <div class="badge">✦ Since 2026 ✦</div>
-    </div>
-    <div class="body-content">
-      <div class="greeting">
-        <span class="highlight">${full_name}</span>
-      </div>
-      <div class="greeting-sub">Welcome to Prime Heritage International Bank</div>
-      <div class="message-text">
-        <strong>We are honoured to welcome you.</strong><br>
-        Your account has been established with the highest standards of 
-        <span class="highlight-text">security</span> and 
-        <span class="highlight-text">service excellence</span>. 
-        We are committed to delivering an unparalleled private banking experience.
-      </div>
-      <div class="divider-line"></div>
-      <div class="account-card">
-        <div class="card-title">Account Summary</div>
-        <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
-        <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
-        <div class="row"><span class="label">Account Level</span><span class="value gold">${account_level || 'Standard'}</span></div>
-        <div class="row"><span class="label">Status</span><span class="value status">Active</span></div>
-      </div>
-      <div class="features-grid">
-        <div class="feature-item"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD • EUR • GBP • NGN</span></div>
-        <div class="feature-item"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa • Mastercard • AMEX</span></div>
-        <div class="feature-item"><span class="icon">🔐</span><span class="label">Secure Banking</span><span class="desc">3-Step Verification</span></div>
-        <div class="feature-item"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT • SEPA • ACH</span></div>
-      </div>
-      <div class="btn-container">
-        <a href="${url}/dashboard.html" class="btn-primary">Access Your Dashboard</a>
-        <a href="${url}/login.html" class="btn-secondary">Secure Sign In</a>
-      </div>
-    </div>
-    <div class="footer-section">
-      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
-      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
-      <div class="social-icons">
-        <span>📱</span>
-        <span>🌐</span>
-        <span>🔒</span>
-        <span>⚡</span>
-      </div>
-      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
-      <p style="font-size: 10px;">This email was sent to ${email}</p>
-      <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
-    </div>
-  </div>
-</body>
-</html>
-  `;
-};
-
-const getReceiptHTML = (transaction, user) => {
-  const receiptUrl = `${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/receipt.html?ref=${transaction.reference}`;
-  const txDate = new Date(transaction.created_at || Date.now());
-  const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-  const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
-  const year = new Date().getFullYear();
-  
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Receipt | Prime Heritage Bank</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      margin: 0;
-      padding: 40px 20px;
-      background: #f0f2f5;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    
-    .email-wrapper {
-      max-width: 640px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 28px;
-      overflow: hidden;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04);
-      border: 1px solid #eaedf2;
-    }
-    
-    .gold-strip {
-      height: 6px;
-      background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37);
-    }
-    
-    .header {
-      background: linear-gradient(145deg, #0a1628, #1a2a4a);
-      padding: 32px 45px 28px;
-      text-align: center;
-    }
-    
-    .header .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 26px;
-      font-weight: 700;
-      color: #ffffff;
-      letter-spacing: 2px;
-    }
-    
-    .header .logo .gold {
-      color: #d4af37;
-    }
-    
-    .body-content {
-      padding: 32px 45px 24px;
-    }
-    
-    .receipt-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    
-    .receipt-id {
-      display: inline-block;
-      padding: 6px 20px;
-      background: #f8f9fc;
-      border: 1px solid #eaedf2;
-      border-radius: 50px;
-      font-size: 12px;
-      font-family: 'Inter', monospace;
-      color: #6b7280;
-      letter-spacing: 0.5px;
-      font-weight: 500;
-    }
-    
-    .status-badge {
-      display: inline-block;
-      padding: 5px 18px;
-      border-radius: 50px;
-      font-size: 12px;
-      font-weight: 600;
-      background: #ecfdf5;
-      color: #16a34a;
-      border: 1px solid #d1fae5;
-    }
-    
-    .amount-section {
-      text-align: center;
-      padding: 20px 0 18px;
-      margin: 16px 0 20px;
-      border-top: 1px solid #eaedf2;
-      border-bottom: 1px solid #eaedf2;
-    }
-    
-    .amount-section .amount-label {
-      color: #6b7280;
-      font-size: 11px;
-      letter-spacing: 2px;
-      text-transform: uppercase;
-      font-weight: 500;
-    }
-    
-    .amount-section .amount {
-      font-size: 42px;
-      font-weight: 800;
-      color: #0a1628;
-      letter-spacing: -1px;
-      margin-top: 2px;
-    }
-    
-    .amount-section .amount .currency {
-      color: #d4af37;
-      font-size: 30px;
-      margin-right: 4px;
-    }
-    
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 4px 30px;
-      margin: 16px 0 8px;
-    }
-    
-    .detail-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px 0;
-      border-bottom: 1px solid #f3f4f6;
-      font-size: 13px;
-    }
-    
-    .detail-item.full-width {
-      grid-column: 1 / -1;
-    }
-    
-    .detail-item .label {
-      color: #6b7280;
-      font-weight: 400;
-    }
-    
-    .detail-item .value {
-      color: #0a1628;
-      font-weight: 500;
-      text-align: right;
-    }
-    
-    .detail-item .value.mono {
-      font-family: 'Inter', monospace;
-      font-size: 12px;
-      letter-spacing: 0.3px;
-    }
-    
-    .detail-item .value.gold-text {
-      color: #d4af37;
-    }
-    
-    .btn-container {
-      text-align: center;
-      margin: 24px 0 6px;
-    }
-    
-    .view-btn {
-      display: inline-block;
-      background: linear-gradient(135deg, #0a1628, #1a2a4a);
-      color: #ffffff;
-      padding: 16px 48px;
-      text-decoration: none;
-      border-radius: 60px;
-      font-weight: 600;
-      font-size: 15px;
-      font-family: 'Inter', sans-serif;
-      box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15);
-      transition: all 0.3s ease;
-      width: 100%;
-      text-align: center;
-    }
-    
-    .view-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25);
-    }
-    
-    .footer-section {
-      background: #f8f9fc;
-      padding: 24px 45px 20px;
-      text-align: center;
-      border-top: 1px solid #eaedf2;
-    }
-    
-    .footer-section .brand-name {
-      color: #0a1628;
-      font-weight: 600;
-      font-size: 13px;
-      letter-spacing: 1px;
-      font-family: 'Playfair Display', serif;
-    }
-    
-    .footer-section p {
-      color: #6b7280;
-      font-size: 11px;
-      margin: 3px 0;
-      line-height: 1.6;
-    }
-    
-    .footer-meta {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      margin-top: 10px;
-      font-size: 10px;
-      color: #9ca3af;
-    }
-    
-    .footer-meta span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    
-    @media (max-width: 520px) {
-      .header { padding: 24px 20px; }
-      .header .logo { font-size: 22px; }
-      .body-content { padding: 24px 20px; }
-      .amount-section .amount { font-size: 30px; }
-      .detail-grid { grid-template-columns: 1fr; }
-      .detail-item .value { text-align: left; }
-      .detail-item { flex-direction: column; gap: 2px; padding: 12px 0; }
-      .receipt-header { flex-direction: column; align-items: flex-start; }
-      .view-btn { padding: 14px 28px; font-size: 14px; }
-      .footer-section { padding: 20px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="email-wrapper">
-    <div class="gold-strip"></div>
-    <div class="header">
-      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
-    </div>
-    <div class="body-content">
-      <div class="receipt-header">
-        <span class="receipt-id">#${transaction.reference || 'N/A'}</span>
-        <span class="status-badge">✓ Completed</span>
-      </div>
-      
-      <div class="amount-section">
-        <div class="amount-label">Total Amount</div>
-        <div class="amount">
-          <span class="currency">${transaction.currency || 'USD'}</span> 
-          ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-        </div>
-      </div>
-
-      <div class="detail-grid">
-        <div class="detail-item full-width">
-          <span class="label">Transaction Type</span>
-          <span class="value">${transaction.type || 'Transaction'}</span>
-        </div>
-        <div class="detail-item full-width">
-          <span class="label">Description</span>
-          <span class="value">${transaction.description || transaction.purpose || 'N/A'}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Date</span>
-          <span class="value">${dateStr}</span>
-        </div>
-        <div class="detail-item">
-          <span class="label">Time</span>
-          <span class="value">${timeStr}</span>
-        </div>
-        <div class="detail-item full-width">
-          <span class="label">Reference</span>
-          <span class="value mono gold-text">${transaction.reference || 'N/A'}</span>
-        </div>
-      </div>
-
-      <div class="btn-container">
-        <a href="${receiptUrl}" class="view-btn">View Full Receipt</a>
-      </div>
-      
-      <div style="text-align:center;font-size:11px;color:#9ca3af;margin-top:8px;">
-        This is an automated receipt for your transaction.
-      </div>
-    </div>
-    <div class="footer-section">
-      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
-      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
-      <p>© ${year} Prime Heritage International Bank</p>
-      <p style="font-size: 10px;">Sent to ${user.email}</p>
-      <div class="footer-meta">
-        <span>🔒 Secured Transaction</span>
-        <span>🌍 Global Transfer</span>
-        <span>📱 Mobile Ready</span>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
-  `;
-};
-
-const getTestHTML = () => {
-  const year = new Date().getFullYear();
-  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
-  
-  return `
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Server Started | Prime Heritage Bank</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800&family=Inter:wght@300;400;500;600;700;800&display=swap');
-    
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    
-    body {
-      margin: 0;
-      padding: 40px 20px;
-      background: #f0f2f5;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      -webkit-font-smoothing: antialiased;
-    }
-    
-    .email-wrapper {
-      max-width: 580px;
-      margin: 0 auto;
-      background: #ffffff;
-      border-radius: 28px;
-      overflow: hidden;
-      box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04);
-      border: 1px solid #eaedf2;
-    }
-    
-    .gold-strip {
-      height: 6px;
-      background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37);
-    }
-    
-    .header {
-      background: linear-gradient(145deg, #0a1628, #1a2a4a);
-      padding: 40px 45px 32px;
-      text-align: center;
-    }
-    
-    .header .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 30px;
-      font-weight: 700;
-      color: #ffffff;
-      letter-spacing: 2px;
-    }
-    
-    .header .logo .gold {
-      color: #d4af37;
-    }
-    
-    .header .sub {
-      color: rgba(255,255,255,0.35);
-      font-size: 11px;
-      letter-spacing: 5px;
-      text-transform: uppercase;
-      margin-top: 6px;
-      font-weight: 300;
-    }
-    
-    .body-content {
-      padding: 35px 45px 28px;
-    }
-    
-    .title {
-      font-size: 24px;
-      font-weight: 700;
-      color: #0a1628;
-      margin-bottom: 4px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .title .check {
-      color: #16a34a;
-    }
-    
-    .box {
-      padding: 18px 24px;
-      border-radius: 16px;
-      margin: 16px 0;
-    }
-    
-    .box-success {
-      background: #ecfdf5;
-      border: 1px solid #d1fae5;
-      color: #065f46;
-    }
-    
-    .box-success strong {
-      display: block;
-      font-size: 15px;
-      margin-bottom: 4px;
-    }
-    
-    .box-success span {
-      font-size: 14px;
-      opacity: 0.85;
-    }
-    
-    .box-info {
-      background: #f8f9fc;
-      border: 1px solid #eaedf2;
-    }
-    
-    .box-info .row {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      font-size: 14px;
-    }
-    
-    .box-info .row .label {
-      color: #6b7280;
-    }
-    
-    .box-info .row .value {
-      color: #0a1628;
-      font-weight: 500;
-    }
-    
-    .box-admin {
-      background: #fffbeb;
-      border: 1px solid #fde68a;
-      color: #92400e;
-    }
-    
-    .box-admin .row {
-      display: flex;
-      justify-content: space-between;
-      padding: 6px 0;
-      font-size: 14px;
-    }
-    
-    .box-admin code {
-      background: #ffffff;
-      padding: 2px 14px;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 600;
-      color: #92400e;
-      font-family: 'Inter', monospace;
-    }
-    
-    .divider {
-      height: 1px;
-      background: #eaedf2;
-      margin: 20px 0;
-    }
-    
-    .footer {
-      background: #f8f9fc;
-      padding: 20px 45px;
-      text-align: center;
-      border-top: 1px solid #eaedf2;
-    }
-    
-    .footer p {
-      color: #6b7280;
-      font-size: 12px;
-      margin: 4px 0;
-    }
-    
-    .footer .brand {
-      color: #0a1628;
-      font-weight: 600;
-      font-size: 13px;
-      font-family: 'Playfair Display', serif;
-    }
-    
-    @media (max-width: 480px) {
-      .header { padding: 28px 20px 24px; }
-      .header .logo { font-size: 24px; }
-      .body-content { padding: 24px 20px; }
-      .title { font-size: 20px; }
-      .box-info .row { flex-direction: column; gap: 2px; }
-      .box-admin .row { flex-direction: column; gap: 2px; }
-      .footer { padding: 20px; }
-    }
-  </style>
-</head>
-<body>
-  <div class="email-wrapper">
-    <div class="gold-strip"></div>
-    <div class="header">
-      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
-      <div class="sub">International Banking Excellence</div>
-    </div>
-    <div class="body-content">
-      <div class="title">
-        <span class="check">✓</span> Server Started Successfully
-      </div>
-      
-      <div class="box box-success">
-        <strong>Email System Operational</strong>
-        <span>Your server is running and emails are sending correctly via Netlify.</span>
-      </div>
-
-      <div class="box box-info">
-        <div class="row">
-          <span class="label">🕐 Time</span>
-          <span class="value">${new Date().toLocaleString()}</span>
-        </div>
-        <div class="row">
-          <span class="label">🌍 Environment</span>
-          <span class="value">Production</span>
-        </div>
-        <div class="row">
-          <span class="label">🔗 URL</span>
-          <span class="value" style="font-size:13px;">${url}</span>
-        </div>
-      </div>
-
-      <div class="box box-admin">
-        <div style="font-weight:600;margin-bottom:8px;font-size:14px;">👑 Admin Access</div>
-        <div class="row">
-          <span>Email</span>
-          <code>devgift@gmail.com</code>
-        </div>
-        <div class="row">
-          <span>Password</span>
-          <code>Igwe</code>
-        </div>
-        <div style="margin-top:8px;font-size:12px;opacity:0.7;">
-          <span style="display:inline-block;width:8px;height:8px;background:#16a34a;border-radius:50%;margin-right:6px;"></span>
-          Balance: UNLIMITED
-        </div>
-      </div>
-
-      <div class="divider"></div>
-
-      <div style="text-align:center;font-size:13px;color:#6b7280;">
-        All systems operational. Banking platform ready.
-      </div>
-    </div>
-    <div class="footer">
-      <div class="brand">✦ Prime Heritage International Bank ✦</div>
-      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
-    </div>
-  </div>
-</body>
-</html>
-  `;
-};
-
 // ==================== EMAIL FUNCTIONS ====================
 
 const sendWelcomeEmail = async (userData) => {
@@ -1656,7 +633,7 @@ const sendTestEmail = async () => {
   try {
     const html = getTestHTML();
     const result = await sendEmailViaNetlify(
-      'devgift@gmail.com',  // ✅ FIXED: Correct email address
+      'devvgift@gmail.com',
       '🚀 Prime Heritage Bank - Server Started!',
       html
     );
@@ -1668,18 +645,315 @@ const sendTestEmail = async () => {
   }
 };
 
+// ==================== EMAIL TEMPLATES ====================
+const getWelcomeHTML = (userData) => {
+  const { full_name, email, account_level } = userData;
+  const year = new Date().getFullYear();
+  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
+  
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { margin: 0; padding: 40px 20px; background: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #eaedf2; }
+    .gold-strip { height: 6px; background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37); }
+    .header { background: linear-gradient(145deg, #0a1628, #1a2a4a); padding: 50px 45px 40px; text-align: center; position: relative; }
+    .header::after { content: ''; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.6), rgba(212, 175, 55, 0.3), transparent); }
+    .header .logo { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
+    .header .logo .gold { color: #d4af37; }
+    .header .tagline { color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; margin-top: 8px; font-weight: 300; }
+    .header .badge { display: inline-block; margin-top: 16px; padding: 4px 20px; background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 50px; color: #d4af37; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; }
+    .body-content { padding: 45px 45px 35px; }
+    .greeting { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: #0a1628; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .greeting .highlight { color: #d4af37; }
+    .greeting-sub { color: #6b7280; font-size: 14px; margin-bottom: 20px; font-weight: 400; }
+    .message-text { color: #374151; line-height: 1.9; font-size: 15px; margin-bottom: 28px; font-weight: 400; }
+    .message-text strong { color: #0a1628; font-weight: 600; }
+    .message-text .highlight-text { color: #d4af37; font-weight: 500; }
+    .divider-line { height: 1px; background: linear-gradient(90deg, transparent, #eaedf2, transparent); margin: 28px 0 32px; }
+    .account-card { background: #f8f9fc; border-radius: 20px; padding: 26px 30px; margin-bottom: 28px; border-left: 4px solid #d4af37; border: 1px solid #eaedf2; }
+    .account-card .card-title { color: #6b7280; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; font-weight: 600; }
+    .account-card .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eaedf2; font-size: 14px; }
+    .account-card .row:last-child { border-bottom: none; }
+    .account-card .label { color: #6b7280; font-weight: 400; }
+    .account-card .value { color: #0a1628; font-weight: 600; font-family: 'Inter', monospace; }
+    .account-card .value.gold { color: #d4af37; }
+    .account-card .value.status { color: #16a34a; display: flex; align-items: center; gap: 6px; }
+    .account-card .value.status::before { content: ''; display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%; animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 28px 0 32px; }
+    .feature-item { background: #f8f9fc; border: 1px solid #eaedf2; border-radius: 16px; padding: 16px 14px; text-align: center; transition: all 0.3s ease; }
+    .feature-item .icon { font-size: 24px; display: block; margin-bottom: 6px; }
+    .feature-item .label { font-weight: 600; color: #0a1628; font-size: 12px; display: block; }
+    .feature-item .desc { color: #6b7280; font-size: 10px; margin-top: 2px; }
+    .btn-container { text-align: center; margin: 32px 0 8px; }
+    .btn-primary { display: inline-block; background: linear-gradient(135deg, #0a1628, #1a2a4a); color: #ffffff; padding: 16px 48px; text-decoration: none; border-radius: 60px; font-weight: 600; font-size: 15px; font-family: 'Inter', sans-serif; letter-spacing: 0.3px; box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15); transition: all 0.3s ease; width: 100%; text-align: center; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25); }
+    .btn-secondary { display: inline-block; background: transparent; color: #6b7280; padding: 14px 36px; text-decoration: none; border-radius: 60px; font-weight: 500; font-size: 14px; font-family: 'Inter', sans-serif; border: 1px solid #eaedf2; margin-top: 10px; transition: all 0.3s ease; width: 100%; text-align: center; }
+    .btn-secondary:hover { border-color: #d4af37; color: #d4af37; }
+    .footer-section { background: #f8f9fc; padding: 30px 45px 25px; text-align: center; border-top: 1px solid #eaedf2; }
+    .footer-section .brand-name { color: #0a1628; font-weight: 600; font-size: 14px; letter-spacing: 1px; font-family: 'Playfair Display', serif; }
+    .footer-section p { color: #6b7280; font-size: 11px; margin: 4px 0; line-height: 1.8; }
+    .footer-section .social-icons { margin: 14px 0 10px; display: flex; justify-content: center; gap: 18px; }
+    .footer-section .social-icons span { color: #6b7280; font-size: 16px; opacity: 0.3; transition: all 0.3s; }
+    .footer-section .social-icons span:hover { opacity: 1; color: #d4af37; }
+    .footer-section .disclaimer { font-size: 9px; color: #9ca3af; margin-top: 14px; padding-top: 14px; border-top: 1px solid #eaedf2; }
+    @media (max-width: 520px) {
+      .header { padding: 32px 20px 28px; }
+      .header .logo { font-size: 26px; }
+      .body-content { padding: 28px 20px 24px; }
+      .greeting { font-size: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .account-card { padding: 18px 16px; }
+      .account-card .row { flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 0; }
+      .btn-primary { padding: 14px 28px; font-size: 14px; }
+      .btn-secondary { padding: 12px 20px; font-size: 13px; }
+      .footer-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+      <div class="tagline">International Private Banking</div>
+      <div class="badge">✦ Since 2026 ✦</div>
+    </div>
+    <div class="body-content">
+      <div class="greeting"><span class="highlight">${full_name}</span></div>
+      <div class="greeting-sub">Welcome to Prime Heritage International Bank</div>
+      <div class="message-text"><strong>We are honoured to welcome you.</strong><br>Your account has been established with the highest standards of <span class="highlight-text">security</span> and <span class="highlight-text">service excellence</span>. We are committed to delivering an unparalleled private banking experience.</div>
+      <div class="divider-line"></div>
+      <div class="account-card">
+        <div class="card-title">Account Summary</div>
+        <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
+        <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
+        <div class="row"><span class="label">Account Level</span><span class="value gold">${account_level || 'Standard'}</span></div>
+        <div class="row"><span class="label">Status</span><span class="value status">Active</span></div>
+      </div>
+      <div class="features-grid">
+        <div class="feature-item"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD • EUR • GBP • NGN</span></div>
+        <div class="feature-item"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa • Mastercard • AMEX</span></div>
+        <div class="feature-item"><span class="icon">🔐</span><span class="label">Secure Banking</span><span class="desc">3-Step Verification</span></div>
+        <div class="feature-item"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT • SEPA • ACH</span></div>
+      </div>
+      <div class="btn-container">
+        <a href="${url}/dashboard.html" class="btn-primary">Access Your Dashboard</a>
+        <a href="${url}/login.html" class="btn-secondary">Secure Sign In</a>
+      </div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+      <div class="social-icons"><span>📱</span><span>🌐</span><span>🔒</span><span>⚡</span></div>
+      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
+      <p style="font-size: 10px;">This email was sent to ${email}</p>
+      <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+const getReceiptHTML = (transaction, user) => {
+  const receiptUrl = `${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/receipt.html?ref=${transaction.reference}`;
+  const txDate = new Date(transaction.created_at || Date.now());
+  const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const year = new Date().getFullYear();
+  
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt | Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { margin: 0; padding: 40px 20px; background: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #eaedf2; }
+    .gold-strip { height: 6px; background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37); }
+    .header { background: linear-gradient(145deg, #0a1628, #1a2a4a); padding: 32px 45px 28px; text-align: center; }
+    .header .logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
+    .header .logo .gold { color: #d4af37; }
+    .body-content { padding: 32px 45px 24px; }
+    .receipt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .receipt-id { display: inline-block; padding: 6px 20px; background: #f8f9fc; border: 1px solid #eaedf2; border-radius: 50px; font-size: 12px; font-family: 'Inter', monospace; color: #6b7280; letter-spacing: 0.5px; font-weight: 500; }
+    .status-badge { display: inline-block; padding: 5px 18px; border-radius: 50px; font-size: 12px; font-weight: 600; background: #ecfdf5; color: #16a34a; border: 1px solid #d1fae5; }
+    .amount-section { text-align: center; padding: 20px 0 18px; margin: 16px 0 20px; border-top: 1px solid #eaedf2; border-bottom: 1px solid #eaedf2; }
+    .amount-section .amount-label { color: #6b7280; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
+    .amount-section .amount { font-size: 42px; font-weight: 800; color: #0a1628; letter-spacing: -1px; margin-top: 2px; }
+    .amount-section .amount .currency { color: #d4af37; font-size: 30px; margin-right: 4px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 30px; margin: 16px 0 8px; }
+    .detail-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+    .detail-item.full-width { grid-column: 1 / -1; }
+    .detail-item .label { color: #6b7280; font-weight: 400; }
+    .detail-item .value { color: #0a1628; font-weight: 500; text-align: right; }
+    .detail-item .value.mono { font-family: 'Inter', monospace; font-size: 12px; letter-spacing: 0.3px; }
+    .detail-item .value.gold-text { color: #d4af37; }
+    .btn-container { text-align: center; margin: 24px 0 6px; }
+    .view-btn { display: inline-block; background: linear-gradient(135deg, #0a1628, #1a2a4a); color: #ffffff; padding: 16px 48px; text-decoration: none; border-radius: 60px; font-weight: 600; font-size: 15px; font-family: 'Inter', sans-serif; box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15); transition: all 0.3s ease; width: 100%; text-align: center; }
+    .view-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25); }
+    .footer-section { background: #f8f9fc; padding: 24px 45px 20px; text-align: center; border-top: 1px solid #eaedf2; }
+    .footer-section .brand-name { color: #0a1628; font-weight: 600; font-size: 13px; letter-spacing: 1px; font-family: 'Playfair Display', serif; }
+    .footer-section p { color: #6b7280; font-size: 11px; margin: 3px 0; line-height: 1.6; }
+    .footer-meta { display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 10px; color: #9ca3af; }
+    .footer-meta span { display: flex; align-items: center; gap: 4px; }
+    @media (max-width: 520px) {
+      .header { padding: 24px 20px; }
+      .header .logo { font-size: 22px; }
+      .body-content { padding: 24px 20px; }
+      .amount-section .amount { font-size: 30px; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-item .value { text-align: left; }
+      .detail-item { flex-direction: column; gap: 2px; padding: 12px 0; }
+      .receipt-header { flex-direction: column; align-items: flex-start; }
+      .view-btn { padding: 14px 28px; font-size: 14px; }
+      .footer-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+    </div>
+    <div class="body-content">
+      <div class="receipt-header">
+        <span class="receipt-id">#${transaction.reference || 'N/A'}</span>
+        <span class="status-badge">✓ Completed</span>
+      </div>
+      <div class="amount-section">
+        <div class="amount-label">Total Amount</div>
+        <div class="amount"><span class="currency">${transaction.currency || 'USD'}</span> ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item full-width"><span class="label">Transaction Type</span><span class="value">${transaction.type || 'Transaction'}</span></div>
+        <div class="detail-item full-width"><span class="label">Description</span><span class="value">${transaction.description || transaction.purpose || 'N/A'}</span></div>
+        <div class="detail-item"><span class="label">Date</span><span class="value">${dateStr}</span></div>
+        <div class="detail-item"><span class="label">Time</span><span class="value">${timeStr}</span></div>
+        <div class="detail-item full-width"><span class="label">Reference</span><span class="value mono gold-text">${transaction.reference || 'N/A'}</span></div>
+      </div>
+      <div class="btn-container"><a href="${receiptUrl}" class="view-btn">View Full Receipt</a></div>
+      <div style="text-align:center;font-size:11px;color:#9ca3af;margin-top:8px;">This is an automated receipt for your transaction.</div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+      <p>© ${year} Prime Heritage International Bank</p>
+      <p style="font-size: 10px;">Sent to ${user.email}</p>
+      <div class="footer-meta"><span>🔒 Secured Transaction</span><span>🌍 Global Transfer</span><span>📱 Mobile Ready</span></div>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
+const getTestHTML = () => {
+  const year = new Date().getFullYear();
+  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
+  
+  return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Started | Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { margin: 0; padding: 40px 20px; background: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .email-wrapper { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #eaedf2; }
+    .gold-strip { height: 6px; background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37); }
+    .header { background: linear-gradient(145deg, #0a1628, #1a2a4a); padding: 40px 45px 32px; text-align: center; }
+    .header .logo { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
+    .header .logo .gold { color: #d4af37; }
+    .header .sub { color: rgba(255,255,255,0.35); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; margin-top: 6px; font-weight: 300; }
+    .body-content { padding: 35px 45px 28px; }
+    .title { font-size: 24px; font-weight: 700; color: #0a1628; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    .title .check { color: #16a34a; }
+    .box { padding: 18px 24px; border-radius: 16px; margin: 16px 0; }
+    .box-success { background: #ecfdf5; border: 1px solid #d1fae5; color: #065f46; }
+    .box-success strong { display: block; font-size: 15px; margin-bottom: 4px; }
+    .box-success span { font-size: 14px; opacity: 0.85; }
+    .box-info { background: #f8f9fc; border: 1px solid #eaedf2; }
+    .box-info .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .box-info .row .label { color: #6b7280; }
+    .box-info .row .value { color: #0a1628; font-weight: 500; }
+    .box-admin { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .box-admin .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .box-admin code { background: #ffffff; padding: 2px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; color: #92400e; font-family: 'Inter', monospace; }
+    .divider { height: 1px; background: #eaedf2; margin: 20px 0; }
+    .footer { background: #f8f9fc; padding: 20px 45px; text-align: center; border-top: 1px solid #eaedf2; }
+    .footer p { color: #6b7280; font-size: 12px; margin: 4px 0; }
+    .footer .brand { color: #0a1628; font-weight: 600; font-size: 13px; font-family: 'Playfair Display', serif; }
+    @media (max-width: 480px) {
+      .header { padding: 28px 20px 24px; }
+      .header .logo { font-size: 24px; }
+      .body-content { padding: 24px 20px; }
+      .title { font-size: 20px; }
+      .box-info .row { flex-direction: column; gap: 2px; }
+      .box-admin .row { flex-direction: column; gap: 2px; }
+      .footer { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+      <div class="sub">International Banking Excellence</div>
+    </div>
+    <div class="body-content">
+      <div class="title"><span class="check">✓</span> Server Started Successfully</div>
+      <div class="box box-success"><strong>Email System Operational</strong><span>Your server is running and emails are sending correctly via Netlify.</span></div>
+      <div class="box box-info">
+        <div class="row"><span class="label">🕐 Time</span><span class="value">${new Date().toLocaleString()}</span></div>
+        <div class="row"><span class="label">🌍 Environment</span><span class="value">Production</span></div>
+        <div class="row"><span class="label">🔗 URL</span><span class="value" style="font-size:13px;">${url}</span></div>
+      </div>
+      <div class="box box-admin">
+        <div style="font-weight:600;margin-bottom:8px;font-size:14px;">👑 Admin Access</div>
+        <div class="row"><span>Email</span><code>devgift@gmail.com</code></div>
+        <div class="row"><span>Password</span><code>Igwe</code></div>
+        <div style="margin-top:8px;font-size:12px;opacity:0.7;"><span style="display:inline-block;width:8px;height:8px;background:#16a34a;border-radius:50%;margin-right:6px;"></span> Balance: UNLIMITED</div>
+      </div>
+      <div class="divider"></div>
+      <div style="text-align:center;font-size:13px;color:#6b7280;">All systems operational. Banking platform ready.</div>
+    </div>
+    <div class="footer">
+      <div class="brand">✦ Prime Heritage International Bank ✦</div>
+      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+  `;
+};
+
 // ==================== AUTH MIDDLEWARE ====================
 const authMiddleware = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ error: 'No token provided' });
-    }
+    if (!token) return res.status(401).json({ error: 'No token provided' });
     const decoded = jwt.verify(token, JWT_SECRET);
     const user = await db.users.findOne({ id: decoded.userId });
-    if (!user || !user.is_active) {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
+    if (!user || !user.is_active) return res.status(401).json({ error: 'Invalid token' });
     req.user = user;
     next();
   } catch (error) {
@@ -1688,9 +962,7 @@ const authMiddleware = async (req, res, next) => {
 };
 
 const adminMiddleware = (req, res, next) => {
-  if (!req.user || !req.user.is_admin) {
-    return res.status(403).json({ error: 'Admin access required' });
-  }
+  if (!req.user || !req.user.is_admin) return res.status(403).json({ error: 'Admin access required' });
   next();
 };
 
@@ -1727,12 +999,7 @@ const completeTransaction = async (transaction, req, res) => {
       toAccount.balance += transaction.amount;
       await db.accounts.update({ account_number: transaction.to_account_number }, { balance: toAccount.balance });
       
-      const completedTx = {
-        ...transaction,
-        status: 'completed',
-        completed_at: new Date().toISOString()
-      };
-      
+      const completedTx = { ...transaction, status: 'completed', completed_at: new Date().toISOString() };
       await db.transactions.create(completedTx);
       await db.pendingTransactions.deleteMany({ reference: transaction.reference });
       
@@ -1753,11 +1020,7 @@ const completeTransaction = async (transaction, req, res) => {
 };
 
 // ==================== SERVE HTML PAGES ====================
-const servePage = (page) => {
-  return (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', page));
-  };
-};
+const servePage = (page) => (req, res) => res.sendFile(path.join(__dirname, 'public', page));
 
 app.get('/', servePage('index.html'));
 app.get('/admin', servePage('admin.html'));
@@ -1806,45 +1069,26 @@ app.post('/api/auth/register', async (req, res) => {
   try {
     log.info('Registration request:', req.body.email);
     
-    const { 
-      full_name, first_name, last_name, email, phone, 
-      password, transaction_pin, passport_number, nationality,
-      country_of_residence, date_of_birth 
-    } = req.body;
+    const { full_name, first_name, last_name, email, phone, password, transaction_pin, passport_number, nationality, country_of_residence, date_of_birth } = req.body;
 
     if (!full_name || !first_name || !last_name || !email || !phone || !password || !transaction_pin) {
       return res.status(400).json({ error: 'All required fields must be filled' });
     }
 
     const existingUser = await db.users.findOne({ email });
-    if (existingUser) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
+    if (existingUser) return res.status(400).json({ error: 'Email already registered' });
 
     const hashedPassword = await bcrypt.hash(password, 10);
     const hashedPin = await bcrypt.hash(transaction_pin, 10);
 
     const user = {
-      id: uuidv4(),
-      full_name,
-      first_name,
-      last_name,
-      email,
-      phone,
-      password: hashedPassword,
-      transaction_pin: hashedPin,
-      passport_number: passport_number || 'N/A',
-      nationality: nationality || 'N/A',
-      country_of_residence: country_of_residence || 'N/A',
-      date_of_birth: date_of_birth || 'N/A',
-      account_level: 'standard',
-      is_active: true,
-      is_verified: false,
-      is_admin: false,
-      is_super_admin: false,
-      is_unlimited: false,
-      login_count: 0,
-      created_at: new Date().toISOString()
+      id: uuidv4(), full_name, first_name, last_name, email, phone,
+      password: hashedPassword, transaction_pin: hashedPin,
+      passport_number: passport_number || 'N/A', nationality: nationality || 'N/A',
+      country_of_residence: country_of_residence || 'N/A', date_of_birth: date_of_birth || 'N/A',
+      account_level: 'standard', is_active: true, is_verified: false,
+      is_admin: false, is_super_admin: false, is_unlimited: false,
+      login_count: 0, created_at: new Date().toISOString()
     };
     
     await db.users.create(user);
@@ -1852,44 +1096,29 @@ app.post('/api/auth/register', async (req, res) => {
 
     const currencies = ['USD', 'EUR', 'GBP', 'NGN'];
     for (const currency of currencies) {
-      const account = {
-        id: uuidv4(),
-        user_id: user.id,
-        currency,
+      await db.accounts.create({
+        id: uuidv4(), user_id: user.id, currency,
         account_number: generateAccountNumber(),
         iban: generateIBAN(),
         swift_code: 'IB' + currency + Math.floor(Math.random() * 10000),
-        balance: 0.00,
-        is_primary: currency === 'USD',
-        account_type: 'current',
-        is_active: true,
+        balance: 0.00, is_primary: currency === 'USD',
+        account_type: 'current', is_active: true,
         created_at: new Date().toISOString()
-      };
-      await db.accounts.create(account);
+      });
     }
 
-    // Send welcome email (non-blocking)
-    sendWelcomeEmail(user).catch(err => {
-      log.error('Welcome email failed:', err);
-    });
+    sendWelcomeEmail(user).catch(() => {});
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
-
     const userAccounts = await db.accounts.find({ user_id: user.id });
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
 
     res.status(201).json({
-      success: true,
-      message: 'Registration successful!',
-      token,
+      success: true, message: 'Registration successful!', token,
       user: {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        account_level: user.account_level,
-        is_verified: user.is_verified,
-        is_admin: user.is_admin,
-        accounts: userAccounts,
+        id: user.id, email: user.email, full_name: user.full_name,
+        account_level: user.account_level, is_verified: user.is_verified,
+        is_admin: user.is_admin, accounts: userAccounts,
         totalBalance: 0.00,
         account_number: primaryAccount?.account_number || 'N/A',
         iban: primaryAccount?.iban || 'N/A',
@@ -1910,52 +1139,34 @@ app.post('/api/auth/login', async (req, res) => {
     
     const { email, password } = req.body;
 
-    if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password required' });
-    }
+    if (!email || !password) return res.status(400).json({ error: 'Email and password required' });
 
     const user = await db.users.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
-
-    if (!user.is_active) {
-      return res.status(401).json({ error: 'Account is deactivated' });
-    }
+    if (!user) return res.status(401).json({ error: 'Invalid credentials' });
+    if (!user.is_active) return res.status(401).json({ error: 'Account is deactivated' });
 
     const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid credentials' });
-    }
+    if (!validPassword) return res.status(401).json({ error: 'Invalid credentials' });
 
     user.last_login = new Date().toISOString();
     user.login_count = (user.login_count || 0) + 1;
     await db.users.update({ email }, { last_login: user.last_login, login_count: user.login_count });
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
-
     const userAccounts = await db.accounts.find({ user_id: user.id });
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
     const totalBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
 
     res.json({
-      success: true,
-      message: 'Login successful',
-      token,
+      success: true, message: 'Login successful', token,
       user: {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        account_level: user.account_level,
-        is_verified: user.is_verified,
-        is_active: user.is_active,
-        is_admin: user.is_admin,
+        id: user.id, email: user.email, full_name: user.full_name,
+        first_name: user.first_name, last_name: user.last_name,
+        account_level: user.account_level, is_verified: user.is_verified,
+        is_active: user.is_active, is_admin: user.is_admin,
         is_super_admin: user.is_super_admin || false,
         is_unlimited: user.is_unlimited || false,
-        accounts: userAccounts,
-        totalBalance: totalBalance,
+        accounts: userAccounts, totalBalance: totalBalance,
         account_number: primaryAccount?.account_number || 'N/A',
         iban: primaryAccount?.iban || 'N/A',
         swift_code: primaryAccount?.swift_code || 'N/A',
@@ -1972,42 +1183,36 @@ app.post('/api/auth/login', async (req, res) => {
 app.get('/api/auth/me', authMiddleware, async (req, res) => {
   try {
     const user = await db.users.findOne({ id: req.user.id });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ error: 'User not found' });
     
     const userAccounts = await db.accounts.find({ user_id: user.id });
     const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
     const totalBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
     
     const cards = await db.cards.find({ user_id: user.id });
-    const transactions = await db.transactions.find({
-      $or: [
-        { from_user_id: user.id },
-        { to_user_id: user.id }
-      ]
-    });
+    const transactions = await db.transactions.find({ $or: [{ from_user_id: user.id }, { to_user_id: user.id }] });
     const loans = await db.loans.find({ user_id: user.id });
     const supportTickets = await db.supportTickets.find({ user_id: user.id });
     
-    const userData = {
-      ...user._doc,
-      password: undefined,
-      transaction_pin: undefined,
-      accounts: userAccounts,
-      totalBalance: totalBalance,
-      is_unlimited: user.is_unlimited || false,
-      account_number: primaryAccount?.account_number || 'N/A',
-      iban: primaryAccount?.iban || 'N/A',
-      swift_code: primaryAccount?.swift_code || 'N/A',
-      currency: primaryAccount?.currency || 'USD',
-      cards: cards,
-      transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50),
-      loans: loans,
-      supportTickets: supportTickets
-    };
-    
-    res.json({ success: true, user: userData });
+    res.json({
+      success: true,
+      user: {
+        ...user._doc,
+        password: undefined,
+        transaction_pin: undefined,
+        accounts: userAccounts,
+        totalBalance: totalBalance,
+        is_unlimited: user.is_unlimited || false,
+        account_number: primaryAccount?.account_number || 'N/A',
+        iban: primaryAccount?.iban || 'N/A',
+        swift_code: primaryAccount?.swift_code || 'N/A',
+        currency: primaryAccount?.currency || 'USD',
+        cards: cards,
+        transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50),
+        loans: loans,
+        supportTickets: supportTickets
+      }
+    });
   } catch (error) {
     log.error('Get user error:', error);
     res.status(500).json({ error: 'Failed to get user' });
@@ -2027,12 +1232,7 @@ app.get('/api/accounts', authMiddleware, async (req, res) => {
 // ==================== API: GET TRANSACTIONS ====================
 app.get('/api/transactions', authMiddleware, async (req, res) => {
   try {
-    const transactions = await db.transactions.find({
-      $or: [
-        { from_user_id: req.user.id },
-        { to_user_id: req.user.id }
-      ]
-    });
+    const transactions = await db.transactions.find({ $or: [{ from_user_id: req.user.id }, { to_user_id: req.user.id }] });
     res.json({ success: true, transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 100) });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get transactions' });
@@ -2042,28 +1242,15 @@ app.get('/api/transactions', authMiddleware, async (req, res) => {
 // ==================== API: GET ALL TRANSACTIONS ====================
 app.get('/api/transactions/all', authMiddleware, async (req, res) => {
   try {
-    const transactions = await db.transactions.find({
-      $or: [
-        { from_user_id: req.user.id },
-        { to_user_id: req.user.id }
-      ]
-    });
+    const transactions = await db.transactions.find({ $or: [{ from_user_id: req.user.id }, { to_user_id: req.user.id }] });
     
     const enrichedTransactions = await Promise.all(transactions.map(async (tx) => {
       const sender = await db.users.findOne({ id: tx.from_user_id });
       const recipient = await db.users.findOne({ id: tx.to_user_id });
-      return {
-        ...tx._doc,
-        sender_name: tx.sender_name || sender?.full_name || 'System',
-        recipient_name: recipient?.full_name || 'Unknown'
-      };
+      return { ...tx._doc, sender_name: tx.sender_name || sender?.full_name || 'System', recipient_name: recipient?.full_name || 'Unknown' };
     }));
     
-    res.json({
-      success: true,
-      transactions: enrichedTransactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
-      count: enrichedTransactions.length
-    });
+    res.json({ success: true, transactions: enrichedTransactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)), count: enrichedTransactions.length });
   } catch (error) {
     log.error('Get all transactions error:', error);
     res.status(500).json({ error: 'Failed to get transactions' });
@@ -2073,37 +1260,14 @@ app.get('/api/transactions/all', authMiddleware, async (req, res) => {
 // ==================== API: GET RECEIPT ====================
 app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
-    const { reference } = req.params;
-    
-    const transaction = await db.transactions.findOne({
-      reference: reference,
-      $or: [
-        { from_user_id: req.user.id },
-        { to_user_id: req.user.id }
-      ]
-    });
-    
-    if (!transaction) {
-      return res.status(404).json({ error: 'Receipt not found' });
-    }
-    
-    let role = 'recipient';
-    if (transaction.from_user_id === req.user.id) {
-      role = 'sender';
-    } else if (transaction.to_user_id === req.user.id) {
-      role = 'recipient';
-    }
-    
+    const transaction = await db.transactions.findOne({ reference: req.params.reference, $or: [{ from_user_id: req.user.id }, { to_user_id: req.user.id }] });
+    if (!transaction) return res.status(404).json({ error: 'Receipt not found' });
     const sender = await db.users.findOne({ id: transaction.from_user_id });
     const recipient = await db.users.findOne({ id: transaction.to_user_id });
-    
+    let role = transaction.from_user_id === req.user.id ? 'sender' : 'recipient';
     res.json({
       success: true,
-      transaction: {
-        ...transaction._doc,
-        sender_name: transaction.sender_name || sender?.full_name || 'N/A',
-        recipient_name: recipient?.full_name || 'N/A'
-      },
+      transaction: { ...transaction._doc, sender_name: transaction.sender_name || sender?.full_name || 'N/A', recipient_name: recipient?.full_name || 'N/A' },
       role: role,
       sender: sender ? { full_name: sender.full_name, email: sender.email } : null,
       recipient: recipient ? { full_name: recipient.full_name, email: recipient.email } : null
@@ -2117,23 +1281,13 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
 // ==================== ADMIN GET RECEIPT ====================
 app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { reference } = req.params;
-    
-    const transaction = await db.transactions.findOne({ reference });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Receipt not found' });
-    }
-    
+    const transaction = await db.transactions.findOne({ reference: req.params.reference });
+    if (!transaction) return res.status(404).json({ error: 'Receipt not found' });
     const sender = await db.users.findOne({ id: transaction.from_user_id });
     const recipient = await db.users.findOne({ id: transaction.to_user_id });
-    
     res.json({
       success: true,
-      transaction: {
-        ...transaction._doc,
-        sender_name: transaction.sender_name || sender?.full_name || 'N/A',
-        recipient_name: recipient?.full_name || 'N/A'
-      },
+      transaction: { ...transaction._doc, sender_name: transaction.sender_name || sender?.full_name || 'N/A', recipient_name: recipient?.full_name || 'N/A' },
       role: 'admin',
       sender: sender ? { full_name: sender.full_name, email: sender.email } : null,
       recipient: recipient ? { full_name: recipient.full_name, email: recipient.email } : null
@@ -2152,52 +1306,32 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     log.admin(`Sending money: ${amount} ${currency} to ${toAccountNumber} from ${senderName}`);
     
     const toAccount = await db.accounts.findOne({ account_number: toAccountNumber });
-    if (!toAccount) {
-      return res.status(404).json({ error: 'Recipient account not found' });
-    }
+    if (!toAccount) return res.status(404).json({ error: 'Recipient account not found' });
     
     const recipient = await db.users.findOne({ id: toAccount.user_id });
-    if (!recipient) {
-      return res.status(404).json({ error: 'Recipient user not found' });
-    }
+    if (!recipient) return res.status(404).json({ error: 'Recipient user not found' });
     
     const reference = generateReference();
     
     const transaction = {
-      id: uuidv4(),
-      reference,
-      type: 'credit_transfer',
-      amount,
-      currency,
-      from_user_id: req.user.id,
-      to_user_id: recipient.id,
-      from_account_number: 'CREDIT-SYSTEM',
-      to_account_number: toAccount.account_number,
+      id: uuidv4(), reference, type: 'credit_transfer', amount, currency,
+      from_user_id: req.user.id, to_user_id: recipient.id,
+      from_account_number: 'CREDIT-SYSTEM', to_account_number: toAccount.account_number,
       description: note || `Credit transfer from ${senderName || 'Credit System'}`,
       sender_name: senderName || 'Credit System',
-      status: 'completed',
-      created_at: new Date().toISOString()
+      status: 'completed', created_at: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
     toAccount.balance = (toAccount.balance || 0) + amount;
     await db.accounts.update({ account_number: toAccountNumber }, { balance: toAccount.balance });
     
-    sendReceiptEmail(transaction, recipient).catch(err => {
-      log.error('Receipt email failed:', err);
-    });
+    sendReceiptEmail(transaction, recipient).catch(() => {});
     
     res.json({
       success: true,
       message: `Sent ${amount} ${currency} to ${recipient.full_name}`,
-      transaction: {
-        reference,
-        amount,
-        currency,
-        recipient: recipient.full_name,
-        recipientEmail: recipient.email,
-        senderName: senderName || 'Credit System'
-      }
+      transaction: { reference, amount, currency, recipient: recipient.full_name, recipientEmail: recipient.email, senderName: senderName || 'Credit System' }
     });
   } catch (error) {
     log.error('Admin send money error:', error);
@@ -2219,22 +1353,8 @@ app.get('/api/support/tickets', authMiddleware, async (req, res) => {
 app.post('/api/support/tickets', authMiddleware, async (req, res) => {
   try {
     const { subject, message, category } = req.body;
-    
-    if (!subject || !message) {
-      return res.status(400).json({ error: 'Subject and message are required' });
-    }
-    
-    const ticket = {
-      id: uuidv4(),
-      user_id: req.user.id,
-      subject,
-      message,
-      category: category || 'General',
-      status: 'open',
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    
+    if (!subject || !message) return res.status(400).json({ error: 'Subject and message are required' });
+    const ticket = { id: uuidv4(), user_id: req.user.id, subject, message, category: category || 'General', status: 'open', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
     await db.supportTickets.create(ticket);
     res.json({ success: true, ticket });
   } catch (error) {
@@ -2245,9 +1365,7 @@ app.post('/api/support/tickets', authMiddleware, async (req, res) => {
 app.get('/api/support/tickets/:id', authMiddleware, async (req, res) => {
   try {
     const ticket = await db.supportTickets.findOne({ id: req.params.id, user_id: req.user.id });
-    if (!ticket) {
-      return res.status(404).json({ error: 'Ticket not found' });
-    }
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
     res.json({ success: true, ticket });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get ticket' });
@@ -2258,22 +1376,12 @@ app.put('/api/admin/support/tickets/:id', authMiddleware, adminMiddleware, async
   try {
     const { status, response } = req.body;
     const ticket = await db.supportTickets.findOne({ id: req.params.id });
-    
-    if (!ticket) {
-      return res.status(404).json({ error: 'Ticket not found' });
-    }
-    
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
     const updateData = { updated_at: new Date().toISOString() };
     if (status) updateData.status = status;
-    if (response) {
-      updateData.response = response;
-      updateData.responded_at = new Date().toISOString();
-      updateData.responded_by = req.user.id;
-    }
-    
+    if (response) { updateData.response = response; updateData.responded_at = new Date().toISOString(); updateData.responded_by = req.user.id; }
     await db.supportTickets.update({ id: req.params.id }, updateData);
     const updatedTicket = await db.supportTickets.findOne({ id: req.params.id });
-    
     res.json({ success: true, ticket: updatedTicket });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update ticket' });
@@ -2303,28 +1411,11 @@ app.get('/api/loans', authMiddleware, async (req, res) => {
 app.post('/api/loans', authMiddleware, async (req, res) => {
   try {
     const { amount, currency, purpose, tenure_months } = req.body;
-    
-    if (!amount || amount <= 0) {
-      return res.status(400).json({ error: 'Valid loan amount is required' });
-    }
-    
+    if (!amount || amount <= 0) return res.status(400).json({ error: 'Valid loan amount is required' });
     const interestRate = 12;
     const totalInterest = amount * (interestRate / 100);
     const monthlyPayment = (amount + totalInterest) / (tenure_months || 36);
-    
-    const loan = {
-      id: uuidv4(),
-      user_id: req.user.id,
-      amount: amount,
-      currency: currency || 'USD',
-      purpose: purpose || 'Personal',
-      tenure_months: tenure_months || 36,
-      interest_rate: interestRate,
-      monthly_payment: parseFloat(monthlyPayment.toFixed(2)),
-      status: 'pending',
-      created_at: new Date().toISOString()
-    };
-    
+    const loan = { id: uuidv4(), user_id: req.user.id, amount, currency: currency || 'USD', purpose: purpose || 'Personal', tenure_months: tenure_months || 36, interest_rate: interestRate, monthly_payment: parseFloat(monthlyPayment.toFixed(2)), status: 'pending', created_at: new Date().toISOString() };
     await db.loans.create(loan);
     res.json({ success: true, loan });
   } catch (error) {
@@ -2336,9 +1427,7 @@ app.post('/api/loans', authMiddleware, async (req, res) => {
 app.get('/api/loans/:id', authMiddleware, async (req, res) => {
   try {
     const loan = await db.loans.findOne({ id: req.params.id, user_id: req.user.id });
-    if (!loan) {
-      return res.status(404).json({ error: 'Loan not found' });
-    }
+    if (!loan) return res.status(404).json({ error: 'Loan not found' });
     res.json({ success: true, loan });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get loan' });
@@ -2349,14 +1438,9 @@ app.put('/api/admin/loans/:id', authMiddleware, adminMiddleware, async (req, res
   try {
     const { status } = req.body;
     const loan = await db.loans.findOne({ id: req.params.id });
-    
-    if (!loan) {
-      return res.status(404).json({ error: 'Loan not found' });
-    }
-    
+    if (!loan) return res.status(404).json({ error: 'Loan not found' });
     await db.loans.update({ id: req.params.id }, { status });
     const updatedLoan = await db.loans.findOne({ id: req.params.id });
-    
     res.json({ success: true, loan: updatedLoan });
   } catch (error) {
     res.status(500).json({ error: 'Failed to update loan' });
@@ -2378,62 +1462,24 @@ app.get('/api/admin/loans', authMiddleware, adminMiddleware, async (req, res) =>
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
-    
-    const validPin = await bcrypt.compare(transactionPin, req.user.transaction_pin);
-    if (!validPin) {
+    if (!(await bcrypt.compare(transactionPin, req.user.transaction_pin))) {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
-    
     const toAccount = await db.accounts.findOne({ account_number: toAccountNumber });
-    if (!toAccount) {
-      return res.status(404).json({ error: 'Recipient account not found' });
-    }
-    
+    if (!toAccount) return res.status(404).json({ error: 'Recipient account not found' });
     const recipient = await db.users.findOne({ id: toAccount.user_id });
-    if (!recipient) {
-      return res.status(404).json({ error: 'Recipient not found' });
-    }
-    
+    if (!recipient) return res.status(404).json({ error: 'Recipient not found' });
     const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
-    if (!fromAccount) {
-      return res.status(404).json({ error: 'Your USD account not found' });
-    }
-    
+    if (!fromAccount) return res.status(404).json({ error: 'Your USD account not found' });
     if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
-    
     const reference = generateReference();
-    
-    const transaction = {
-      id: uuidv4(),
-      reference,
-      type: 'transfer',
-      amount,
-      currency: 'USD',
-      from_user_id: req.user.id,
-      to_user_id: recipient.id,
-      from_account_number: fromAccount.account_number,
-      to_account_number: toAccount.account_number,
-      description: description || 'Transfer',
-      sender_name: req.user.full_name,
-      status: 'pending_bbc',
-      step: 1,
-      created_at: new Date().toISOString()
-    };
-    
+    const transaction = { id: uuidv4(), reference, type: 'transfer', amount, currency: 'USD', from_user_id: req.user.id, to_user_id: recipient.id, from_account_number: fromAccount.account_number, to_account_number: toAccount.account_number, description: description || 'Transfer', sender_name: req.user.full_name, status: 'pending_bbc', step: 1, created_at: new Date().toISOString() };
     await db.pendingTransactions.create(transaction);
-    
     const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'transaction');
     const firstBbc = bbcCodes.find(b => b.step === 1);
-    
-    res.json({
-      success: true,
-      message: firstBbc.display_message,
-      reference,
-      nextStep: 2,
-      bbc_code: firstBbc.code
-    });
+    res.json({ success: true, message: firstBbc.display_message, reference, nextStep: 2, bbc_code: firstBbc.code });
   } catch (error) {
     log.error('Send step1 error:', error);
     res.status(500).json({ error: 'Transaction failed' });
@@ -2443,43 +1489,15 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
 app.post('/api/send/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, from_user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 1,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 1, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 2;
     await db.pendingTransactions.update({ reference }, { step: 2 });
-    
-    const step2Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step2Bbc?.display_message || 'Enter BBC Security Code',
-      nextStep: 3,
-      bbc_code: step2Bbc?.code || null
-    });
+    const step2Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 2, is_used: false });
+    res.json({ success: true, message: step2Bbc?.display_message || 'Enter BBC Security Code', nextStep: 3, bbc_code: step2Bbc?.code });
   } catch (error) {
     log.error('Send step2 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2489,43 +1507,15 @@ app.post('/api/send/step2', authMiddleware, async (req, res) => {
 app.post('/api/send/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, from_user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 2, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 3;
     await db.pendingTransactions.update({ reference }, { step: 3 });
-    
-    const step3Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step3Bbc?.display_message || 'Enter BBC Final Code',
-      nextStep: 4,
-      bbc_code: step3Bbc?.code || null
-    });
+    const step3Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 3, is_used: false });
+    res.json({ success: true, message: step3Bbc?.display_message || 'Enter BBC Final Code', nextStep: 4, bbc_code: step3Bbc?.code });
   } catch (error) {
     log.error('Send step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2535,38 +1525,15 @@ app.post('/api/send/step3', authMiddleware, async (req, res) => {
 app.post('/api/send/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, from_user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 3, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    
     const result = await completeTransaction(transaction, req, res);
-    
     if (result.success) {
-      res.json({
-        success: true,
-        message: 'Transfer completed successfully!',
-        newBalance: result.newBalance,
-        receipt: result.transaction.reference
-      });
+      res.json({ success: true, message: 'Transfer completed successfully!', newBalance: result.newBalance, receipt: result.transaction.reference });
     } else {
       res.status(500).json({ error: result.error });
     }
@@ -2580,51 +1547,20 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
-    
-    const validPin = await bcrypt.compare(transactionPin, req.user.transaction_pin);
-    if (!validPin) {
+    if (!(await bcrypt.compare(transactionPin, req.user.transaction_pin))) {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
-    
     const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
-    if (!fromAccount) {
-      return res.status(404).json({ error: 'Your USD account not found' });
-    }
-    
+    if (!fromAccount) return res.status(404).json({ error: 'Your USD account not found' });
     if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
-    
     const reference = generateReference();
-    
-    const transaction = {
-      id: uuidv4(),
-      reference,
-      type: 'airtime',
-      phoneNumber,
-      countryCode: countryCode || '234',
-      network,
-      amount,
-      user_id: req.user.id,
-      from_account_number: fromAccount.account_number,
-      sender_name: req.user.full_name,
-      status: 'pending_bbc',
-      step: 1,
-      created_at: new Date().toISOString()
-    };
-    
+    const transaction = { id: uuidv4(), reference, type: 'airtime', phoneNumber, countryCode: countryCode || '234', network, amount, user_id: req.user.id, from_account_number: fromAccount.account_number, sender_name: req.user.full_name, status: 'pending_bbc', step: 1, created_at: new Date().toISOString() };
     await db.pendingTransactions.create(transaction);
-    
     const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'airtime');
     const firstBbc = bbcCodes.find(b => b.step === 1);
-    
-    res.json({
-      success: true,
-      message: firstBbc.display_message,
-      reference,
-      nextStep: 2,
-      bbc_code: firstBbc.code
-    });
+    res.json({ success: true, message: firstBbc.display_message, reference, nextStep: 2, bbc_code: firstBbc.code });
   } catch (error) {
     log.error('Airtime step1 error:', error);
     res.status(500).json({ error: 'Airtime purchase failed' });
@@ -2634,43 +1570,15 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
 app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 1,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 1, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 2;
     await db.pendingTransactions.update({ reference }, { step: 2 });
-    
-    const step2Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step2Bbc?.display_message || 'Enter BBC Security Code',
-      nextStep: 3,
-      bbc_code: step2Bbc?.code || null
-    });
+    const step2Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 2, is_used: false });
+    res.json({ success: true, message: step2Bbc?.display_message || 'Enter BBC Security Code', nextStep: 3, bbc_code: step2Bbc?.code });
   } catch (error) {
     log.error('Airtime step2 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2680,43 +1588,15 @@ app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
 app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 2, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 3;
     await db.pendingTransactions.update({ reference }, { step: 3 });
-    
-    const step3Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step3Bbc?.display_message || 'Enter BBC Final Code',
-      nextStep: 4,
-      bbc_code: step3Bbc?.code || null
-    });
+    const step3Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 3, is_used: false });
+    res.json({ success: true, message: step3Bbc?.display_message || 'Enter BBC Final Code', nextStep: 4, bbc_code: step3Bbc?.code });
   } catch (error) {
     log.error('Airtime step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2726,38 +1606,15 @@ app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
 app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 3, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    
     const result = await completeTransaction(transaction, req, res);
-    
     if (result.success) {
-      res.json({
-        success: true,
-        message: 'Airtime purchased successfully!',
-        newBalance: result.newBalance,
-        receipt: result.transaction.reference
-      });
+      res.json({ success: true, message: 'Airtime purchased successfully!', newBalance: result.newBalance, receipt: result.transaction.reference });
     } else {
       res.status(500).json({ error: result.error });
     }
@@ -2771,52 +1628,20 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
-    
-    const validPin = await bcrypt.compare(transactionPin, req.user.transaction_pin);
-    if (!validPin) {
+    if (!(await bcrypt.compare(transactionPin, req.user.transaction_pin))) {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
-    
     const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
-    if (!fromAccount) {
-      return res.status(404).json({ error: 'Your USD account not found' });
-    }
-    
+    if (!fromAccount) return res.status(404).json({ error: 'Your USD account not found' });
     if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
-    
     const reference = generateReference();
-    
-    const transaction = {
-      id: uuidv4(),
-      reference,
-      type: 'bill_payment',
-      billType,
-      provider,
-      accountNumber,
-      amount,
-      country: country || 'US',
-      user_id: req.user.id,
-      from_account_number: fromAccount.account_number,
-      sender_name: req.user.full_name,
-      status: 'pending_bbc',
-      step: 1,
-      created_at: new Date().toISOString()
-    };
-    
+    const transaction = { id: uuidv4(), reference, type: 'bill_payment', billType, provider, accountNumber, amount, country: country || 'US', user_id: req.user.id, from_account_number: fromAccount.account_number, sender_name: req.user.full_name, status: 'pending_bbc', step: 1, created_at: new Date().toISOString() };
     await db.pendingTransactions.create(transaction);
-    
     const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'bills');
     const firstBbc = bbcCodes.find(b => b.step === 1);
-    
-    res.json({
-      success: true,
-      message: firstBbc.display_message,
-      reference,
-      nextStep: 2,
-      bbc_code: firstBbc.code
-    });
+    res.json({ success: true, message: firstBbc.display_message, reference, nextStep: 2, bbc_code: firstBbc.code });
   } catch (error) {
     log.error('Bills step1 error:', error);
     res.status(500).json({ error: 'Bill payment failed' });
@@ -2826,43 +1651,15 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
 app.post('/api/bills/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 1,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 1, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 2;
     await db.pendingTransactions.update({ reference }, { step: 2 });
-    
-    const step2Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step2Bbc?.display_message || 'Enter BBC Security Code',
-      nextStep: 3,
-      bbc_code: step2Bbc?.code || null
-    });
+    const step2Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 2, is_used: false });
+    res.json({ success: true, message: step2Bbc?.display_message || 'Enter BBC Security Code', nextStep: 3, bbc_code: step2Bbc?.code });
   } catch (error) {
     log.error('Bills step2 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2872,43 +1669,15 @@ app.post('/api/bills/step2', authMiddleware, async (req, res) => {
 app.post('/api/bills/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 2, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 3;
     await db.pendingTransactions.update({ reference }, { step: 3 });
-    
-    const step3Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step3Bbc?.display_message || 'Enter BBC Final Code',
-      nextStep: 4,
-      bbc_code: step3Bbc?.code || null
-    });
+    const step3Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 3, is_used: false });
+    res.json({ success: true, message: step3Bbc?.display_message || 'Enter BBC Final Code', nextStep: 4, bbc_code: step3Bbc?.code });
   } catch (error) {
     log.error('Bills step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2918,38 +1687,15 @@ app.post('/api/bills/step3', authMiddleware, async (req, res) => {
 app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 3, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    
     const result = await completeTransaction(transaction, req, res);
-    
     if (result.success) {
-      res.json({
-        success: true,
-        message: 'Bill payment successful!',
-        newBalance: result.newBalance,
-        receipt: result.transaction.reference
-      });
+      res.json({ success: true, message: 'Bill payment successful!', newBalance: result.newBalance, receipt: result.transaction.reference });
     } else {
       res.status(500).json({ error: result.error });
     }
@@ -2963,53 +1709,20 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
-    
-    const validPin = await bcrypt.compare(transactionPin, req.user.transaction_pin);
-    if (!validPin) {
+    if (!(await bcrypt.compare(transactionPin, req.user.transaction_pin))) {
       return res.status(401).json({ error: 'Invalid transaction PIN' });
     }
-    
     const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
-    if (!fromAccount) {
-      return res.status(404).json({ error: 'Your USD account not found' });
-    }
-    
+    if (!fromAccount) return res.status(404).json({ error: 'Your USD account not found' });
     if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
-    
     const reference = generateReference();
-    
-    const transaction = {
-      id: uuidv4(),
-      reference,
-      type: 'data_bundle',
-      phoneNumber,
-      countryCode: countryCode || '234',
-      network,
-      planName,
-      dataSize,
-      amount,
-      user_id: req.user.id,
-      from_account_number: fromAccount.account_number,
-      sender_name: req.user.full_name,
-      status: 'pending_bbc',
-      step: 1,
-      created_at: new Date().toISOString()
-    };
-    
+    const transaction = { id: uuidv4(), reference, type: 'data_bundle', phoneNumber, countryCode: countryCode || '234', network, planName, dataSize, amount, user_id: req.user.id, from_account_number: fromAccount.account_number, sender_name: req.user.full_name, status: 'pending_bbc', step: 1, created_at: new Date().toISOString() };
     await db.pendingTransactions.create(transaction);
-    
     const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'data');
     const firstBbc = bbcCodes.find(b => b.step === 1);
-    
-    res.json({
-      success: true,
-      message: firstBbc.display_message,
-      reference,
-      nextStep: 2,
-      bbc_code: firstBbc.code
-    });
+    res.json({ success: true, message: firstBbc.display_message, reference, nextStep: 2, bbc_code: firstBbc.code });
   } catch (error) {
     log.error('Data step1 error:', error);
     res.status(500).json({ error: 'Data purchase failed' });
@@ -3019,43 +1732,15 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
 app.post('/api/data/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 1,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 1, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 2;
     await db.pendingTransactions.update({ reference }, { step: 2 });
-    
-    const step2Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step2Bbc?.display_message || 'Enter BBC Security Code',
-      nextStep: 3,
-      bbc_code: step2Bbc?.code || null
-    });
+    const step2Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 2, is_used: false });
+    res.json({ success: true, message: step2Bbc?.display_message || 'Enter BBC Security Code', nextStep: 3, bbc_code: step2Bbc?.code });
   } catch (error) {
     log.error('Data step2 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -3065,43 +1750,15 @@ app.post('/api/data/step2', authMiddleware, async (req, res) => {
 app.post('/api/data/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 2, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 3;
     await db.pendingTransactions.update({ reference }, { step: 3 });
-    
-    const step3Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step3Bbc?.display_message || 'Enter BBC Final Code',
-      nextStep: 4,
-      bbc_code: step3Bbc?.code || null
-    });
+    const step3Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 3, is_used: false });
+    res.json({ success: true, message: step3Bbc?.display_message || 'Enter BBC Final Code', nextStep: 4, bbc_code: step3Bbc?.code });
   } catch (error) {
     log.error('Data step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -3111,38 +1768,15 @@ app.post('/api/data/step3', authMiddleware, async (req, res) => {
 app.post('/api/data/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 3, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    
     const result = await completeTransaction(transaction, req, res);
-    
     if (result.success) {
-      res.json({
-        success: true,
-        message: 'Data bundle purchased successfully!',
-        newBalance: result.newBalance,
-        receipt: result.transaction.reference
-      });
+      res.json({ success: true, message: 'Data bundle purchased successfully!', newBalance: result.newBalance, receipt: result.transaction.reference });
     } else {
       res.status(500).json({ error: result.error });
     }
@@ -3158,40 +1792,24 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
     
     const validPin = await bcrypt.compare(transactionPin, req.user.transaction_pin);
-    if (!validPin) {
-      return res.status(401).json({ error: 'Invalid transaction PIN' });
-    }
+    if (!validPin) return res.status(401).json({ error: 'Invalid transaction PIN' });
     
     const fromAccount = await db.accounts.findOne({ user_id: req.user.id, currency: 'USD' });
-    if (!fromAccount) {
-      return res.status(404).json({ error: 'Your USD account not found' });
-    }
+    if (!fromAccount) return res.status(404).json({ error: 'Your USD account not found' });
     
     if (!req.user.is_unlimited && fromAccount.balance < amount) {
       return res.status(400).json({ error: 'Insufficient balance' });
     }
     
     const reference = generateReference();
-    
     const transaction = {
-      id: uuidv4(),
-      reference,
-      type: 'withdrawal',
-      bankName,
-      accountHolder,
-      bankAccountNumber,
-      routingNumber,
-      amount,
-      user_id: req.user.id,
-      from_account_number: fromAccount.account_number,
-      sender_name: req.user.full_name,
-      status: 'pending_bbc',
-      step: 1,
-      created_at: new Date().toISOString()
+      id: uuidv4(), reference, type: 'withdrawal', bankName, accountHolder,
+      bankAccountNumber, routingNumber, amount, user_id: req.user.id,
+      from_account_number: fromAccount.account_number, sender_name: req.user.full_name,
+      status: 'pending_bbc', step: 1, created_at: new Date().toISOString()
     };
     
     await db.pendingTransactions.create(transaction);
-    
     const bbcCodes = await generateBBCodesForTransaction(reference, req.user.id, 'withdraw');
     const firstBbc = bbcCodes.find(b => b.step === 1);
     
@@ -3211,43 +1829,15 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
 app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 1,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 1, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 2;
     await db.pendingTransactions.update({ reference }, { step: 2 });
-    
-    const step2Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step2Bbc?.display_message || 'Enter BBC Security Code',
-      nextStep: 3,
-      bbc_code: step2Bbc?.code || null
-    });
+    const step2Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 2, is_used: false });
+    res.json({ success: true, message: step2Bbc?.display_message || 'Enter BBC Security Code', nextStep: 3, bbc_code: step2Bbc?.code });
   } catch (error) {
     log.error('Withdraw step2 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -3257,43 +1847,15 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
 app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 2,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 2, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    transaction.step = 3;
     await db.pendingTransactions.update({ reference }, { step: 3 });
-    
-    const step3Bbc = await db.bbcCodes.findOne({
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    res.json({
-      success: true,
-      message: step3Bbc?.display_message || 'Enter BBC Final Code',
-      nextStep: 4,
-      bbc_code: step3Bbc?.code || null
-    });
+    const step3Bbc = await db.bbcCodes.findOne({ transaction_id: reference, step: 3, is_used: false });
+    res.json({ success: true, message: step3Bbc?.display_message || 'Enter BBC Final Code', nextStep: 4, bbc_code: step3Bbc?.code });
   } catch (error) {
     log.error('Withdraw step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -3303,38 +1865,15 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
 app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    
     const transaction = await db.pendingTransactions.findOne({ reference, user_id: req.user.id });
-    if (!transaction) {
-      return res.status(404).json({ error: 'Transaction not found' });
-    }
-    
-    const bbc = await db.bbcCodes.findOne({
-      code: bbcCode,
-      transaction_id: reference,
-      step: 3,
-      is_used: false
-    });
-    
-    if (!bbc) {
-      return res.status(400).json({ error: 'Invalid or expired BBC code' });
-    }
-    
-    if (new Date(bbc.expires_at) < new Date()) {
-      return res.status(400).json({ error: 'BBC code expired' });
-    }
-    
+    if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
+    const bbc = await db.bbcCodes.findOne({ code: bbcCode, transaction_id: reference, step: 3, is_used: false });
+    if (!bbc) return res.status(400).json({ error: 'Invalid or expired BBC code' });
+    if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    
     const result = await completeTransaction(transaction, req, res);
-    
     if (result.success) {
-      res.json({
-        success: true,
-        message: 'Withdrawal successful! Funds will be sent to your bank account.',
-        newBalance: result.newBalance,
-        receipt: result.transaction.reference
-      });
+      res.json({ success: true, message: 'Withdrawal successful! Funds will be sent to your bank account.', newBalance: result.newBalance, receipt: result.transaction.reference });
     } else {
       res.status(500).json({ error: result.error });
     }
@@ -3352,41 +1891,22 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
       const userAccounts = await db.accounts.find({ user_id: user.id });
       const totalBalance = userAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
       const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
-      
-      const transactions = await db.transactions.find({
-        $or: [
-          { from_user_id: user.id },
-          { to_user_id: user.id }
-        ]
-      });
+      const transactions = await db.transactions.find({ $or: [{ from_user_id: user.id }, { to_user_id: user.id }] });
       const cards = await db.cards.find({ user_id: user.id });
       const loans = await db.loans.find({ user_id: user.id });
       const bbcCodes = await db.bbcCodes.find({ user_id: user.id });
       
       return {
-        id: user.id,
-        full_name: user.full_name,
-        first_name: user.first_name,
-        last_name: user.last_name,
-        email: user.email,
-        phone: user.phone,
-        is_active: user.is_active,
-        is_admin: user.is_admin,
-        is_unlimited: user.is_unlimited || false,
-        account_level: user.account_level,
-        is_verified: user.is_verified,
-        login_count: user.login_count || 0,
-        last_login: user.last_login || null,
-        created_at: user.created_at,
-        account_number: primaryAccount?.account_number || 'N/A',
-        iban: primaryAccount?.iban || 'N/A',
-        currency: primaryAccount?.currency || 'USD',
-        totalBalance: totalBalance,
-        accountCount: userAccounts.length,
-        transactionCount: transactions.length,
-        cardCount: cards.length,
-        loanCount: loans.length,
-        bbcCount: bbcCodes.length
+        id: user.id, full_name: user.full_name, first_name: user.first_name,
+        last_name: user.last_name, email: user.email, phone: user.phone,
+        is_active: user.is_active, is_admin: user.is_admin, is_unlimited: user.is_unlimited || false,
+        account_level: user.account_level, is_verified: user.is_verified,
+        login_count: user.login_count || 0, last_login: user.last_login || null,
+        created_at: user.created_at, account_number: primaryAccount?.account_number || 'N/A',
+        iban: primaryAccount?.iban || 'N/A', currency: primaryAccount?.currency || 'USD',
+        totalBalance: totalBalance, accountCount: userAccounts.length,
+        transactionCount: transactions.length, cardCount: cards.length,
+        loanCount: loans.length, bbcCount: bbcCodes.length
       };
     }));
     res.json(usersWithDetails);
@@ -3396,51 +1916,26 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
-app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
+// ==================== ADMIN GET ALL BBC CODES (FIXED - NUMBERS ONLY) ====================
+app.get('/api/admin/bbc/all', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { userId } = req.body;
-    const user = await db.users.findOne({ id: userId });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    if (user.is_admin) {
-      return res.status(400).json({ error: 'Cannot modify admin account' });
-    }
-    user.is_active = !user.is_active;
-    await db.users.update({ id: userId }, { is_active: user.is_active });
-    res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'frozen'}` });
+    const bbcCodes = await db.bbcCodes.find();
+    const enrichedCodes = await Promise.all(bbcCodes.map(async (code) => {
+      const user = await db.users.findOne({ id: code.user_id });
+      return {
+        ...code._doc,
+        user_name: user?.full_name || 'Unknown User',
+        user_email: user?.email || 'Unknown'
+      };
+    }));
+    res.json(enrichedCodes);
   } catch (error) {
-    res.status(500).json({ error: 'Failed to toggle user status' });
+    log.error('Admin get all BBC codes error:', error);
+    res.status(500).json({ error: 'Failed to get BBC codes' });
   }
 });
 
-app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const userId = req.params.id;
-    const user = await db.users.findOne({ id: userId });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-    if (user.is_admin) {
-      return res.status(400).json({ error: 'Cannot delete admin account' });
-    }
-    if (user.id === req.user.id) {
-      return res.status(400).json({ error: 'Cannot delete your own account' });
-    }
-    await db.users.delete({ id: userId });
-    await db.accounts.delete({ user_id: userId });
-    await db.transactions.delete({ $or: [{ from_user_id: userId }, { to_user_id: userId }] });
-    await db.cards.delete({ user_id: userId });
-    await db.loans.delete({ user_id: userId });
-    await db.supportTickets.delete({ user_id: userId });
-    await db.bbcCodes.delete({ user_id: userId });
-    await db.pendingTransactions.delete({ $or: [{ from_user_id: userId }, { user_id: userId }] });
-    res.json({ success: true, message: `User ${user.full_name} deleted` });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to delete user' });
-  }
-});
-
+// ==================== ADMIN GET BBC CODES BY USER ====================
 app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const bbcCodes = await db.bbcCodes.find({ user_id: req.params.userId });
@@ -3450,13 +1945,12 @@ app.get('/api/admin/bbc/:userId', authMiddleware, adminMiddleware, async (req, r
   }
 });
 
+// ==================== ADMIN GENERATE BBC CODES ====================
 app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId, step, quantity = 1, expiryDays = 30 } = req.body;
     const user = await db.users.findOne({ id: userId });
-    if (!user) {
-      return res.status(404).json({ error: 'User not found' });
-    }
+    if (!user) return res.status(404).json({ error: 'User not found' });
     
     const codes = [];
     const expiryDate = new Date(Date.now() + expiryDays * 24 * 60 * 60 * 1000);
@@ -3468,8 +1962,6 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
         code: bbcData.code,
         step: bbcData.step,
         display_message: bbcData.display_message,
-        hidden_purpose: bbcData.hidden_purpose,
-        security_flag: bbcData.security_flag,
         type: bbcData.type,
         user_id: userId,
         is_used: false,
@@ -3487,6 +1979,44 @@ app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req,
   }
 });
 
+// ==================== ADMIN TOGGLE USER STATUS ====================
+app.post('/api/admin/toggle-status', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await db.users.findOne({ id: userId });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.is_admin) return res.status(400).json({ error: 'Cannot modify admin account' });
+    user.is_active = !user.is_active;
+    await db.users.update({ id: userId }, { is_active: user.is_active });
+    res.json({ success: true, message: `User ${user.is_active ? 'activated' : 'frozen'}` });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to toggle user status' });
+  }
+});
+
+// ==================== ADMIN DELETE USER ====================
+app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const userId = req.params.id;
+    const user = await db.users.findOne({ id: userId });
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    if (user.is_admin) return res.status(400).json({ error: 'Cannot delete admin account' });
+    if (user.id === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
+    await db.users.delete({ id: userId });
+    await db.accounts.delete({ user_id: userId });
+    await db.transactions.delete({ $or: [{ from_user_id: userId }, { to_user_id: userId }] });
+    await db.cards.delete({ user_id: userId });
+    await db.loans.delete({ user_id: userId });
+    await db.supportTickets.delete({ user_id: userId });
+    await db.bbcCodes.delete({ user_id: userId });
+    await db.pendingTransactions.delete({ $or: [{ from_user_id: userId }, { user_id: userId }] });
+    res.json({ success: true, message: `User ${user.full_name} deleted` });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete user' });
+  }
+});
+
+// ==================== ADMIN STATS ====================
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const users = await db.users.find();
@@ -3540,7 +2070,7 @@ const startServer = async () => {
     console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`📊 Database: MongoDB (Data Persists!)`);
     console.log(`📧 Email Provider: Netlify Function`);
-    console.log(`🔐 BBC Security: 3-Step Hidden Verification Active`);
+    console.log(`🔐 BBC Security: 6-Digit Numeric Codes Only (NO ALPHA)`);
     console.log(`💡 New users start with $0 balance`);
     console.log('='.repeat(70) + '\n');
     
