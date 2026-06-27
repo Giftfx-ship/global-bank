@@ -643,163 +643,414 @@ const sendEmailViaNetlify = async (to, subject, html) => {
 // ==================== EMAIL TEMPLATES ====================
 const getWelcomeHTML = (userData) => {
   const { full_name, email, account_level } = userData;
+  const year = new Date().getFullYear();
+  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
+  
   return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Welcome to Prime Heritage Bank</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,400&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #080C18; margin: 0; padding: 40px 20px; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
-        .email-wrapper { max-width: 600px; margin: 0 auto; background: #0E1525; border-radius: 28px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.7), 0 0 0 1px rgba(198,164,63,0.06); position: relative; }
-        .email-wrapper::before { content: ''; position: absolute; top: -40%; right: -30%; width: 70%; height: 70%; background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%); pointer-events: none; }
-        .header { background: linear-gradient(160deg, #080C18 0%, #111D35 45%, #0E1525 100%); padding: 44px 40px 30px; text-align: center; position: relative; border-bottom: 1px solid rgba(198,164,63,0.08); }
-        .header::after { content: ''; position: absolute; bottom: -1px; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, rgba(198,164,63,0.2), rgba(198,164,63,0.4), rgba(198,164,63,0.2), transparent); background-size: 200% 100%; animation: shimmer 4s ease-in-out infinite; }
-        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .header .crest { font-size: 38px; display: block; margin-bottom: 10px; letter-spacing: -2px; opacity: 0.9; }
-        .header h1 { font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 26px; font-weight: 700; letter-spacing: 2px; margin: 0; }
-        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #D4B85A, #C6A43F); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-size: 200% 200%; animation: goldShine 4s ease-in-out infinite; }
-        @keyframes goldShine { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .header .tagline { color: rgba(255,255,255,0.15); font-size: 9px; letter-spacing: 5px; text-transform: uppercase; margin-top: 6px; font-weight: 400; }
-        .header .badge { display: inline-block; margin-top: 14px; padding: 4px 20px; background: rgba(198,164,63,0.06); border: 1px solid rgba(198,164,63,0.08); border-radius: 50px; color: rgba(198,164,63,0.5); font-size: 8px; letter-spacing: 3px; text-transform: uppercase; font-weight: 500; }
-        .body-content { padding: 38px 40px 30px; background: #0E1525; position: relative; }
-        .greeting { font-family: 'Playfair Display', serif; font-size: 24px; font-weight: 700; color: #FFFFFF; margin-bottom: 4px; letter-spacing: -0.3px; }
-        .greeting .highlight { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .greeting .wave { display: inline-block; animation: wave 2.5s infinite; }
-        @keyframes wave { 0%, 100% { transform: rotate(0deg); } 25% { transform: rotate(16deg); } 75% { transform: rotate(-6deg); } }
-        .greeting-sub { color: rgba(255,255,255,0.2); font-size: 11px; letter-spacing: 1px; font-weight: 300; margin-bottom: 16px; }
-        .message-text { color: rgba(255,255,255,0.65); line-height: 1.9; font-size: 14px; font-weight: 300; margin-bottom: 24px; }
-        .message-text strong { color: #FFFFFF; font-weight: 500; }
-        .message-text .highlight-text { color: #C6A43F; }
-        .divider-line { height: 1px; background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent); margin: 24px 0 28px; }
-        .account-card { background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.04); border-radius: 16px; padding: 22px 26px; margin-bottom: 24px; position: relative; overflow: hidden; }
-        .account-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: linear-gradient(135deg, rgba(198,164,63,0.02), transparent); pointer-events: none; }
-        .account-card .card-title { color: rgba(255,255,255,0.2); font-size: 8px; text-transform: uppercase; letter-spacing: 2.5px; margin-bottom: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .account-card .card-title i { font-style: normal; font-size: 12px; }
-        .account-card .row { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,0.02); font-size: 13px; }
-        .account-card .row:last-child { border-bottom: none; }
-        .account-card .label { color: rgba(255,255,255,0.25); font-weight: 400; font-size: 11px; letter-spacing: 0.3px; }
-        .account-card .value { color: #FFFFFF; font-weight: 500; font-family: 'JetBrains Mono', 'Inter', monospace; font-size: 12px; letter-spacing: 0.3px; }
-        .account-card .value.golden { color: #C6A43F; }
-        .account-card .value.status { color: #34D399; display: flex; align-items: center; gap: 6px; }
-        .account-card .value.status::before { content: ''; display: inline-block; width: 5px; height: 5px; background: #34D399; border-radius: 50%; animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.7); } }
-        .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 22px 0 28px; }
-        .feature-item { background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.03); border-radius: 14px; padding: 14px 16px; text-align: center; transition: all 0.3s ease; }
-        .feature-item .icon { font-size: 22px; display: block; margin-bottom: 4px; opacity: 0.8; }
-        .feature-item .label { font-weight: 500; color: rgba(255,255,255,0.7); font-size: 11px; display: block; letter-spacing: 0.2px; }
-        .feature-item .desc { color: rgba(255,255,255,0.2); font-size: 9px; margin-top: 2px; letter-spacing: 0.5px; }
-        .btn-wrap { text-align: center; margin: 26px 0 4px; }
-        .btn-primary { display: inline-block; background: linear-gradient(135deg, #C6A43F, #A8882E); color: #080C18; padding: 16px 52px; text-decoration: none; border-radius: 60px; font-weight: 600; font-size: 14px; font-family: 'Inter', sans-serif; letter-spacing: 0.5px; box-shadow: 0 8px 32px rgba(198,164,63,0.15); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border: none; cursor: pointer; width: 100%; text-align: center; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 48px rgba(198,164,63,0.25); }
-        .btn-primary:active { transform: translateY(0px); }
-        .btn-secondary { display: inline-block; background: transparent; color: rgba(255,255,255,0.35); padding: 12px 36px; text-decoration: none; border-radius: 60px; font-weight: 500; font-size: 12px; font-family: 'Inter', sans-serif; border: 1px solid rgba(255,255,255,0.04); margin-top: 10px; transition: all 0.3s ease; width: 100%; text-align: center; }
-        .btn-secondary:hover { border-color: rgba(198,164,63,0.2); color: #C6A43F; }
-        .btn-group { display: flex; flex-direction: column; gap: 8px; }
-        .footer-section { background: rgba(255,255,255,0.005); padding: 28px 40px 24px; text-align: center; border-top: 1px solid rgba(255,255,255,0.02); }
-        .footer-section .brand-name { color: rgba(255,255,255,0.25); font-weight: 500; font-size: 12px; letter-spacing: 2px; font-family: 'Playfair Display', serif; }
-        .footer-section p { color: rgba(255,255,255,0.08); font-size: 9px; margin: 4px 0; line-height: 1.8; font-weight: 300; letter-spacing: 0.3px; }
-        .footer-section .social-icons { margin: 14px 0 10px; display: flex; justify-content: center; gap: 16px; }
-        .footer-section .social-icons span { color: rgba(255,255,255,0.04); font-size: 16px; transition: all 0.3s; cursor: default; }
-        .footer-section .social-icons span:hover { color: rgba(198,164,63,0.2); }
-        .footer-section .disclaimer { font-size: 8px; color: rgba(255,255,255,0.03); margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(255,255,255,0.02); letter-spacing: 0.5px; }
-        .footer-section .email-ref { font-size: 8px; color: rgba(255,255,255,0.04); font-family: 'JetBrains Mono', monospace; letter-spacing: 0.3px; }
-        @media (max-width: 520px) {
-          body { padding: 16px 12px; }
-          .email-wrapper { border-radius: 20px; }
-          .header { padding: 32px 20px 22px; }
-          .header h1 { font-size: 22px; }
-          .body-content { padding: 26px 20px 20px; }
-          .greeting { font-size: 20px; }
-          .features-grid { grid-template-columns: 1fr 1fr; gap: 6px; }
-          .feature-item { padding: 12px 10px; }
-          .feature-item .icon { font-size: 18px; }
-          .feature-item .label { font-size: 10px; }
-          .account-card { padding: 16px 18px; }
-          .account-card .row { flex-direction: column; align-items: flex-start; gap: 2px; padding: 9px 0; }
-          .account-card .value { text-align: left; }
-          .btn-primary { padding: 14px 28px; font-size: 13px; }
-          .btn-secondary { padding: 10px 20px; font-size: 11px; }
-          .footer-section { padding: 20px; }
-          .header .crest { font-size: 32px; }
-        }
-        @media (prefers-color-scheme: light) {
-          body { background: #f4f6f9; }
-          .email-wrapper { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.06), 0 0 0 1px rgba(0,0,0,0.02); }
-          .header { background: linear-gradient(160deg, #ffffff 0%, #f8f6f0 45%, #ffffff 100%); border-bottom: 1px solid rgba(198,164,63,0.08); }
-          .header h1 { color: #0A0E1A; }
-          .header .tagline { color: rgba(0,0,0,0.08); }
-          .header .badge { color: rgba(198,164,63,0.4); border-color: rgba(198,164,63,0.1); }
-          .body-content { background: #ffffff; }
-          .greeting { color: #0A0E1A; }
-          .greeting-sub { color: rgba(0,0,0,0.15); }
-          .message-text { color: rgba(0,0,0,0.55); }
-          .message-text strong { color: #0A0E1A; }
-          .account-card { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
-          .account-card .value { color: #0A0E1A; }
-          .account-card .label { color: rgba(0,0,0,0.25); }
-          .account-card .card-title { color: rgba(0,0,0,0.15); }
-          .feature-item { background: rgba(0,0,0,0.01); border-color: rgba(0,0,0,0.03); }
-          .feature-item .label { color: rgba(0,0,0,0.6); }
-          .feature-item .desc { color: rgba(0,0,0,0.15); }
-          .btn-secondary { color: rgba(0,0,0,0.3); border-color: rgba(0,0,0,0.04); }
-          .btn-secondary:hover { border-color: #C6A43F; color: #C6A43F; }
-          .footer-section { border-color: rgba(0,0,0,0.02); }
-          .footer-section .brand-name { color: rgba(0,0,0,0.2); }
-          .footer-section p { color: rgba(0,0,0,0.06); }
-          .footer-section .social-icons span { color: rgba(0,0,0,0.04); }
-          .divider-line { background: linear-gradient(90deg, transparent, rgba(198,164,63,0.08), rgba(198,164,63,0.15), rgba(198,164,63,0.08), transparent); }
-          .account-card::before { background: linear-gradient(135deg, rgba(198,164,63,0.03), transparent); }
-        }
-      </style>
-    </head>
-    <body>
-      <div class="email-wrapper">
-        <div class="header">
-          <span class="crest">✦</span>
-          <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="tagline">International Private Banking</div>
-          <div class="badge">✦ Established 2026 ✦</div>
-        </div>
-        <div class="body-content">
-          <div class="greeting"><span class="wave">👋</span> Welcome, <span class="highlight">${full_name}</span></div>
-          <div class="greeting-sub">Your Private Banking Journey Begins</div>
-          <div class="message-text"><strong>We are honoured to welcome you to Prime Heritage International Bank.</strong><br>Your account has been established with the highest standards of <span class="highlight-text">security</span> and <span class="highlight-text">service excellence</span>. We are committed to delivering an unparalleled private banking experience.</div>
-          <div class="divider-line"></div>
-          <div class="account-card">
-            <div class="card-title"><i>▸</i> Account Summary</div>
-            <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
-            <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
-            <div class="row"><span class="label">Account Level</span><span class="value golden">${account_level || 'Standard'}</span></div>
-            <div class="row"><span class="label">Status</span><span class="value status">Active</span></div>
-          </div>
-          <div class="features-grid">
-            <div class="feature-item"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD • EUR • GBP • NGN</span></div>
-            <div class="feature-item"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa • Mastercard • AMEX</span></div>
-            <div class="feature-item"><span class="icon">🔐</span><span class="label">BBC Security</span><span class="desc">3-Step Verification</span></div>
-            <div class="feature-item"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT • SEPA • ACH</span></div>
-          </div>
-          <div class="btn-wrap">
-            <div class="btn-group">
-              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/dashboard.html" class="btn-primary">🚀 Access Your Dashboard</a>
-              <a href="${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/login.html" class="btn-secondary">🔐 Secure Sign In</a>
-            </div>
-          </div>
-        </div>
-        <div class="footer-section">
-          <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
-          <p>Global Banking • Privacy Assured • Excellence Delivered</p>
-          <div class="social-icons"><span>📱</span><span>🌐</span><span>🔒</span><span>⚡</span></div>
-          <p>© ${new Date().getFullYear()} Prime Heritage International Bank. All rights reserved.</p>
-          <div class="email-ref">✉ ${email}</div>
-          <div class="disclaimer">Transfers made easy. once again welcome.</div>
-        </div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background: #f0f2f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .email-wrapper {
+      max-width: 640px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04);
+      border: 1px solid #eaedf2;
+    }
+    
+    .gold-strip {
+      height: 6px;
+      background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37);
+    }
+    
+    .header {
+      background: linear-gradient(145deg, #0a1628, #1a2a4a);
+      padding: 50px 45px 40px;
+      text-align: center;
+      position: relative;
+    }
+    
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 10%;
+      right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.6), rgba(212, 175, 55, 0.3), transparent);
+    }
+    
+    .header .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 34px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 2px;
+    }
+    
+    .header .logo .gold {
+      color: #d4af37;
+    }
+    
+    .header .tagline {
+      color: rgba(255,255,255,0.4);
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-top: 8px;
+      font-weight: 300;
+    }
+    
+    .header .badge {
+      display: inline-block;
+      margin-top: 16px;
+      padding: 4px 20px;
+      background: rgba(212, 175, 55, 0.12);
+      border: 1px solid rgba(212, 175, 55, 0.15);
+      border-radius: 50px;
+      color: #d4af37;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    
+    .body-content {
+      padding: 45px 45px 35px;
+    }
+    
+    .greeting {
+      font-family: 'Playfair Display', serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: #0a1628;
+      margin-bottom: 6px;
+      letter-spacing: -0.5px;
+    }
+    
+    .greeting .highlight {
+      color: #d4af37;
+    }
+    
+    .greeting-sub {
+      color: #6b7280;
+      font-size: 14px;
+      margin-bottom: 20px;
+      font-weight: 400;
+    }
+    
+    .message-text {
+      color: #374151;
+      line-height: 1.9;
+      font-size: 15px;
+      margin-bottom: 28px;
+      font-weight: 400;
+    }
+    
+    .message-text strong {
+      color: #0a1628;
+      font-weight: 600;
+    }
+    
+    .message-text .highlight-text {
+      color: #d4af37;
+      font-weight: 500;
+    }
+    
+    .divider-line {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, #eaedf2, transparent);
+      margin: 28px 0 32px;
+    }
+    
+    .account-card {
+      background: #f8f9fc;
+      border-radius: 20px;
+      padding: 26px 30px;
+      margin-bottom: 28px;
+      border-left: 4px solid #d4af37;
+      border: 1px solid #eaedf2;
+    }
+    
+    .account-card .card-title {
+      color: #6b7280;
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin-bottom: 14px;
+      font-weight: 600;
+    }
+    
+    .account-card .row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #eaedf2;
+      font-size: 14px;
+    }
+    
+    .account-card .row:last-child {
+      border-bottom: none;
+    }
+    
+    .account-card .label {
+      color: #6b7280;
+      font-weight: 400;
+    }
+    
+    .account-card .value {
+      color: #0a1628;
+      font-weight: 600;
+      font-family: 'Inter', monospace;
+    }
+    
+    .account-card .value.gold {
+      color: #d4af37;
+    }
+    
+    .account-card .value.status {
+      color: #16a34a;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .account-card .value.status::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      background: #16a34a;
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+    
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.8); }
+    }
+    
+    .features-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin: 28px 0 32px;
+    }
+    
+    .feature-item {
+      background: #f8f9fc;
+      border: 1px solid #eaedf2;
+      border-radius: 16px;
+      padding: 16px 14px;
+      text-align: center;
+      transition: all 0.3s ease;
+    }
+    
+    .feature-item .icon {
+      font-size: 24px;
+      display: block;
+      margin-bottom: 6px;
+    }
+    
+    .feature-item .label {
+      font-weight: 600;
+      color: #0a1628;
+      font-size: 12px;
+      display: block;
+    }
+    
+    .feature-item .desc {
+      color: #6b7280;
+      font-size: 10px;
+      margin-top: 2px;
+    }
+    
+    .btn-container {
+      text-align: center;
+      margin: 32px 0 8px;
+    }
+    
+    .btn-primary {
+      display: inline-block;
+      background: linear-gradient(135deg, #0a1628, #1a2a4a);
+      color: #ffffff;
+      padding: 16px 48px;
+      text-decoration: none;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      letter-spacing: 0.3px;
+      box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15);
+      transition: all 0.3s ease;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25);
+    }
+    
+    .btn-secondary {
+      display: inline-block;
+      background: transparent;
+      color: #6b7280;
+      padding: 14px 36px;
+      text-decoration: none;
+      border-radius: 60px;
+      font-weight: 500;
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      border: 1px solid #eaedf2;
+      margin-top: 10px;
+      transition: all 0.3s ease;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .btn-secondary:hover {
+      border-color: #d4af37;
+      color: #d4af37;
+    }
+    
+    .footer-section {
+      background: #f8f9fc;
+      padding: 30px 45px 25px;
+      text-align: center;
+      border-top: 1px solid #eaedf2;
+    }
+    
+    .footer-section .brand-name {
+      color: #0a1628;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: 1px;
+      font-family: 'Playfair Display', serif;
+    }
+    
+    .footer-section p {
+      color: #6b7280;
+      font-size: 11px;
+      margin: 4px 0;
+      line-height: 1.8;
+    }
+    
+    .footer-section .social-icons {
+      margin: 14px 0 10px;
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+    }
+    
+    .footer-section .social-icons span {
+      color: #6b7280;
+      font-size: 16px;
+      opacity: 0.3;
+      transition: all 0.3s;
+    }
+    
+    .footer-section .social-icons span:hover {
+      opacity: 1;
+      color: #d4af37;
+    }
+    
+    .footer-section .disclaimer {
+      font-size: 9px;
+      color: #9ca3af;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid #eaedf2;
+    }
+    
+    @media (max-width: 520px) {
+      .header { padding: 32px 20px 28px; }
+      .header .logo { font-size: 26px; }
+      .body-content { padding: 28px 20px 24px; }
+      .greeting { font-size: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .account-card { padding: 18px 16px; }
+      .account-card .row { flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 0; }
+      .btn-primary { padding: 14px 28px; font-size: 14px; }
+      .btn-secondary { padding: 12px 20px; font-size: 13px; }
+      .footer-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+      <div class="tagline">International Private Banking</div>
+      <div class="badge">✦ Since 2026 ✦</div>
+    </div>
+    <div class="body-content">
+      <div class="greeting">
+        <span class="highlight">${full_name}</span>
       </div>
-    </body>
-    </html>
+      <div class="greeting-sub">Welcome to Prime Heritage International Bank</div>
+      <div class="message-text">
+        <strong>We are honoured to welcome you.</strong><br>
+        Your account has been established with the highest standards of 
+        <span class="highlight-text">security</span> and 
+        <span class="highlight-text">service excellence</span>. 
+        We are committed to delivering an unparalleled private banking experience.
+      </div>
+      <div class="divider-line"></div>
+      <div class="account-card">
+        <div class="card-title">Account Summary</div>
+        <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
+        <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
+        <div class="row"><span class="label">Account Level</span><span class="value gold">${account_level || 'Standard'}</span></div>
+        <div class="row"><span class="label">Status</span><span class="value status">Active</span></div>
+      </div>
+      <div class="features-grid">
+        <div class="feature-item"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD • EUR • GBP • NGN</span></div>
+        <div class="feature-item"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa • Mastercard • AMEX</span></div>
+        <div class="feature-item"><span class="icon">🔐</span><span class="label">Secure Banking</span><span class="desc">3-Step Verification</span></div>
+        <div class="feature-item"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT • SEPA • ACH</span></div>
+      </div>
+      <div class="btn-container">
+        <a href="${url}/dashboard.html" class="btn-primary">Access Your Dashboard</a>
+        <a href="${url}/login.html" class="btn-secondary">Secure Sign In</a>
+      </div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+      <div class="social-icons">
+        <span>📱</span>
+        <span>🌐</span>
+        <span>🔒</span>
+        <span>⚡</span>
+      </div>
+      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
+      <p style="font-size: 10px;">This email was sent to ${email}</p>
+      <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
+    </div>
+  </div>
+</body>
+</html>
   `;
 };
 
@@ -808,170 +1059,564 @@ const getReceiptHTML = (transaction, user) => {
   const txDate = new Date(transaction.created_at || Date.now());
   const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
   const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const year = new Date().getFullYear();
+  
   return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Receipt | Prime Heritage Bank</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: #060A14; margin: 0; padding: 0; -webkit-font-smoothing: antialiased; }
-        .email-wrapper { max-width: 620px; margin: 40px auto; background: #0B1120; border-radius: 32px; overflow: hidden; box-shadow: 0 40px 100px rgba(0,0,0,0.8), 0 0 0 1px rgba(198,164,63,0.08); position: relative; }
-        .email-wrapper::before { content: ''; position: absolute; top: -60%; right: -40%; width: 80%; height: 80%; background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%); pointer-events: none; }
-        .header { background: linear-gradient(165deg, #060A14 0%, #0F1A2E 50%, #0B1120 100%); padding: 36px 44px 28px; text-align: center; border-bottom: 2px solid rgba(198,164,63,0.12); position: relative; }
-        .header::after { content: ''; position: absolute; bottom: -2px; left: 15%; right: 15%; height: 2px; background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent); background-size: 200% 100%; animation: shimmer 4s ease-in-out infinite; }
-        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .header .logo-icon { font-size: 40px; display: block; margin-bottom: 4px; }
-        .header h1 { font-family: 'Playfair Display', serif; color: #FFFFFF; font-size: 24px; font-weight: 700; letter-spacing: 1.5px; }
-        .header h1 .gold { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header .subtitle { color: rgba(255,255,255,0.12); font-size: 9px; letter-spacing: 5px; text-transform: uppercase; margin-top: 2px; font-weight: 300; }
-        .body-content { padding: 32px 44px 24px; background: #0B1120; }
-        .top-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .receipt-id { display: inline-block; padding: 5px 20px; background: rgba(198,164,63,0.08); border: 1px solid rgba(198,164,63,0.12); border-radius: 50px; color: #C6A43F; font-size: 11px; font-weight: 600; font-family: 'Inter', monospace; letter-spacing: 0.5px; }
-        .status-badge { display: inline-block; padding: 4px 16px; border-radius: 50px; font-size: 10px; font-weight: 600; background: rgba(16,185,129,0.08); color: #34D399; border: 1px solid rgba(16,185,129,0.12); }
-        .amount-section { text-align: center; padding: 20px 0 18px; margin: 12px 0 16px; border-top: 1px solid rgba(255,255,255,0.04); border-bottom: 1px solid rgba(255,255,255,0.04); }
-        .amount-section .amount-label { color: rgba(255,255,255,0.2); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
-        .amount-section .amount { font-size: 40px; font-weight: 800; color: #FFFFFF; letter-spacing: -0.5px; margin-top: 2px; }
-        .amount-section .amount .currency { color: #C6A43F; font-size: 28px; margin-right: 4px; }
-        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 24px; margin: 16px 0 8px; }
-        .detail-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.03); }
-        .detail-item.full-width { grid-column: 1 / -1; }
-        .detail-item .label { color: rgba(255,255,255,0.3); font-size: 11px; font-weight: 400; }
-        .detail-item .value { color: #FFFFFF; font-weight: 500; font-size: 12px; text-align: right; }
-        .detail-item .value.mono { font-family: 'Inter', monospace; font-size: 11px; letter-spacing: 0.3px; }
-        .detail-item .value.gold-text { color: #C6A43F; }
-        .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); margin: 16px 0; }
-        .btn-wrap { text-align: center; margin: 22px 0 6px; }
-        .view-btn { display: inline-block; background: linear-gradient(135deg, #C6A43F, #A8882E); color: #060A14; padding: 14px 48px; text-decoration: none; border-radius: 60px; font-weight: 700; font-size: 14px; font-family: 'Inter', sans-serif; box-shadow: 0 8px 32px rgba(198,164,63,0.25); transition: all 0.3s ease; border: none; cursor: pointer; }
-        .view-btn:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 12px 48px rgba(198,164,63,0.4); }
-        .footer-section { background: rgba(255,255,255,0.01); padding: 24px 44px 20px; text-align: center; border-top: 1px solid rgba(255,255,255,0.03); }
-        .footer-section .brand-name { color: rgba(255,255,255,0.3); font-weight: 500; font-size: 12px; letter-spacing: 0.5px; }
-        .footer-section p { color: rgba(255,255,255,0.12); font-size: 10px; margin: 3px 0; line-height: 1.6; }
-        .footer-section .footer-meta { display: flex; justify-content: center; gap: 16px; margin-top: 8px; font-size: 9px; color: rgba(255,255,255,0.06); }
-        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 120px; opacity: 0.015; pointer-events: none; font-weight: 900; color: #C6A43F; user-select: none; letter-spacing: 20px; font-family: 'Playfair Display', serif; }
-        @media (max-width: 520px) { .email-wrapper { margin: 20px 12px; border-radius: 24px; } .header { padding: 28px 20px 20px; } .header h1 { font-size: 20px; } .body-content { padding: 24px 20px 16px; } .amount-section .amount { font-size: 30px; } .detail-grid { grid-template-columns: 1fr; } .detail-item { padding: 10px 0; } .detail-item .value { text-align: left; } .view-btn { padding: 12px 28px; font-size: 13px; width: 100%; } .footer-section { padding: 16px 20px; } .top-bar { flex-direction: column; gap: 8px; align-items: flex-start; } }
-        @media (prefers-color-scheme: light) { body { background: #f0f2f5; } .email-wrapper { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); } .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); } .header h1 { color: #0A0E1A; } .body-content { background: #ffffff; } .amount-section .amount { color: #0A0E1A; } .detail-item .value { color: #0A0E1A; } .detail-item .label { color: rgba(0,0,0,0.35); } .footer-section { border-color: rgba(0,0,0,0.04); } .footer-section .brand-name { color: rgba(0,0,0,0.3); } .footer-section p { color: rgba(0,0,0,0.12); } .divider { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent); } }
-      </style>
-    </head>
-    <body>
-      <div class="email-wrapper">
-        <div class="watermark">RECEIPT</div>
-        <div class="header">
-          <span class="logo-icon">🏛️</span>
-          <h1>Prime Heritage <span class="gold">Bank</span></h1>
-          <div class="subtitle">International Banking</div>
-        </div>
-        <div class="body-content">
-          <div class="top-bar">
-            <span class="receipt-id">#${transaction.reference || 'N/A'}</span>
-            <span class="status-badge">✅ COMPLETED</span>
-          </div>
-          <div class="amount-section">
-            <div class="amount-label">Total Amount</div>
-            <div class="amount">
-              <span class="currency">${transaction.currency || 'USD'}</span> 
-              ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-            </div>
-          </div>
-          <div class="detail-grid">
-            <div class="detail-item full-width"><span class="label">📋 Transaction Type</span><span class="value">${transaction.type || 'Transaction'}</span></div>
-            <div class="detail-item full-width"><span class="label">📝 Description</span><span class="value">${transaction.description || transaction.purpose || 'N/A'}</span></div>
-            <div class="detail-item"><span class="label">📅 Date</span><span class="value">${dateStr}</span></div>
-            <div class="detail-item"><span class="label">⏰ Time</span><span class="value">${timeStr}</span></div>
-            <div class="detail-item full-width"><span class="label">🔗 Reference</span><span class="value mono gold-text">${transaction.reference || 'N/A'}</span></div>
-          </div>
-          <div class="divider"></div>
-          <div class="btn-wrap"><a href="${receiptUrl}" class="view-btn">🧾 View Full Receipt</a></div>
-          <div style="text-align:center;font-size:10px;color:rgba(255,255,255,0.10);margin-top:10px;">This is an automated receipt for your transaction.</div>
-        </div>
-        <div class="footer-section">
-          <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
-          <p>Global Banking • Privacy Assured • Excellence Delivered</p>
-          <p>© ${new Date().getFullYear()} Prime Heritage International Bank</p>
-          <p style="font-size:9px;">Sent to ${user.email}</p>
-          <div class="footer-meta"><span>🔒 Secured Transaction</span><span>🌍 Global Transfer</span><span>📱 Mobile Ready</span></div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt | Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background: #f0f2f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .email-wrapper {
+      max-width: 640px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04);
+      border: 1px solid #eaedf2;
+    }
+    
+    .gold-strip {
+      height: 6px;
+      background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37);
+    }
+    
+    .header {
+      background: linear-gradient(145deg, #0a1628, #1a2a4a);
+      padding: 32px 45px 28px;
+      text-align: center;
+    }
+    
+    .header .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 2px;
+    }
+    
+    .header .logo .gold {
+      color: #d4af37;
+    }
+    
+    .body-content {
+      padding: 32px 45px 24px;
+    }
+    
+    .receipt-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    
+    .receipt-id {
+      display: inline-block;
+      padding: 6px 20px;
+      background: #f8f9fc;
+      border: 1px solid #eaedf2;
+      border-radius: 50px;
+      font-size: 12px;
+      font-family: 'Inter', monospace;
+      color: #6b7280;
+      letter-spacing: 0.5px;
+      font-weight: 500;
+    }
+    
+    .status-badge {
+      display: inline-block;
+      padding: 5px 18px;
+      border-radius: 50px;
+      font-size: 12px;
+      font-weight: 600;
+      background: #ecfdf5;
+      color: #16a34a;
+      border: 1px solid #d1fae5;
+    }
+    
+    .amount-section {
+      text-align: center;
+      padding: 20px 0 18px;
+      margin: 16px 0 20px;
+      border-top: 1px solid #eaedf2;
+      border-bottom: 1px solid #eaedf2;
+    }
+    
+    .amount-section .amount-label {
+      color: #6b7280;
+      font-size: 11px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+    
+    .amount-section .amount {
+      font-size: 42px;
+      font-weight: 800;
+      color: #0a1628;
+      letter-spacing: -1px;
+      margin-top: 2px;
+    }
+    
+    .amount-section .amount .currency {
+      color: #d4af37;
+      font-size: 30px;
+      margin-right: 4px;
+    }
+    
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px 30px;
+      margin: 16px 0 8px;
+    }
+    
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 0;
+      border-bottom: 1px solid #f3f4f6;
+      font-size: 13px;
+    }
+    
+    .detail-item.full-width {
+      grid-column: 1 / -1;
+    }
+    
+    .detail-item .label {
+      color: #6b7280;
+      font-weight: 400;
+    }
+    
+    .detail-item .value {
+      color: #0a1628;
+      font-weight: 500;
+      text-align: right;
+    }
+    
+    .detail-item .value.mono {
+      font-family: 'Inter', monospace;
+      font-size: 12px;
+      letter-spacing: 0.3px;
+    }
+    
+    .detail-item .value.gold-text {
+      color: #d4af37;
+    }
+    
+    .btn-container {
+      text-align: center;
+      margin: 24px 0 6px;
+    }
+    
+    .view-btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #0a1628, #1a2a4a);
+      color: #ffffff;
+      padding: 16px 48px;
+      text-decoration: none;
+      border-radius: 60px;
+      font-weight: 600;
+      font-size: 15px;
+      font-family: 'Inter', sans-serif;
+      box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15);
+      transition: all 0.3s ease;
+      width: 100%;
+      text-align: center;
+    }
+    
+    .view-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25);
+    }
+    
+    .footer-section {
+      background: #f8f9fc;
+      padding: 24px 45px 20px;
+      text-align: center;
+      border-top: 1px solid #eaedf2;
+    }
+    
+    .footer-section .brand-name {
+      color: #0a1628;
+      font-weight: 600;
+      font-size: 13px;
+      letter-spacing: 1px;
+      font-family: 'Playfair Display', serif;
+    }
+    
+    .footer-section p {
+      color: #6b7280;
+      font-size: 11px;
+      margin: 3px 0;
+      line-height: 1.6;
+    }
+    
+    .footer-meta {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      margin-top: 10px;
+      font-size: 10px;
+      color: #9ca3af;
+    }
+    
+    .footer-meta span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    
+    @media (max-width: 520px) {
+      .header { padding: 24px 20px; }
+      .header .logo { font-size: 22px; }
+      .body-content { padding: 24px 20px; }
+      .amount-section .amount { font-size: 30px; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-item .value { text-align: left; }
+      .detail-item { flex-direction: column; gap: 2px; padding: 12px 0; }
+      .receipt-header { flex-direction: column; align-items: flex-start; }
+      .view-btn { padding: 14px 28px; font-size: 14px; }
+      .footer-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+    </div>
+    <div class="body-content">
+      <div class="receipt-header">
+        <span class="receipt-id">#${transaction.reference || 'N/A'}</span>
+        <span class="status-badge">✓ Completed</span>
+      </div>
+      
+      <div class="amount-section">
+        <div class="amount-label">Total Amount</div>
+        <div class="amount">
+          <span class="currency">${transaction.currency || 'USD'}</span> 
+          ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </div>
       </div>
-    </body>
-    </html>
+
+      <div class="detail-grid">
+        <div class="detail-item full-width">
+          <span class="label">Transaction Type</span>
+          <span class="value">${transaction.type || 'Transaction'}</span>
+        </div>
+        <div class="detail-item full-width">
+          <span class="label">Description</span>
+          <span class="value">${transaction.description || transaction.purpose || 'N/A'}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Date</span>
+          <span class="value">${dateStr}</span>
+        </div>
+        <div class="detail-item">
+          <span class="label">Time</span>
+          <span class="value">${timeStr}</span>
+        </div>
+        <div class="detail-item full-width">
+          <span class="label">Reference</span>
+          <span class="value mono gold-text">${transaction.reference || 'N/A'}</span>
+        </div>
+      </div>
+
+      <div class="btn-container">
+        <a href="${receiptUrl}" class="view-btn">View Full Receipt</a>
+      </div>
+      
+      <div style="text-align:center;font-size:11px;color:#9ca3af;margin-top:8px;">
+        This is an automated receipt for your transaction.
+      </div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+      <p>© ${year} Prime Heritage International Bank</p>
+      <p style="font-size: 10px;">Sent to ${user.email}</p>
+      <div class="footer-meta">
+        <span>🔒 Secured Transaction</span>
+        <span>🌍 Global Transfer</span>
+        <span>📱 Mobile Ready</span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
   `;
 };
 
 const getTestHTML = () => {
+  const year = new Date().getFullYear();
+  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
+  
   return `
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-      <meta charset="UTF-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>Server Started | Prime Heritage Bank</title>
-      <style>
-        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700;800&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body { font-family: 'Inter', -apple-system, sans-serif; background: #060A14; padding: 20px; color: #FFFFFF; -webkit-font-smoothing: antialiased; }
-        .container { max-width: 560px; margin: 0 auto; background: #0B1120; border-radius: 28px; padding: 32px; border: 1px solid rgba(198,164,63,0.08); box-shadow: 0 30px 80px rgba(0,0,0,0.6); position: relative; overflow: hidden; }
-        .container::before { content: ''; position: absolute; top: -50%; right: -50%; width: 100%; height: 100%; background: radial-gradient(circle, rgba(198,164,63,0.03) 0%, transparent 70%); pointer-events: none; }
-        .header { background: linear-gradient(165deg, #060A14, #0F1A2E); padding: 32px; text-align: center; border-radius: 16px 16px 0 0; margin: -32px -32px 24px -32px; border-bottom: 2px solid rgba(198,164,63,0.12); position: relative; }
-        .header::after { content: ''; position: absolute; bottom: -2px; left: 20%; right: 20%; height: 2px; background: linear-gradient(90deg, transparent, #C6A43F, #E8D07A, #C6A43F, transparent); background-size: 200% 100%; animation: shimmer 3s ease-in-out infinite; }
-        @keyframes shimmer { 0%, 100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
-        .header .emoji-big { font-size: 48px; display: block; margin-bottom: 8px; }
-        .header h1 { font-family: 'Playfair Display', serif; font-size: 28px; font-weight: 800; letter-spacing: -0.5px; margin: 0; }
-        .header .gold { background: linear-gradient(135deg, #C6A43F, #E8D07A); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .header .sub { color: rgba(255,255,255,0.15); font-size: 10px; letter-spacing: 4px; text-transform: uppercase; margin-top: 6px; font-weight: 300; }
-        .body-content { padding: 8px 0 4px; }
-        .title { font-size: 22px; font-weight: 700; margin-bottom: 4px; letter-spacing: -0.3px; }
-        .title .check { color: #34D399; margin-right: 8px; }
-        .success-box { background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.1); color: #34D399; padding: 18px 22px; border-radius: 14px; border-left: 3px solid #10B981; margin: 16px 0; }
-        .success-box strong { display: block; font-size: 14px; margin-bottom: 4px; }
-        .success-box span { font-size: 13px; opacity: 0.8; }
-        .info-box { background: rgba(59,130,246,0.04); border: 1px solid rgba(59,130,246,0.08); color: #60A5FA; padding: 16px 20px; border-radius: 14px; border-left: 3px solid #3B82F6; margin: 14px 0; }
-        .info-box .row { display: flex; justify-content: space-between; padding: 4px 0; font-size: 13px; }
-        .info-box .row .label { opacity: 0.5; }
-        .info-box .row .value { font-weight: 500; }
-        .admin-box { background: rgba(198,164,63,0.06); border: 1px solid rgba(198,164,63,0.1); color: #C6A43F; padding: 16px 20px; border-radius: 14px; border-left: 3px solid #C6A43F; margin: 14px 0; }
-        .admin-box .label { font-size: 12px; opacity: 0.6; display: block; margin-top: 4px; }
-        .admin-box .credential { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 14px; font-weight: 500; border-bottom: 1px solid rgba(198,164,63,0.06); }
-        .admin-box .credential:last-child { border-bottom: none; }
-        .admin-box code { background: rgba(198,164,63,0.08); padding: 2px 12px; border-radius: 6px; font-size: 13px; color: #C6A43F; font-weight: 600; font-family: 'Inter', monospace; letter-spacing: 0.5px; }
-        .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); margin: 20px 0; }
-        .footer { text-align: center; color: rgba(255,255,255,0.08); font-size: 10px; border-top: 1px solid rgba(255,255,255,0.02); padding-top: 20px; margin-top: 8px; letter-spacing: 0.5px; }
-        .footer .brand { color: rgba(255,255,255,0.12); font-weight: 500; }
-        .status-dot { display: inline-block; width: 8px; height: 8px; background: #34D399; border-radius: 50%; margin-right: 6px; animation: pulse-dot 2s infinite; }
-        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
-        @media (max-width: 480px) { .container { padding: 20px; margin: 10px; } .header { margin: -20px -20px 16px -20px; padding: 24px 20px; } .header h1 { font-size: 22px; } .title { font-size: 18px; } .admin-box .credential { flex-direction: column; align-items: flex-start; gap: 4px; } .info-box .row { flex-direction: column; gap: 2px; } }
-        @media (prefers-color-scheme: light) { body { background: #f0f2f5; } .container { background: #ffffff; box-shadow: 0 30px 60px rgba(0,0,0,0.08); border: 1px solid rgba(0,0,0,0.04); } .header { background: linear-gradient(165deg, #ffffff, #f8f6f0); border-bottom: 2px solid rgba(198,164,63,0.15); } .header h1 { color: #0A0E1A; } .title { color: #0A0E1A; } .info-box { color: #3B82F6; background: rgba(59,130,246,0.04); } .admin-box { color: #C6A43F; background: rgba(198,164,63,0.06); } .admin-box code { color: #C6A43F; } .footer { color: rgba(0,0,0,0.08); } .footer .brand { color: rgba(0,0,0,0.12); } .divider { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.05), transparent); } }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header"><span class="emoji-big">🏛️</span><h1>Prime Heritage <span class="gold">Bank</span></h1><div class="sub">International Banking Excellence</div></div>
-        <div class="body-content">
-          <div class="title"><span class="check">✅</span> Server Started Successfully!</div>
-          <div class="success-box"><strong>✓ Email System is Live</strong><span>Your server is running and emails are sending correctly via Netlify.</span></div>
-          <div class="info-box">
-            <div class="row"><span class="label">🕐 Time</span><span class="value">${new Date().toLocaleString()}</span></div>
-            <div class="row"><span class="label">🌍 Environment</span><span class="value">Production</span></div>
-            <div class="row"><span class="label">🔗 URL</span><span class="value" style="font-size:12px;">${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}</span></div>
-          </div>
-          <div class="admin-box">
-            <div style="font-weight:600;margin-bottom:6px;">👑 Admin Access</div>
-            <div class="credential"><span>Email</span><code>devgift@gmail.com</code></div>
-            <div class="credential"><span>Password</span><code>Igwe</code></div>
-            <span class="label"><span class="status-dot"></span> Balance: UNLIMITED</span>
-          </div>
-          <div class="divider"></div>
-          <div style="text-align:center;font-size:13px;color:rgba(255,255,255,0.2);">All systems operational. Banking platform ready.</div>
-        </div>
-        <div class="footer"><span class="brand">✦ Prime Heritage International Bank ✦</span><br>© ${new Date().getFullYear()} All rights reserved.</div>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Started | Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      margin: 0;
+      padding: 40px 20px;
+      background: #f0f2f5;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    
+    .email-wrapper {
+      max-width: 580px;
+      margin: 0 auto;
+      background: #ffffff;
+      border-radius: 28px;
+      overflow: hidden;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04);
+      border: 1px solid #eaedf2;
+    }
+    
+    .gold-strip {
+      height: 6px;
+      background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37);
+    }
+    
+    .header {
+      background: linear-gradient(145deg, #0a1628, #1a2a4a);
+      padding: 40px 45px 32px;
+      text-align: center;
+    }
+    
+    .header .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 30px;
+      font-weight: 700;
+      color: #ffffff;
+      letter-spacing: 2px;
+    }
+    
+    .header .logo .gold {
+      color: #d4af37;
+    }
+    
+    .header .sub {
+      color: rgba(255,255,255,0.35);
+      font-size: 11px;
+      letter-spacing: 5px;
+      text-transform: uppercase;
+      margin-top: 6px;
+      font-weight: 300;
+    }
+    
+    .body-content {
+      padding: 35px 45px 28px;
+    }
+    
+    .title {
+      font-size: 24px;
+      font-weight: 700;
+      color: #0a1628;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .title .check {
+      color: #16a34a;
+    }
+    
+    .box {
+      padding: 18px 24px;
+      border-radius: 16px;
+      margin: 16px 0;
+    }
+    
+    .box-success {
+      background: #ecfdf5;
+      border: 1px solid #d1fae5;
+      color: #065f46;
+    }
+    
+    .box-success strong {
+      display: block;
+      font-size: 15px;
+      margin-bottom: 4px;
+    }
+    
+    .box-success span {
+      font-size: 14px;
+      opacity: 0.85;
+    }
+    
+    .box-info {
+      background: #f8f9fc;
+      border: 1px solid #eaedf2;
+    }
+    
+    .box-info .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    
+    .box-info .row .label {
+      color: #6b7280;
+    }
+    
+    .box-info .row .value {
+      color: #0a1628;
+      font-weight: 500;
+    }
+    
+    .box-admin {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      color: #92400e;
+    }
+    
+    .box-admin .row {
+      display: flex;
+      justify-content: space-between;
+      padding: 6px 0;
+      font-size: 14px;
+    }
+    
+    .box-admin code {
+      background: #ffffff;
+      padding: 2px 14px;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: 600;
+      color: #92400e;
+      font-family: 'Inter', monospace;
+    }
+    
+    .divider {
+      height: 1px;
+      background: #eaedf2;
+      margin: 20px 0;
+    }
+    
+    .footer {
+      background: #f8f9fc;
+      padding: 20px 45px;
+      text-align: center;
+      border-top: 1px solid #eaedf2;
+    }
+    
+    .footer p {
+      color: #6b7280;
+      font-size: 12px;
+      margin: 4px 0;
+    }
+    
+    .footer .brand {
+      color: #0a1628;
+      font-weight: 600;
+      font-size: 13px;
+      font-family: 'Playfair Display', serif;
+    }
+    
+    @media (max-width: 480px) {
+      .header { padding: 28px 20px 24px; }
+      .header .logo { font-size: 24px; }
+      .body-content { padding: 24px 20px; }
+      .title { font-size: 20px; }
+      .box-info .row { flex-direction: column; gap: 2px; }
+      .box-admin .row { flex-direction: column; gap: 2px; }
+      .footer { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+      <div class="sub">International Banking Excellence</div>
+    </div>
+    <div class="body-content">
+      <div class="title">
+        <span class="check">✓</span> Server Started Successfully
       </div>
-    </body>
-    </html>
+      
+      <div class="box box-success">
+        <strong>Email System Operational</strong>
+        <span>Your server is running and emails are sending correctly via Netlify.</span>
+      </div>
+
+      <div class="box box-info">
+        <div class="row">
+          <span class="label">🕐 Time</span>
+          <span class="value">${new Date().toLocaleString()}</span>
+        </div>
+        <div class="row">
+          <span class="label">🌍 Environment</span>
+          <span class="value">Production</span>
+        </div>
+        <div class="row">
+          <span class="label">🔗 URL</span>
+          <span class="value" style="font-size:13px;">${url}</span>
+        </div>
+      </div>
+
+      <div class="box box-admin">
+        <div style="font-weight:600;margin-bottom:8px;font-size:14px;">👑 Admin Access</div>
+        <div class="row">
+          <span>Email</span>
+          <code>devgift@gmail.com</code>
+        </div>
+        <div class="row">
+          <span>Password</span>
+          <code>Igwe</code>
+        </div>
+        <div style="margin-top:8px;font-size:12px;opacity:0.7;">
+          <span style="display:inline-block;width:8px;height:8px;background:#16a34a;border-radius:50%;margin-right:6px;"></span>
+          Balance: UNLIMITED
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <div style="text-align:center;font-size:13px;color:#6b7280;">
+        All systems operational. Banking platform ready.
+      </div>
+    </div>
+    <div class="footer">
+      <div class="brand">✦ Prime Heritage International Bank ✦</div>
+      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
   `;
 };
-
 // ==================== EMAIL FUNCTIONS ====================
 
 const sendWelcomeEmail = async (userData) => {
