@@ -350,46 +350,53 @@
         .forgot-link a:hover {
             color: var(--gold);
         }
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 18px 20px;
+    background: var(--bg-card);
+    border-radius: 16px;
+    margin: 20px 0;
+    border: 2px solid var(--border-color);
+    cursor: pointer;
+    transition: var(--transition);
+    min-height: 72px;
+    user-select: none;
+}
 
-        .checkbox-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            background: var(--bg-card);
-            border-radius: 12px;
-            margin: 16px 0;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-            transition: var(--transition);
-        }
+.checkbox-group:hover {
+    border-color: var(--gold);
+    background: rgba(198, 164, 63, 0.08);
+}
 
-        .checkbox-group:hover {
-            border-color: var(--gold);
-        }
+.checkbox-group input[type="checkbox"] {
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    accent-color: var(--gold);
+    flex-shrink: 0;
+}
 
-        .checkbox-group input[type="checkbox"] {
-            width: 20px;
-            height: 20px;
-            cursor: pointer;
-            accent-color: var(--gold);
-        }
+.checkbox-group label {
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+    flex: 1;
+}
 
-        .checkbox-group label {
-            cursor: pointer;
-            font-size: 13px;
-            color: var(--text-secondary);
-            margin: 0;
-        }
+.checkbox-group a {
+    color: var(--gold);
+    text-decoration: none;
+    font-weight: 600;
+}
 
-        .checkbox-group a {
-            color: var(--gold);
-            text-decoration: none;
-            font-weight: 600;
-        }
-
-        .checkbox-group a:hover { text-decoration: underline; }
-
+.checkbox-group a:hover {
+    text-decoration: underline;
+}
+      
         .password-strength {
             margin-top: 8px;
             height: 4px;
