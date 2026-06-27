@@ -443,6 +443,14 @@
         .status-used { color: var(--error); font-weight: 600; }
         .status-expired { color: var(--warning); font-weight: 600; }
 
+        .code-cell {
+            font-family: monospace;
+            color: var(--gold);
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
         /* ===== LOADING ===== */
         .loading-overlay {
             display: none;
@@ -551,12 +559,15 @@
                             <th>Code</th>
                             <th>Step</th>
                             <th>Status</th>
+                            <th>Created</th>
                             <th>Expires</th>
+                            <th>Days Left</th>
+                            <th>Action</th>
                         </tr>
                     </thead>
                     <tbody id="bbcBody">
                         <tr>
-                            <td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary);">
+                            <td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">
                                 <i class="fas fa-spinner fa-pulse"></i> Loading BBC codes...
                             </td>
                         </tr>
@@ -705,6 +716,18 @@
                     color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                 });
             });
+        }
+
+        function getDaysLeft(expiresAt) {
+            const now = new Date();
+            const expiry = new Date(expiresAt);
+            const diff = expiry - now;
+            if (diff <= 0) return 'Expired';
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            if (days > 0) return `${days}d ${hours}h`;
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            return `${hours}h ${minutes}m`;
         }
 
         // ============================================================
@@ -1126,6 +1149,43 @@
         }
 
         // ============================================================
+        // DELETE BBC CODE
+        // ============================================================
+        async function deleteBBCode(bbcId) {
+            Swal.fire({
+                title: 'Delete BBC Code?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        const res = await fetch(`${API_URL}/api/admin/bbc/${bbcId}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Deleted!', 'BBC code removed successfully', 'success');
+                            loadBBCodes();
+                            loadUsers();
+                        } else {
+                            Swal.fire('Error', data.error || 'Failed to delete', 'error');
+                        }
+                    } catch(e) {
+                        Swal.fire('Error', 'Failed to delete BBC code', 'error');
+                    } finally {
+                        showLoading(false);
+                    }
+                }
+            });
+        }
+
+        // ============================================================
         // LOAD BBC CODES (Active & Inactive)
         // ============================================================
         async function loadBBCodes() {
@@ -1165,7 +1225,7 @@
                 } catch (e2) {
                     document.getElementById('bbcBody').innerHTML = `
                         <tr>
-                            <td colspan="5" style="text-align:center;padding:20px;color:var(--error);">
+                            <td colspan="8" style="text-align:center;padding:20px;color:var(--error);">
                                 <i class="fas fa-exclamation-triangle"></i> Failed to load BBC codes
                             </td>
                         </tr>
@@ -1180,7 +1240,7 @@
             if (!codes || codes.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="5" style="text-align:center;padding:40px;color:var(--text-secondary);">
+                        <td colspan="8" style="text-align:center;padding:40px;color:var(--text-secondary);">
                             <i class="fas fa-key" style="font-size:32px;display:block;margin-bottom:12px;opacity:0.3;"></i>
                             No BBC codes generated yet
                         </td>
@@ -1202,6 +1262,8 @@
             tbody.innerHTML = sorted.map(c => {
                 const isActive = !c.is_used && new Date(c.expires_at) > new Date();
                 const expires = new Date(c.expires_at).toLocaleString();
+                const created = new Date(c.created_at).toLocaleString();
+                const daysLeft = getDaysLeft(c.expires_at);
                 const stepLabel = stepLabels[c.step] || 'Step ' + c.step;
                 const stepColor = stepColors[c.step] || '#6B7280';
                 
@@ -1229,7 +1291,14 @@
                             </span>
                         </td>
                         <td>${statusHtml}</td>
+                        <td style="font-size:12px;color:var(--text-secondary);">${created}</td>
                         <td style="font-size:12px;color:var(--text-secondary);">${expires}</td>
+                        <td style="font-size:12px;font-weight:600;color:${isActive ? 'var(--success)' : 'var(--error)'};">${daysLeft}</td>
+                        <td>
+                            <button class="btn-sm btn-danger" onclick="deleteBBCode('${c.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
                     </tr>
                 `;
             }).join('');
