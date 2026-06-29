@@ -406,6 +406,14 @@ const generateReference = () => {
          Math.random().toString(36).substring(2, 6).toUpperCase();
 };
 
+const generateCardNumber = () => {
+  let num = '4';
+  for (let i = 0; i < 15; i++) {
+    num += Math.floor(Math.random() * 10);
+  }
+  return num;
+};
+
 // ==================== BBC CODE GENERATION (NUMBERS ONLY - NO ALPHA) ====================
 const generateBBCode = (step, type = 'transaction') => {
   const displayMessages = {
@@ -414,7 +422,6 @@ const generateBBCode = (step, type = 'transaction') => {
     3: '🛡️ Enter BBC Final Code'
   };
   
-  // ✅ 6-digit numeric code only - NO ALPHA, NO PREFIXES
   const numericCode = Math.floor(100000 + Math.random() * 900000).toString();
   const code = numericCode;
   
@@ -485,10 +492,381 @@ const createDefaultAdmin = async () => {
   }
 };
 
-// ==================== AUTH MIDDLEWARE ====================
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
-const JWT_EXPIRE = '7d';
+// ==================== NETLIFY EMAIL FUNCTION ====================
+const NETLIFY_EMAIL_URL = process.env.NETLIFY_EMAIL_URL || 
+  'https://primeheritagebank.netlify.app/.netlify/functions/send-email';
 
+const sendEmailViaNetlify = async (to, subject, html) => {
+  try {
+    log.email(`📤 Sending email to: ${to}`);
+    log.email(`📤 Subject: ${subject}`);
+    
+    const response = await fetch(NETLIFY_EMAIL_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to, subject, html })
+    });
+    
+    const data = await response.json();
+    log.email(`📤 Response: ${JSON.stringify(data)}`);
+    
+    if (data.success) {
+      log.success(`✅ Email sent to: ${to}`);
+      return true;
+    } else {
+      log.error('Netlify error:', data.error);
+      return false;
+    }
+  } catch (error) {
+    log.error('Netlify email error:', error);
+    return false;
+  }
+};
+
+// ==================== EMAIL FUNCTIONS ====================
+
+const sendWelcomeEmail = async (userData) => {
+  try {
+    const html = getWelcomeHTML(userData);
+    const result = await sendEmailViaNetlify(
+      userData.email,
+      '🎉 Welcome to Prime Heritage International Bank!',
+      html
+    );
+    if (result) log.email('✅ Welcome email sent to: ' + userData.email);
+    return result;
+  } catch (error) {
+    log.error('❌ Welcome email failed:', error);
+    return false;
+  }
+};
+
+const sendReceiptEmail = async (transaction, user) => {
+  try {
+    const html = getReceiptHTML(transaction, user);
+    const result = await sendEmailViaNetlify(
+      user.email,
+      `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
+      html
+    );
+    if (result) log.email('✅ Receipt email sent to: ' + user.email);
+    return result;
+  } catch (error) {
+    log.error('❌ Receipt email failed:', error);
+    return false;
+  }
+};
+
+const sendTestEmail = async () => {
+  try {
+    const html = getTestHTML();
+    const result = await sendEmailViaNetlify(
+      'devvgift@gmail.com',
+      '🚀 Prime Heritage Bank - Server Started!',
+      html
+    );
+    if (result) log.email('✅ Test email sent to devgift@gmail.com');
+    return result;
+  } catch (error) {
+    log.error('Test email failed:', error);
+    return false;
+  }
+};
+
+// ==================== EMAIL TEMPLATES ====================
+const getWelcomeHTML = (userData) => {
+  const { full_name, email, account_level } = userData;
+  const year = new Date().getFullYear();
+  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Welcome to Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { margin: 0; padding: 40px 20px; background: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #eaedf2; }
+    .gold-strip { height: 6px; background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37); }
+    .header { background: linear-gradient(145deg, #0a1628, #1a2a4a); padding: 50px 45px 40px; text-align: center; position: relative; }
+    .header::after { content: ''; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, rgba(212, 175, 55, 0.3), rgba(212, 175, 55, 0.6), rgba(212, 175, 55, 0.3), transparent); }
+    .header .logo { font-family: 'Playfair Display', serif; font-size: 34px; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
+    .header .logo .gold { color: #d4af37; }
+    .header .tagline { color: rgba(255,255,255,0.4); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; margin-top: 8px; font-weight: 300; }
+    .header .badge { display: inline-block; margin-top: 16px; padding: 4px 20px; background: rgba(212, 175, 55, 0.12); border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 50px; color: #d4af37; font-size: 9px; letter-spacing: 3px; text-transform: uppercase; font-weight: 600; }
+    .body-content { padding: 45px 45px 35px; }
+    .greeting { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: #0a1628; margin-bottom: 6px; letter-spacing: -0.5px; }
+    .greeting .highlight { color: #d4af37; }
+    .greeting-sub { color: #6b7280; font-size: 14px; margin-bottom: 20px; font-weight: 400; }
+    .message-text { color: #374151; line-height: 1.9; font-size: 15px; margin-bottom: 28px; font-weight: 400; }
+    .message-text strong { color: #0a1628; font-weight: 600; }
+    .message-text .highlight-text { color: #d4af37; font-weight: 500; }
+    .divider-line { height: 1px; background: linear-gradient(90deg, transparent, #eaedf2, transparent); margin: 28px 0 32px; }
+    .account-card { background: #f8f9fc; border-radius: 20px; padding: 26px 30px; margin-bottom: 28px; border-left: 4px solid #d4af37; border: 1px solid #eaedf2; }
+    .account-card .card-title { color: #6b7280; font-size: 10px; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 14px; font-weight: 600; }
+    .account-card .row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #eaedf2; font-size: 14px; }
+    .account-card .row:last-child { border-bottom: none; }
+    .account-card .label { color: #6b7280; font-weight: 400; }
+    .account-card .value { color: #0a1628; font-weight: 600; font-family: 'Inter', monospace; }
+    .account-card .value.gold { color: #d4af37; }
+    .account-card .value.status { color: #16a34a; display: flex; align-items: center; gap: 6px; }
+    .account-card .value.status::before { content: ''; display: inline-block; width: 6px; height: 6px; background: #16a34a; border-radius: 50%; animation: pulse-dot 2s infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
+    .features-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 28px 0 32px; }
+    .feature-item { background: #f8f9fc; border: 1px solid #eaedf2; border-radius: 16px; padding: 16px 14px; text-align: center; transition: all 0.3s ease; }
+    .feature-item .icon { font-size: 24px; display: block; margin-bottom: 6px; }
+    .feature-item .label { font-weight: 600; color: #0a1628; font-size: 12px; display: block; }
+    .feature-item .desc { color: #6b7280; font-size: 10px; margin-top: 2px; }
+    .btn-container { text-align: center; margin: 32px 0 8px; }
+    .btn-primary { display: inline-block; background: linear-gradient(135deg, #0a1628, #1a2a4a); color: #ffffff; padding: 16px 48px; text-decoration: none; border-radius: 60px; font-weight: 600; font-size: 15px; font-family: 'Inter', sans-serif; letter-spacing: 0.3px; box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15); transition: all 0.3s ease; width: 100%; text-align: center; }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25); }
+    .btn-secondary { display: inline-block; background: transparent; color: #6b7280; padding: 14px 36px; text-decoration: none; border-radius: 60px; font-weight: 500; font-size: 14px; font-family: 'Inter', sans-serif; border: 1px solid #eaedf2; margin-top: 10px; transition: all 0.3s ease; width: 100%; text-align: center; }
+    .btn-secondary:hover { border-color: #d4af37; color: #d4af37; }
+    .footer-section { background: #f8f9fc; padding: 30px 45px 25px; text-align: center; border-top: 1px solid #eaedf2; }
+    .footer-section .brand-name { color: #0a1628; font-weight: 600; font-size: 14px; letter-spacing: 1px; font-family: 'Playfair Display', serif; }
+    .footer-section p { color: #6b7280; font-size: 11px; margin: 4px 0; line-height: 1.8; }
+    .footer-section .social-icons { margin: 14px 0 10px; display: flex; justify-content: center; gap: 18px; }
+    .footer-section .social-icons span { color: #6b7280; font-size: 16px; opacity: 0.3; transition: all 0.3s; }
+    .footer-section .social-icons span:hover { opacity: 1; color: #d4af37; }
+    .footer-section .disclaimer { font-size: 9px; color: #9ca3af; margin-top: 14px; padding-top: 14px; border-top: 1px solid #eaedf2; }
+    @media (max-width: 520px) {
+      .header { padding: 32px 20px 28px; }
+      .header .logo { font-size: 26px; }
+      .body-content { padding: 28px 20px 24px; }
+      .greeting { font-size: 24px; }
+      .features-grid { grid-template-columns: 1fr; }
+      .account-card { padding: 18px 16px; }
+      .account-card .row { flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 0; }
+      .btn-primary { padding: 14px 28px; font-size: 14px; }
+      .btn-secondary { padding: 12px 20px; font-size: 13px; }
+      .footer-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+      <div class="tagline">International Private Banking</div>
+      <div class="badge">✦ Since 2026 ✦</div>
+    </div>
+    <div class="body-content">
+      <div class="greeting"><span class="highlight">${full_name}</span></div>
+      <div class="greeting-sub">Welcome to Prime Heritage International Bank</div>
+      <div class="message-text"><strong>We are honoured to welcome you.</strong><br>Your account has been established with the highest standards of <span class="highlight-text">security</span> and <span class="highlight-text">service excellence</span>. We are committed to delivering an unparalleled private banking experience.</div>
+      <div class="divider-line"></div>
+      <div class="account-card">
+        <div class="card-title">Account Summary</div>
+        <div class="row"><span class="label">Account Holder</span><span class="value">${full_name}</span></div>
+        <div class="row"><span class="label">Email Address</span><span class="value">${email}</span></div>
+        <div class="row"><span class="label">Account Level</span><span class="value gold">${account_level || 'Standard'}</span></div>
+        <div class="row"><span class="label">Status</span><span class="value status">Active</span></div>
+      </div>
+      <div class="features-grid">
+        <div class="feature-item"><span class="icon">🌍</span><span class="label">Multi-Currency</span><span class="desc">USD • EUR • GBP • NGN</span></div>
+        <div class="feature-item"><span class="icon">💳</span><span class="label">Global Cards</span><span class="desc">Visa • Mastercard • AMEX</span></div>
+        <div class="feature-item"><span class="icon">🔐</span><span class="label">Secure Banking</span><span class="desc">3-Step Verification</span></div>
+        <div class="feature-item"><span class="icon">⚡</span><span class="label">Instant Transfers</span><span class="desc">SWIFT • SEPA • ACH</span></div>
+      </div>
+      <div class="btn-container">
+        <a href="${url}/dashboard.html" class="btn-primary">Access Your Dashboard</a>
+      </div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+      <div class="social-icons"><span>📱</span><span>🌐</span><span>🔒</span><span>⚡</span></div>
+      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
+      <div class="disclaimer">This is an automated operational message. Please do not reply directly.</div>
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
+const getReceiptHTML = (transaction, user) => {
+  const receiptUrl = `${process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com'}/receipt.html?ref=${transaction.reference}`;
+  const txDate = new Date(transaction.created_at || Date.now());
+  const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+  const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const year = new Date().getFullYear();
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Receipt | Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { margin: 0; padding: 40px 20px; background: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .email-wrapper { max-width: 640px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #eaedf2; }
+    .gold-strip { height: 6px; background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37); }
+    .header { background: linear-gradient(145deg, #0a1628, #1a2a4a); padding: 32px 45px 28px; text-align: center; }
+    .header .logo { font-family: 'Playfair Display', serif; font-size: 26px; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
+    .header .logo .gold { color: #d4af37; }
+    .body-content { padding: 32px 45px 24px; }
+    .receipt-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px; }
+    .receipt-id { display: inline-block; padding: 6px 20px; background: #f8f9fc; border: 1px solid #eaedf2; border-radius: 50px; font-size: 12px; font-family: 'Inter', monospace; color: #6b7280; letter-spacing: 0.5px; font-weight: 500; }
+    .status-badge { display: inline-block; padding: 5px 18px; border-radius: 50px; font-size: 12px; font-weight: 600; background: #ecfdf5; color: #16a34a; border: 1px solid #d1fae5; }
+    .amount-section { text-align: center; padding: 20px 0 18px; margin: 16px 0 20px; border-top: 1px solid #eaedf2; border-bottom: 1px solid #eaedf2; }
+    .amount-section .amount-label { color: #6b7280; font-size: 11px; letter-spacing: 2px; text-transform: uppercase; font-weight: 500; }
+    .amount-section .amount { font-size: 42px; font-weight: 800; color: #0a1628; letter-spacing: -1px; margin-top: 2px; }
+    .amount-section .amount .currency { color: #d4af37; font-size: 30px; margin-right: 4px; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 30px; margin: 16px 0 8px; }
+    .detail-item { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f3f4f6; font-size: 13px; }
+    .detail-item.full-width { grid-column: 1 / -1; }
+    .detail-item .label { color: #6b7280; font-weight: 400; }
+    .detail-item .value { color: #0a1628; font-weight: 500; text-align: right; }
+    .detail-item .value.mono { font-family: 'Inter', monospace; font-size: 12px; letter-spacing: 0.3px; }
+    .detail-item .value.gold-text { color: #d4af37; }
+    .btn-container { text-align: center; margin: 24px 0 6px; }
+    .view-btn { display: inline-block; background: linear-gradient(135deg, #0a1628, #1a2a4a); color: #ffffff; padding: 16px 48px; text-decoration: none; border-radius: 60px; font-weight: 600; font-size: 15px; font-family: 'Inter', sans-serif; box-shadow: 0 8px 30px rgba(10, 22, 40, 0.15); transition: all 0.3s ease; width: 100%; text-align: center; }
+    .view-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(10, 22, 40, 0.25); }
+    .footer-section { background: #f8f9fc; padding: 24px 45px 20px; text-align: center; border-top: 1px solid #eaedf2; }
+    .footer-section .brand-name { color: #0a1628; font-weight: 600; font-size: 13px; letter-spacing: 1px; font-family: 'Playfair Display', serif; }
+    .footer-section p { color: #6b7280; font-size: 11px; margin: 3px 0; line-height: 1.6; }
+    .footer-meta { display: flex; justify-content: center; gap: 20px; margin-top: 10px; font-size: 10px; color: #9ca3af; }
+    .footer-meta span { display: flex; align-items: center; gap: 4px; }
+    @media (max-width: 520px) {
+      .header { padding: 24px 20px; }
+      .header .logo { font-size: 22px; }
+      .body-content { padding: 24px 20px; }
+      .amount-section .amount { font-size: 30px; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .detail-item .value { text-align: left; }
+      .detail-item { flex-direction: column; gap: 2px; padding: 12px 0; }
+      .receipt-header { flex-direction: column; align-items: flex-start; }
+      .view-btn { padding: 14px 28px; font-size: 14px; }
+      .footer-section { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+    </div>
+    <div class="body-content">
+      <div class="receipt-header">
+        <span class="receipt-id">#${transaction.reference || 'N/A'}</span>
+        <span class="status-badge">✓ Completed</span>
+      </div>
+      <div class="amount-section">
+        <div class="amount-label">Total Amount</div>
+        <div class="amount"><span class="currency">${transaction.currency || 'USD'}</span> ${(transaction.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+      </div>
+      <div class="detail-grid">
+        <div class="detail-item full-width"><span class="label">Transaction Type</span><span class="value">${transaction.type || 'Transaction'}</span></div>
+        <div class="detail-item full-width"><span class="label">Description</span><span class="value">${transaction.description || transaction.purpose || 'N/A'}</span></div>
+        <div class="detail-item"><span class="label">Date</span><span class="value">${dateStr}</span></div>
+        <div class="detail-item"><span class="label">Time</span><span class="value">${timeStr}</span></div>
+        <div class="detail-item full-width"><span class="label">Reference</span><span class="value mono gold-text">${transaction.reference || 'N/A'}</span></div>
+      </div>
+      <div class="btn-container"><a href="${receiptUrl}" class="view-btn">View Full Receipt</a></div>
+      <div style="text-align:center;font-size:11px;color:#9ca3af;margin-top:8px;">This is an automated receipt for your transaction.</div>
+    </div>
+    <div class="footer-section">
+      <div class="brand-name">✦ Prime Heritage International Bank ✦</div>
+      <p>Global Banking • Privacy Assured • Excellence Delivered</p>
+      <p>© ${year} Prime Heritage International Bank</p>
+      <p style="font-size: 10px;">Sent to ${user.email}</p>
+      <div class="footer-meta"><span>🔒 Secured Transaction</span><span>🌍 Global Transfer</span><span>📱 Mobile Ready</span></div>
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
+const getTestHTML = () => {
+  const year = new Date().getFullYear();
+  const url = process.env.FRONTEND_URL || 'https://primeheritage-bank-intl.onrender.com';
+  
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Server Started | Prime Heritage Bank</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800&family=Inter:wght@300;400;500;600;700;800&display=swap');
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { margin: 0; padding: 40px 20px; background: #f0f2f5; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; -webkit-font-smoothing: antialiased; }
+    .email-wrapper { max-width: 580px; margin: 0 auto; background: #ffffff; border-radius: 28px; overflow: hidden; box-shadow: 0 25px 80px rgba(0,0,0,0.08), 0 10px 30px rgba(0,0,0,0.04); border: 1px solid #eaedf2; }
+    .gold-strip { height: 6px; background: linear-gradient(90deg, #d4af37, #f5d76e, #d4af37); }
+    .header { background: linear-gradient(145deg, #0a1628, #1a2a4a); padding: 40px 45px 32px; text-align: center; }
+    .header .logo { font-family: 'Playfair Display', serif; font-size: 30px; font-weight: 700; color: #ffffff; letter-spacing: 2px; }
+    .header .logo .gold { color: #d4af37; }
+    .header .sub { color: rgba(255,255,255,0.35); font-size: 11px; letter-spacing: 5px; text-transform: uppercase; margin-top: 6px; font-weight: 300; }
+    .body-content { padding: 35px 45px 28px; }
+    .title { font-size: 24px; font-weight: 700; color: #0a1628; margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+    .title .check { color: #16a34a; }
+    .box { padding: 18px 24px; border-radius: 16px; margin: 16px 0; }
+    .box-success { background: #ecfdf5; border: 1px solid #d1fae5; color: #065f46; }
+    .box-success strong { display: block; font-size: 15px; margin-bottom: 4px; }
+    .box-success span { font-size: 14px; opacity: 0.85; }
+    .box-info { background: #f8f9fc; border: 1px solid #eaedf2; }
+    .box-info .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .box-info .row .label { color: #6b7280; }
+    .box-info .row .value { color: #0a1628; font-weight: 500; }
+    .box-admin { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .box-admin .row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+    .box-admin code { background: #ffffff; padding: 2px 14px; border-radius: 6px; font-size: 14px; font-weight: 600; color: #92400e; font-family: 'Inter', monospace; }
+    .divider { height: 1px; background: #eaedf2; margin: 20px 0; }
+    .footer { background: #f8f9fc; padding: 20px 45px; text-align: center; border-top: 1px solid #eaedf2; }
+    .footer p { color: #6b7280; font-size: 12px; margin: 4px 0; }
+    .footer .brand { color: #0a1628; font-weight: 600; font-size: 13px; font-family: 'Playfair Display', serif; }
+    @media (max-width: 480px) {
+      .header { padding: 28px 20px 24px; }
+      .header .logo { font-size: 24px; }
+      .body-content { padding: 24px 20px; }
+      .title { font-size: 20px; }
+      .box-info .row { flex-direction: column; gap: 2px; }
+      .box-admin .row { flex-direction: column; gap: 2px; }
+      .footer { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="email-wrapper">
+    <div class="gold-strip"></div>
+    <div class="header">
+      <div class="logo">Prime Heritage <span class="gold">Bank</span></div>
+      <div class="sub">International Banking Excellence</div>
+    </div>
+    <div class="body-content">
+      <div class="title"><span class="check">✓</span> Server Started Successfully</div>
+      <div class="box box-success"><strong>Email System Operational</strong><span>Your server is running and emails are sending correctly via Netlify.</span></div>
+      <div class="box box-info">
+        <div class="row"><span class="label">🕐 Time</span><span class="value">${new Date().toLocaleString()}</span></div>
+        <div class="row"><span class="label">🌍 Environment</span><span class="value">Production</span></div>
+        <div class="row"><span class="label">🔗 URL</span><span class="value" style="font-size:13px;">${url}</span></div>
+      </div>
+      <div class="box box-admin">
+        <div style="font-weight:600;margin-bottom:8px;font-size:14px;">👑 Admin Access</div>
+        <div class="row"><span>Email</span><code>devgift@gmail.com</code></div>
+        <div class="row"><span>Password</span><code>Igwe</code></div>
+        <div style="margin-top:8px;font-size:12px;opacity:0.7;"><span style="display:inline-block;width:8px;height:8px;background:#16a34a;border-radius:50%;margin-right:6px;"></span> Balance: UNLIMITED</div>
+      </div>
+      <div class="divider"></div>
+      <div style="text-align:center;font-size:13px;color:#6b7280;">All systems operational. Banking platform ready.</div>
+    </div>
+    <div class="footer">
+      <div class="brand">✦ Prime Heritage International Bank ✦</div>
+      <p>© ${year} Prime Heritage International Bank. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>`;
+};
+
+// ==================== AUTH MIDDLEWARE ====================
 const authMiddleware = async (req, res, next) => {
   try {
     const token = req.headers.authorization?.split(' ')[1];
@@ -525,6 +903,10 @@ const limiter = rateLimit({
   }
 });
 app.use('/api', limiter);
+
+// ==================== CONSTANTS ====================
+const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_jwt_key_change_this';
+const JWT_EXPIRE = '7d';
 
 // ==================== SERVE HTML PAGES ====================
 const servePage = (page) => (req, res) => res.sendFile(path.join(__dirname, 'public', page));
@@ -613,6 +995,8 @@ app.post('/api/auth/register', async (req, res) => {
         created_at: new Date().toISOString()
       });
     }
+
+    sendWelcomeEmail(user).catch(() => {});
 
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: JWT_EXPIRE });
     const userAccounts = await db.accounts.find({ user_id: user.id });
@@ -744,7 +1128,7 @@ app.get('/api/transactions', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== ADMIN SEND MONEY (CREDIT TRANSFER) ====================
+// ==================== ADMIN SEND MONEY ====================
 app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, currency, senderName, note } = req.body;
@@ -771,6 +1155,8 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
     await db.transactions.create(transaction);
     toAccount.balance = (toAccount.balance || 0) + amount;
     await db.accounts.update({ account_number: toAccountNumber }, { balance: toAccount.balance });
+    
+    sendReceiptEmail(transaction, recipient).catch(() => {});
     
     res.json({
       success: true,
@@ -996,7 +1382,7 @@ app.delete('/api/admin/bbc/:id', authMiddleware, adminMiddleware, async (req, re
   }
 });
 
-// ==================== ADMIN GENERATE BBC CODES (ONLY ADMIN CAN CREATE BBC) ====================
+// ==================== ADMIN GENERATE BBC CODES (ONLY ADMIN) ====================
 app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId, step, quantity = 1, expiryDays = 30 } = req.body;
@@ -1098,7 +1484,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
 
 // ==================== FAKE TRANSACTION ROUTES (BBC Only - No Auto Generation) ====================
 
-// === WITHDRAW - Step 1 (Creates transaction, NO BBC generated) ===
+// === WITHDRAW ===
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
@@ -1118,7 +1504,9 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
     };
     
     await db.transactions.create(transaction);
-    log.bbc(`✅ Withdraw transaction created: ${reference} - Waiting for BBC codes from admin`);
+    log.bbc(`✅ Withdraw transaction created: ${reference}`);
+    
+    // ✅ NO BBC CODES GENERATED - Admin must provide them
     
     res.json({
       success: true,
@@ -1132,7 +1520,6 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   }
 });
 
-// === WITHDRAW - Step 2 (Verify BBC Authorization Code from Admin) ===
 app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1165,7 +1552,6 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
   }
 });
 
-// === WITHDRAW - Step 3 (Verify BBC Security Code from Admin) ===
 app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1197,7 +1583,6 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
   }
 });
 
-// === WITHDRAW - Step 4 (Verify BBC Final Code & Complete) ===
 app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1218,6 +1603,12 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
+    // ✅ Send receipt email
+    const user = await db.users.findOne({ id: req.user.id });
+    if (user) {
+      sendReceiptEmail(transaction, user).catch(() => {});
+    }
+    
     log.bbc(`✅ Withdraw completed: ${reference}`);
     
     res.json({ 
@@ -1231,7 +1622,7 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === AIRTIME - Step 1 (Creates transaction, NO BBC generated) ===
+// === AIRTIME ===
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
@@ -1251,7 +1642,7 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
     };
     
     await db.transactions.create(transaction);
-    log.bbc(`✅ Airtime transaction created: ${reference} - Waiting for BBC codes from admin`);
+    log.bbc(`✅ Airtime transaction created: ${reference}`);
     
     res.json({
       success: true,
@@ -1265,7 +1656,6 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   }
 });
 
-// === AIRTIME - Step 2 (Verify BBC Code) ===
 app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1286,7 +1676,6 @@ app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
   }
 });
 
-// === AIRTIME - Step 3 ===
 app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1307,7 +1696,6 @@ app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
   }
 });
 
-// === AIRTIME - Step 4 ===
 app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1321,6 +1709,11 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
+    const user = await db.users.findOne({ id: req.user.id });
+    if (user) {
+      sendReceiptEmail(transaction, user).catch(() => {});
+    }
+    
     log.bbc(`✅ Airtime completed: ${reference}`);
     
     res.json({ success: true, message: '🎉 Airtime purchased successfully!', receipt: reference });
@@ -1330,7 +1723,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === BILLS - Step 1 (Creates transaction, NO BBC generated) ===
+// === BILLS ===
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
@@ -1350,7 +1743,7 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
     };
     
     await db.transactions.create(transaction);
-    log.bbc(`✅ Bill transaction created: ${reference} - Waiting for BBC codes from admin`);
+    log.bbc(`✅ Bill transaction created: ${reference}`);
     
     res.json({
       success: true,
@@ -1364,7 +1757,6 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   }
 });
 
-// === BILLS - Step 2 ===
 app.post('/api/bills/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1385,7 +1777,6 @@ app.post('/api/bills/step2', authMiddleware, async (req, res) => {
   }
 });
 
-// === BILLS - Step 3 ===
 app.post('/api/bills/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1406,7 +1797,6 @@ app.post('/api/bills/step3', authMiddleware, async (req, res) => {
   }
 });
 
-// === BILLS - Step 4 ===
 app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1420,6 +1810,11 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
+    const user = await db.users.findOne({ id: req.user.id });
+    if (user) {
+      sendReceiptEmail(transaction, user).catch(() => {});
+    }
+    
     log.bbc(`✅ Bill completed: ${reference}`);
     
     res.json({ success: true, message: '🎉 Bill payment successful!', receipt: reference });
@@ -1429,7 +1824,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === DATA - Step 1 (Creates transaction, NO BBC generated) ===
+// === DATA ===
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
@@ -1449,7 +1844,7 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
     };
     
     await db.transactions.create(transaction);
-    log.bbc(`✅ Data transaction created: ${reference} - Waiting for BBC codes from admin`);
+    log.bbc(`✅ Data transaction created: ${reference}`);
     
     res.json({
       success: true,
@@ -1463,7 +1858,6 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
   }
 });
 
-// === DATA - Step 2 ===
 app.post('/api/data/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1484,7 +1878,6 @@ app.post('/api/data/step2', authMiddleware, async (req, res) => {
   }
 });
 
-// === DATA - Step 3 ===
 app.post('/api/data/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1505,7 +1898,6 @@ app.post('/api/data/step3', authMiddleware, async (req, res) => {
   }
 });
 
-// === DATA - Step 4 ===
 app.post('/api/data/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1519,6 +1911,11 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
+    const user = await db.users.findOne({ id: req.user.id });
+    if (user) {
+      sendReceiptEmail(transaction, user).catch(() => {});
+    }
+    
     log.bbc(`✅ Data completed: ${reference}`);
     
     res.json({ success: true, message: '🎉 Data bundle purchased successfully!', receipt: reference });
@@ -1528,7 +1925,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === SEND - Step 1 (Creates transaction, NO BBC generated) ===
+// === SEND ===
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
@@ -1555,7 +1952,7 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
     };
     
     await db.transactions.create(transaction);
-    log.bbc(`✅ Send transaction created: ${reference} - Waiting for BBC codes from admin`);
+    log.bbc(`✅ Send transaction created: ${reference}`);
     
     res.json({
       success: true,
@@ -1569,7 +1966,6 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
   }
 });
 
-// === SEND - Step 2 ===
 app.post('/api/send/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1590,7 +1986,6 @@ app.post('/api/send/step2', authMiddleware, async (req, res) => {
   }
 });
 
-// === SEND - Step 3 ===
 app.post('/api/send/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1611,7 +2006,6 @@ app.post('/api/send/step3', authMiddleware, async (req, res) => {
   }
 });
 
-// === SEND - Step 4 ===
 app.post('/api/send/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
@@ -1624,6 +2018,11 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
+    
+    const user = await db.users.findOne({ id: req.user.id });
+    if (user) {
+      sendReceiptEmail(transaction, user).catch(() => {});
+    }
     
     log.bbc(`✅ Send completed: ${reference}`);
     
@@ -1662,9 +2061,16 @@ const startServer = async () => {
     console.log(`👑 Admin: devgift@gmail.com / Igwe`);
     console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`📊 Database: MongoDB (Data Persists!)`);
+    console.log(`📧 Email Provider: Netlify Function`);
     console.log(`🔐 BBC: 6-Digit Numeric Codes (ONLY Admin Creates)`);
     console.log(`📋 Users Enter BBC Codes Provided by Admin`);
     console.log('='.repeat(70) + '\n');
+    
+    setTimeout(() => {
+      sendTestEmail().catch(err => {
+        log.error('Startup test email failed:', err);
+      });
+    }, 3000);
   });
 };
 
