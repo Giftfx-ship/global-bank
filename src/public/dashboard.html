@@ -17,7 +17,9 @@
             --gold-light: #D4B85A;
             --gold-glow: rgba(198,164,63,0.25);
             --success: #10B981;
+            --success-bg: rgba(16,185,129,0.12);
             --error: #EF4444;
+            --error-bg: rgba(239,68,68,0.12);
             --warning: #F59E0B;
             --info: #3B82F6;
             --gradient-gold: linear-gradient(135deg, #C6A43F, #9E8032);
@@ -39,6 +41,13 @@
             --hover-bg: rgba(198,164,63,0.04);
             --card-gradient: linear-gradient(145deg, #0d1a2b, #16213e);
             --balance-card-bg: linear-gradient(145deg, #0a1628, #1a2a4a);
+            --modal-bg: rgba(13, 20, 35, 0.98);
+            --status-completed-color: #34D399;
+            --status-completed-bg: rgba(52, 211, 153, 0.15);
+            --status-completed-border: rgba(52, 211, 153, 0.3);
+            --status-pending-color: #FBBF24;
+            --status-pending-bg: rgba(251, 191, 36, 0.15);
+            --status-pending-border: rgba(251, 191, 36, 0.3);
         }
 
         [data-theme="light"] {
@@ -56,6 +65,13 @@
             --hover-bg: rgba(198,164,63,0.06);
             --card-gradient: linear-gradient(145deg, #f8fafc, #e2e8f0);
             --balance-card-bg: linear-gradient(145deg, #0a1628, #1a2a4a);
+            --modal-bg: rgba(255, 255, 255, 0.98);
+            --status-completed-color: #059669;
+            --status-completed-bg: rgba(5, 150, 105, 0.1);
+            --status-completed-border: rgba(5, 150, 105, 0.25);
+            --status-pending-color: #D97706;
+            --status-pending-bg: rgba(217, 119, 6, 0.1);
+            --status-pending-border: rgba(217, 119, 6, 0.25);
         }
 
         body {
@@ -89,11 +105,7 @@
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes shimmer {
-            0% { background-position: -200% center; }
-            100% { background-position: 200% center; }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== TOP BAR ===== */
         .top-bar {
@@ -422,6 +434,8 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex: 1;
+            min-width: 0;
         }
         .transaction-icon {
             width: 40px;
@@ -432,9 +446,13 @@
             justify-content: center;
             flex-shrink: 0;
         }
-        .transaction-icon.incoming { background: rgba(16,185,129,0.12); color: var(--success); }
-        .transaction-icon.outgoing { background: rgba(239,68,68,0.12); color: var(--error); }
+        .transaction-icon.incoming { background: var(--success-bg); color: var(--success); }
+        .transaction-icon.outgoing { background: var(--error-bg); color: var(--error); }
         .transaction-icon i { font-size: 16px; }
+        .transaction-info {
+            flex: 1;
+            min-width: 0;
+        }
         .transaction-info .tx-name {
             font-size: 13px;
             font-weight: 600;
@@ -445,34 +463,43 @@
             color: var(--text-secondary);
             margin-top: 2px;
         }
+        .transaction-right {
+            text-align: right;
+            flex-shrink: 0;
+            margin-left: 10px;
+        }
         .transaction-amount {
             font-weight: 700;
             font-size: 14px;
-            text-align: right;
         }
         .transaction-amount.incoming { color: var(--success); }
         .transaction-amount.outgoing { color: var(--error); }
-        .transaction-amount .tx-status {
-            font-size: 10px;
-            font-weight: 500;
-            display: block;
-            color: var(--text-muted);
-        }
-        .receipt-btn {
-            background: rgba(198,164,63,0.1);
-            border: 1px solid var(--gold);
-            padding: 3px 10px;
-            border-radius: 30px;
-            color: var(--gold);
-            cursor: pointer;
+
+        /* ===== STATUS BADGE - WORKS IN BOTH THEMES ===== */
+        .tx-status {
             font-size: 10px;
             font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 12px;
+            border-radius: 30px;
+            margin-top: 2px;
+            letter-spacing: 0.3px;
             transition: all 0.3s;
-            margin-left: 8px;
         }
-        .receipt-btn:hover {
-            background: var(--gradient-gold);
-            color: #0A0E1A;
+        .tx-status i {
+            font-size: 9px;
+        }
+        .tx-status.completed {
+            color: var(--status-completed-color);
+            background: var(--status-completed-bg);
+            border: 1px solid var(--status-completed-border);
+        }
+        .tx-status.pending {
+            color: var(--status-pending-color);
+            background: var(--status-pending-bg);
+            border: 1px solid var(--status-pending-border);
         }
 
         /* ===== EMPTY STATE ===== */
@@ -494,14 +521,14 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
+            background: rgba(0,0,0,0.85);
             backdrop-filter: blur(16px);
             z-index: 1500;
             align-items: center;
             justify-content: center;
         }
         .transactions-modal .modal-content {
-            background: var(--bg-card);
+            background: var(--modal-bg);
             border-radius: 28px;
             padding: 24px;
             max-width: 600px;
@@ -511,6 +538,7 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
+            box-shadow: var(--shadow);
         }
         .transactions-modal .modal-header {
             display: flex;
@@ -534,13 +562,25 @@
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.3s;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .transactions-modal .close-modal:hover { color: var(--error); transform: rotate(90deg); }
+        .transactions-modal .close-modal:hover { 
+            color: var(--error); 
+            background: var(--error-bg);
+            transform: rotate(90deg);
+        }
         .transactions-modal .modal-body {
             overflow-y: auto;
             flex: 1;
             padding-right: 5px;
         }
+
+        /* ===== MODAL TRANSACTION ITEMS ===== */
         .modal-tx-item {
             display: flex;
             justify-content: space-between;
@@ -549,15 +589,63 @@
             border-bottom: 1px solid var(--border);
             transition: all 0.3s;
             border-radius: 8px;
+            gap: 10px;
         }
         .modal-tx-item:hover { background: var(--hover-bg); }
-        .modal-tx-item .tx-info { flex: 1; }
-        .modal-tx-item .tx-type { font-weight: 600; color: var(--text-primary); font-size: 13px; }
-        .modal-tx-item .tx-date { color: var(--text-secondary); font-size: 11px; }
-        .modal-tx-item .tx-ref { font-size: 10px; color: var(--text-muted); font-family: monospace; }
-        .modal-tx-item .tx-amount { font-weight: 700; font-size: 14px; }
+        .modal-tx-item .tx-info { flex: 1; min-width: 0; }
+        .modal-tx-item .tx-type { 
+            font-weight: 600; 
+            color: var(--text-primary); 
+            font-size: 13px; 
+        }
+        .modal-tx-item .tx-date { 
+            color: var(--text-secondary); 
+            font-size: 11px; 
+        }
+        .modal-tx-item .tx-ref { 
+            font-size: 10px; 
+            color: var(--text-muted); 
+            font-family: monospace; 
+            display: block;
+            margin-top: 2px;
+        }
+        .modal-tx-item .tx-right {
+            text-align: right;
+            flex-shrink: 0;
+        }
+        .modal-tx-item .tx-amount { 
+            font-weight: 700; 
+            font-size: 14px; 
+        }
         .modal-tx-item .tx-amount.incoming { color: var(--success); }
         .modal-tx-item .tx-amount.outgoing { color: var(--error); }
+
+        /* ===== MODAL STATUS BADGE - WORKS IN BOTH THEMES ===== */
+        .modal-tx-item .tx-status-badge {
+            font-size: 9px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 12px;
+            border-radius: 30px;
+            margin-top: 2px;
+            letter-spacing: 0.3px;
+        }
+        .modal-tx-item .tx-status-badge i {
+            font-size: 8px;
+        }
+        .modal-tx-item .tx-status-badge.completed {
+            color: var(--status-completed-color);
+            background: var(--status-completed-bg);
+            border: 1px solid var(--status-completed-border);
+        }
+        .modal-tx-item .tx-status-badge.pending {
+            color: var(--status-pending-color);
+            background: var(--status-pending-bg);
+            border: 1px solid var(--status-pending-border);
+        }
+
         .modal-tx-item .view-receipt-btn {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--gold);
@@ -568,7 +656,8 @@
             font-size: 10px;
             font-weight: 600;
             transition: all 0.3s;
-            margin-left: 10px;
+            margin-left: 8px;
+            white-space: nowrap;
         }
         .modal-tx-item .view-receipt-btn:hover {
             background: var(--gradient-gold);
@@ -597,7 +686,6 @@
             animation: spin 0.8s linear infinite;
             margin-bottom: 12px;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
         .loader-text {
             color: var(--gold);
             font-size: 13px;
@@ -667,6 +755,10 @@
             .nav-item { padding: 4px 8px; }
             .nav-item i { font-size: 16px; }
             .nav-item span { font-size: 8px; }
+            .transaction-item { flex-wrap: wrap; }
+            .transaction-right { margin-left: 52px; width: 100%; }
+            .modal-tx-item { flex-wrap: wrap; }
+            .modal-tx-item .tx-right { width: 100%; text-align: left; margin-top: 4px; }
         }
     </style>
 </head>
@@ -713,7 +805,7 @@
                     <i class="fas fa-arrow-down"></i> Withdraw
                 </button>
                 <button class="btn-action btn-topup" onclick="window.location.href='/support.html'">
-                    <i class="fas fa-plus"></i> support
+                    <i class="fas fa-headset"></i> Support
                 </button>
             </div>
         </div>
@@ -749,7 +841,7 @@
         <!-- RECENT TRANSACTIONS -->
         <div class="section-header">
             <h3>Recent Transactions</h3>
-            
+            <a onclick="openAllTransactions()">View All →</a>
         </div>
         <div id="recentTransactions">
             <div class="empty-state">
@@ -841,7 +933,7 @@
                 const token = localStorage.getItem('token');
                 if (!token) return;
 
-                const res = await fetch(`${API_URL}/api/transactions/all`, {
+                const res = await fetch(`${API_URL}/api/transactions`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
@@ -866,22 +958,46 @@
                     const isIncoming = tx.to_user_id === currentUser?.id;
                     const amount = tx.amount || 0;
                     const currency = tx.currency || 'USD';
-                    const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent';
+                    const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric',
+                        year: 'numeric'
+                    }) : 'Recent';
+                    const time = tx.created_at ? new Date(tx.created_at).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    }) : '';
                     const ref = tx.reference || tx.id;
-                    const hasReceipt = tx.status === 'completed';
+                    const status = tx.status || 'completed';
+                    const isCompleted = status === 'completed';
+                    const txType = tx.type || 'transfer';
+                    
+                    let typeLabel = 'Transfer';
+                    if (txType === 'withdrawal') typeLabel = 'Withdrawal';
+                    else if (txType === 'airtime') typeLabel = 'Airtime';
+                    else if (txType === 'bill_payment') typeLabel = 'Bill Payment';
+                    else if (txType === 'data_bundle') typeLabel = 'Data Bundle';
+                    else if (txType === 'credit_transfer') typeLabel = 'Credit Transfer';
+                    else if (isIncoming) typeLabel = 'Received';
+
+                    const statusIcon = isCompleted ? 'fa-check-circle' : 'fa-clock';
+                    const statusLabel = isCompleted ? 'Completed' : 'Pending';
 
                     return `
                         <div class="modal-tx-item">
                             <div class="tx-info">
-                                <div class="tx-type">${isIncoming ? '📥 Received' : '📤 Sent'} ${tx.type ? `- ${tx.type}` : ''}</div>
-                                <div class="tx-date">${date}</div>
+                                <div class="tx-type">${isIncoming ? '📥' : '📤'} ${typeLabel}</div>
+                                <div class="tx-date">${date} ${time}</div>
                                 <div class="tx-ref">${ref}</div>
                             </div>
-                            <div style="display:flex;align-items:center;gap:6px;">
+                            <div class="tx-right">
                                 <div class="tx-amount ${isIncoming ? 'incoming' : 'outgoing'}">
                                     ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
                                 </div>
-                                ${hasReceipt ? `<button class="view-receipt-btn" onclick="event.stopPropagation();viewReceipt('${ref}')"><i class="fas fa-receipt"></i></button>` : ''}
+                                <span class="tx-status-badge ${isCompleted ? 'completed' : 'pending'}">
+                                    <i class="fas ${statusIcon}"></i> ${statusLabel}
+                                </span>
+                                ${isCompleted ? `<button class="view-receipt-btn" onclick="event.stopPropagation();viewReceipt('${ref}')"><i class="fas fa-receipt"></i> Receipt</button>` : ''}
                             </div>
                         </div>
                     `;
@@ -960,17 +1076,35 @@
                     const amount = tx.amount || 0;
                     const currency = tx.currency || 'USD';
                     const reference = tx.reference || tx.id;
-                    const hasReceipt = tx.status === 'completed';
+                    const status = tx.status || 'completed';
+                    const isCompleted = status === 'completed';
                     const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recent';
                     const txType = tx.type || 'transfer';
 
                     let icon = 'fa-arrow-right';
                     let name = 'Transfer';
-                    if (isIncoming) { icon = 'fa-arrow-down'; name = 'Received'; }
-                    else if (txType === 'withdrawal') { icon = 'fa-university'; name = 'Withdrawal'; }
-                    else if (txType === 'airtime') { icon = 'fa-mobile-alt'; name = 'Airtime'; }
-                    else if (txType === 'bill_payment') { icon = 'fa-bolt'; name = 'Bill Payment'; }
-                    else if (txType === 'data_bundle') { icon = 'fa-wifi'; name = 'Data Bundle'; }
+                    if (isIncoming) { 
+                        icon = 'fa-arrow-down'; 
+                        name = 'Received'; 
+                    } else if (txType === 'withdrawal') { 
+                        icon = 'fa-university'; 
+                        name = 'Withdrawal'; 
+                    } else if (txType === 'airtime') { 
+                        icon = 'fa-mobile-alt'; 
+                        name = 'Airtime'; 
+                    } else if (txType === 'bill_payment') { 
+                        icon = 'fa-bolt'; 
+                        name = 'Bill Payment'; 
+                    } else if (txType === 'data_bundle') { 
+                        icon = 'fa-wifi'; 
+                        name = 'Data Bundle'; 
+                    } else if (txType === 'credit_transfer') {
+                        icon = 'fa-gift';
+                        name = 'Credit';
+                    }
+
+                    const statusIcon = isCompleted ? 'fa-check-circle' : 'fa-clock';
+                    const statusLabel = isCompleted ? 'Completed' : 'Pending';
 
                     return `
                         <div class="transaction-item" onclick="viewReceipt('${reference}')">
@@ -983,11 +1117,13 @@
                                     <div class="tx-date">${date}</div>
                                 </div>
                             </div>
-                            <div>
+                            <div class="transaction-right">
                                 <div class="transaction-amount ${isIncoming ? 'incoming' : 'outgoing'}">
                                     ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
                                 </div>
-                                <div class="tx-status">${hasReceipt ? '✅ Completed' : '⏳ Pending'}</div>
+                                <span class="tx-status ${isCompleted ? 'completed' : 'pending'}">
+                                    <i class="fas ${statusIcon}"></i> ${statusLabel}
+                                </span>
                             </div>
                         </div>
                     `;
@@ -1025,7 +1161,7 @@
                         Swal.fire({
                             icon: 'info',
                             title: '⏳ Pending Transaction',
-                            text: `You have a pending ${tx.type || 'transaction'} (Step ${step}/3). Continue from where you stopped.`,
+                            html: `<p style="color:var(--text-secondary);">You have a pending <strong>${tx.type || 'transaction'}</strong> (Step ${step}/3).</p><p style="margin-top:4px;font-size:12px;color:var(--text-muted);">Continue from where you stopped.</p>`,
                             confirmButtonColor: '#C6A43F',
                             confirmButtonText: 'Continue →',
                             showCancelButton: true,
