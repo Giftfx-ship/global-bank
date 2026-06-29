@@ -17,6 +17,7 @@
             --success: #10B981;
             --error: #EF4444;
             --warning: #F59E0B;
+            --gradient-gold: linear-gradient(135deg, #C6A43F, #9E8032);
         }
 
         [data-theme="dark"] {
@@ -24,26 +25,31 @@
             --bg-card: rgba(17, 24, 39, 0.95);
             --border: rgba(31, 41, 55, 0.5);
             --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
             --input-bg: #0F1622;
             --glass-bg: rgba(17, 24, 39, 0.8);
+            --card-gradient: linear-gradient(145deg, #0d1a2b, #16213e);
         }
 
         [data-theme="light"] {
-            --bg-body: #F3F4F6;
+            --bg-body: #F0F2F8;
             --bg-card: rgba(255, 255, 255, 0.95);
             --border: rgba(229, 231, 235, 0.5);
             --text-primary: #111827;
             --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
             --input-bg: #F9FAFB;
             --glass-bg: rgba(255, 255, 255, 0.8);
+            --card-gradient: linear-gradient(145deg, #f8fafc, #e2e8f0);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-body);
             padding-bottom: 80px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            min-height: 100vh;
         }
 
         body::before {
@@ -53,23 +59,23 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.05) 0%, transparent 60%);
+            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.04) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
-            padding: 16px 24px;
+            padding: 14px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -82,94 +88,124 @@
         .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .logo-icon {
             width: 40px; height: 40px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            background: var(--gradient-gold);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
         }
-        .logo-icon i { font-size: 20px; color: #0A0E1A; }
-        .logo span {
+        .logo-icon i { font-size: 18px; color: #0A0E1A; }
+        .logo-text {
             font-size: 18px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            font-weight: 800;
+            background: var(--gradient-gold);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .logo-text span { font-weight: 300; opacity: 0.5; }
 
-        .user-section { display: flex; align-items: center; gap: 16px; }
+        .user-section { display: flex; align-items: center; gap: 12px; }
+
         .balance-pill {
-            background: rgba(198,164,63,0.15);
-            padding: 8px 20px;
-            border-radius: 40px;
-            border: 1px solid rgba(198,164,63,0.3);
+            background: rgba(198,164,63,0.12);
+            padding: 6px 16px;
+            border-radius: 50px;
+            border: 1px solid rgba(198,164,63,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .balance-pill i { color: var(--gold); margin-right: 8px; }
-        .balance-pill span { color: var(--gold); font-weight: 700; }
+        .balance-pill i { color: var(--gold); font-size: 12px; }
+        .balance-pill span { color: var(--gold); font-weight: 700; font-size: 14px; }
 
         .theme-toggle {
-            background: rgba(198,164,63,0.1);
+            background: rgba(198,164,63,0.08);
             border: 1px solid var(--border);
-            border-radius: 40px;
-            padding: 5px;
+            border-radius: 50px;
+            padding: 4px;
             display: flex;
             cursor: pointer;
         }
+        .theme-toggle:hover { border-color: var(--gold); }
         .theme-option {
-            padding: 8px 16px;
-            border-radius: 30px;
-            font-size: 14px;
+            padding: 6px 12px;
+            border-radius: 40px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         .theme-option.active {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            background: var(--gradient-gold);
             color: #0A0E1A;
         }
+        .theme-option i { margin-right: 4px; }
 
         .avatar {
-            width: 42px; height: 42px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-gold);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
         }
-        .avatar i { color: #0A0E1A; font-size: 18px; }
+        .avatar:hover { transform: scale(1.08); }
+        .avatar i { color: #0A0E1A; font-size: 16px; }
 
-        .container { max-width: 500px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+        .container { max-width: 500px; margin: 0 auto; padding: 20px 16px; position: relative; z-index: 1; }
 
         .card {
-            background: var(--glass-bg);
+            background: var(--bg-card);
             backdrop-filter: blur(20px);
-            border-radius: 32px;
-            padding: 32px;
+            border-radius: 24px;
+            padding: 28px 24px;
             border: 1px solid var(--border);
             animation: slideUp 0.5s ease;
         }
 
         .title {
             text-align: center;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .title h2 {
-            font-size: 28px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
+        }
+        .title h2 .gold { color: var(--gold); }
+        .title p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+        .title .badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 14px;
+            background: rgba(198,164,63,0.1);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
         }
 
-        .title p { color: var(--text-secondary); font-size: 13px; margin-top: 8px; }
-
         .info-box {
-            background: linear-gradient(135deg, rgba(198,164,63,0.1), rgba(158,128,50,0.05));
-            border-radius: 16px;
-            padding: 16px 20px;
-            margin-bottom: 24px;
-            border: 1px solid rgba(198,164,63,0.2);
+            background: var(--input-bg);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border);
         }
 
         .info-row {
@@ -178,33 +214,40 @@
             align-items: center;
         }
 
-        .info-label { color: var(--text-secondary); font-size: 13px; }
-        .info-value { color: var(--gold); font-size: 18px; font-weight: 700; }
+        .info-label {
+            color: var(--text-secondary);
+            font-size: 12px;
+            font-weight: 500;
+        }
+        .info-value {
+            color: var(--gold);
+            font-size: 18px;
+            font-weight: 700;
+        }
 
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 18px; }
 
         .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
             margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
-        .form-group label i { margin-right: 8px; color: var(--gold); }
+        .form-group label i { margin-right: 6px; color: var(--gold); }
 
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 14px;
             background: var(--input-bg);
             border: 1.5px solid var(--border);
-            border-radius: 16px;
+            border-radius: 14px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
-            font-size: 15px;
+            font-size: 14px;
             transition: all 0.3s;
         }
 
@@ -212,23 +255,22 @@
         .form-group select:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
-            transform: translateY(-2px);
+            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
         }
 
-        .network-icons {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 8px;
+        .network-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            margin-bottom: 4px;
         }
 
         .network-option {
-            flex: 1;
             text-align: center;
-            padding: 14px 8px;
+            padding: 12px 6px;
             background: var(--input-bg);
             border: 1.5px solid var(--border);
-            border-radius: 16px;
+            border-radius: 14px;
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -240,38 +282,38 @@
 
         .network-option.selected {
             border-color: var(--gold);
-            background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
+            background: rgba(198,164,63,0.08);
         }
 
         .network-option i {
-            font-size: 24px;
+            font-size: 22px;
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             color: var(--gold);
         }
 
         .network-option .network-name {
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
-            color: var(--text-primary);
+            color: var(--text-secondary);
         }
 
         .pin-inputs, .code-inputs {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
-            margin: 16px 0;
+            margin: 12px 0;
         }
 
         .pin-inputs input, .code-inputs input {
-            width: 55px;
-            height: 55px;
+            width: 50px;
+            height: 50px;
             text-align: center;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             background: var(--input-bg);
             border: 2px solid var(--border);
-            border-radius: 16px;
+            border-radius: 14px;
             color: var(--gold);
             transition: all 0.2s;
         }
@@ -279,15 +321,19 @@
         .pin-inputs input:focus, .code-inputs input:focus {
             border-color: var(--gold);
             transform: scale(1.05);
+            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
         }
 
-        .security-step { text-align: center; margin-bottom: 20px; }
+        .security-step {
+            text-align: center;
+            margin-bottom: 16px;
+        }
         .step-badge {
             display: inline-block;
-            padding: 6px 16px;
-            background: rgba(198,164,63,0.15);
+            padding: 4px 14px;
+            background: rgba(198,164,63,0.1);
             border-radius: 50px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--gold);
         }
@@ -295,25 +341,26 @@
 
         .btn {
             width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            padding: 14px;
+            background: var(--gradient-gold);
             border: none;
-            border-radius: 18px;
+            border-radius: 14px;
             color: #0A0E1A;
             font-weight: 700;
-            font-size: 16px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 8px;
+            margin-top: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.2);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(198,164,63,0.3);
+            box-shadow: 0 8px 25px rgba(198,164,63,0.3);
         }
 
         .bottom-nav {
@@ -325,7 +372,7 @@
             backdrop-filter: blur(20px);
             display: flex;
             justify-content: space-around;
-            padding: 12px 20px;
+            padding: 8px 16px 10px;
             border-top: 1px solid var(--border);
             z-index: 99;
         }
@@ -333,40 +380,47 @@
         .nav-item {
             text-align: center;
             cursor: pointer;
-            padding: 8px 16px;
+            padding: 6px 12px;
             border-radius: 12px;
             transition: all 0.3s;
+            text-decoration: none;
+            position: relative;
         }
 
         .nav-item i {
-            font-size: 20px;
+            font-size: 18px;
             color: var(--text-secondary);
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
+            transition: all 0.3s;
         }
 
         .nav-item span {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-secondary);
             font-weight: 500;
         }
 
-        .nav-item.active {
-            background: rgba(198,164,63,0.1);
-        }
-
         .nav-item.active i,
-        .nav-item.active span {
-            color: var(--gold);
+        .nav-item.active span { color: var(--gold); }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: var(--gradient-gold);
+            border-radius: 0 0 3px 3px;
         }
+        .nav-item:hover { transform: translateY(-2px); }
 
         .loading-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.95);
             backdrop-filter: blur(10px);
             z-index: 2000;
@@ -376,43 +430,42 @@
         }
 
         .loader {
-            width: 48px;
-            height: 48px;
-            border: 3px solid rgba(198,164,63,0.2);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(198,164,63,0.15);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
 
-        .loader-text { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
-
-        .bbc-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: rgba(198, 164, 63, 0.15);
-            border: 1px solid var(--gold);
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 600;
+        .loader-text {
             color: var(--gold);
-            margin-top: 8px;
+            font-size: 13px;
+            letter-spacing: 2px;
         }
 
         @media (max-width: 500px) {
-            .container { padding: 16px; }
-            .card { padding: 24px; }
-            .pin-inputs input, .code-inputs input { width: 48px; height: 48px; font-size: 18px; }
+            .container { padding: 12px; }
+            .card { padding: 20px 16px; }
+            .title h2 { font-size: 20px; }
+            .pin-inputs input, .code-inputs input { width: 44px; height: 44px; font-size: 18px; }
             .top-bar { padding: 12px 16px; }
-            .logo span { font-size: 14px; }
+            .logo-text { font-size: 15px; }
             .balance-pill { display: none; }
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
-            .network-icons { flex-wrap: wrap; }
-            .network-option { min-width: 70px; }
+            .network-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+            .network-option { padding: 8px 4px; }
+            .network-option i { font-size: 18px; }
+            .network-option .network-name { font-size: 9px; }
+            .bottom-nav { padding: 6px 12px; }
+            .nav-item { padding: 4px 8px; }
+            .nav-item i { font-size: 16px; }
+            .nav-item span { font-size: 8px; }
         }
 
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
     </style>
@@ -421,7 +474,7 @@
     <div class="top-bar">
         <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage</span>
+            <span class="logo-text">Prime <span>Bank</span></span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
@@ -436,9 +489,9 @@
     <div class="container">
         <div class="card">
             <div class="title">
-                <h2><i class="fas fa-mobile-alt"></i> Buy Airtime</h2>
+                <h2><i class="fas fa-mobile-alt gold"></i> Buy <span class="gold">Airtime</span></h2>
                 <p>Instant top-up for all networks</p>
-                <div class="bbc-badge"><i class="fas fa-shield-alt"></i> ALL NETWORK AVAILABLE</div>
+                <div class="badge"><i class="fas fa-shield-alt"></i> ALL NETWORK AVAILABLE</div>
             </div>
 
             <div class="info-box">
@@ -446,16 +499,12 @@
                     <span class="info-label"><i class="fas fa-wallet"></i> Available Balance</span>
                     <span class="info-value" id="userBalance">$0.00</span>
                 </div>
-                <div class="info-row" style="margin-top:8px;">
-                    <span class="info-label"><i class="fas fa-shield-alt"></i> Secured</span>
-                    <span class="info-value" style="font-size:14px;">🔐 EASY TRANSACTIONS</span>
-                </div>
             </div>
 
             <div id="step1Form">
                 <div class="form-group">
                     <label><i class="fas fa-signal"></i> Select Network</label>
-                    <div class="network-icons" id="networkSelect">
+                    <div class="network-grid" id="networkSelect">
                         <div class="network-option selected" data-network="MTN" onclick="selectNetwork('MTN')">
                             <i class="fas fa-tower-broadcast"></i>
                             <div class="network-name">MTN</div>
@@ -478,12 +527,12 @@
 
                 <div class="form-group">
                     <label><i class="fas fa-phone"></i> Phone Number</label>
-                    <input type="tel" id="phone" placeholder="e.g., 08012345678">
+                    <input type="tel" id="phone" placeholder="Enter phone number">
                 </div>
 
                 <div class="form-group">
                     <label><i class="fas fa-dollar-sign"></i> Amount (USD)</label>
-                    <input type="number" id="amount" placeholder="0.00" step="0.01">
+                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01">
                 </div>
 
                 <div class="form-group">
@@ -558,16 +607,16 @@
     </div>
 
     <div class="bottom-nav">
-        <div class="nav-item" onclick="location.href='/dashboard.html'"><i class="fas fa-home"></i><span>Home</span></div>
-        <div class="nav-item" onclick="location.href='/cards.html'"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-        <div class="nav-item active" onclick="location.href='/airtime.html'"><i class="fas fa-mobile-alt"></i><span>Airtime</span></div>
-        <div class="nav-item" onclick="location.href='/support.html'"><i class="fas fa-headset"></i><span>Support</span></div>
-        <div class="nav-item" onclick="location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
+        <a class="nav-item" href="/dashboard.html"><i class="fas fa-home"></i><span>Home</span></a>
+        <a class="nav-item" href="/cards.html"><i class="fas fa-credit-card"></i><span>Cards</span></a>
+        <a class="nav-item active" href="/airtime.html"><i class="fas fa-mobile-alt"></i><span>Airtime</span></a>
+        <a class="nav-item" href="/support.html"><i class="fas fa-headset"></i><span>Support</span></a>
+        <a class="nav-item" href="/profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
     </div>
 
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
-        <div class="loader-text">Processing Airtime Purchase...</div>
+        <div class="loader-text">Processing...</div>
     </div>
 
     <script>
@@ -577,10 +626,8 @@
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
-            document.getElementById('darkOption').classList.remove('active');
-            document.getElementById('lightOption').classList.remove('active');
-            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
-            else document.getElementById('lightOption').classList.add('active');
+            document.getElementById('darkOption').classList.toggle('active', theme === 'dark');
+            document.getElementById('lightOption').classList.toggle('active', theme === 'light');
         }
 
         function toggleTheme() {
@@ -599,8 +646,6 @@
                     opt.classList.add('selected');
                 }
             });
-            // Save selected network to localStorage
-            saveProgress('step1', { network: network });
         }
 
         function movePin(current, nextId) {
@@ -616,38 +661,27 @@
         }
 
         // ============================================================
-        // SAVE PROGRESS TO localStorage
+        // SAVE PROGRESS
         // ============================================================
         function saveProgress(step, data) {
-            const progress = {
-                step: step,
-                data: data,
-                timestamp: Date.now()
-            };
-            localStorage.setItem('airtimeProgress', JSON.stringify(progress));
-            console.log('✅ Airtime progress saved:', step);
+            localStorage.setItem('airtimeProgress', JSON.stringify({ step, data, timestamp: Date.now() }));
         }
 
-        function clearProgress() {
-            localStorage.removeItem('airtimeProgress');
-            console.log('✅ Airtime progress cleared');
-        }
+        function clearProgress() { localStorage.removeItem('airtimeProgress'); }
 
         function loadProgress() {
             try {
                 const saved = localStorage.getItem('airtimeProgress');
                 if (saved) {
                     const progress = JSON.parse(saved);
-                    if (Date.now() - progress.timestamp < 3600000) {
-                        return progress;
-                    }
+                    if (Date.now() - progress.timestamp < 3600000) return progress;
                 }
             } catch(e) {}
             return null;
         }
 
         // ============================================================
-        // RESTORE PROGRESS ON PAGE LOAD
+        // RESTORE PROGRESS
         // ============================================================
         function restoreProgress() {
             const progress = loadProgress();
@@ -656,18 +690,13 @@
             const data = progress.data;
             const step = progress.step;
 
-            console.log('🔄 Restoring airtime progress:', step);
-
-            // Restore form fields
             if (data.phone) document.getElementById('phone').value = data.phone;
             if (data.amount) document.getElementById('amount').value = data.amount;
-            if (data.network) {
-                selectNetwork(data.network);
-            }
+            if (data.network) selectNetwork(data.network);
 
             currentRef = data.reference || null;
 
-            if (step === 'step1' || step === 'step1') {
+            if (step === 'step1') {
                 document.getElementById('step1Form').style.display = 'block';
                 document.getElementById('codeForm').style.display = 'none';
                 return;
@@ -717,15 +746,16 @@
             Swal.fire({
                 icon: 'info',
                 title: 'Resuming Transaction',
-                text: `Continue from where you left off (Step ${step})`,
-                timer: 2000,
+                text: `Continue from Step ${step}`,
+                timer: 1500,
                 showConfirmButton: false,
-                confirmButtonColor: '#C6A43F'
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
             });
         }
 
         // ============================================================
-        // STEP 1: SUBMIT AIRTIME DETAILS
+        // STEP 1
         // ============================================================
         async function airtimeStep1() {
             const network = document.getElementById('network').value;
@@ -766,14 +796,7 @@
                 const data = await res.json();
                 if (data.success) {
                     currentRef = data.reference;
-                    
-                    // ✅ Save progress
-                    saveProgress('code1', {
-                        network,
-                        phone,
-                        amount,
-                        reference: currentRef
-                    });
+                    saveProgress('code1', { network, phone, amount, reference: currentRef });
                     
                     document.getElementById('step1Form').style.display = 'none';
                     document.getElementById('codeForm').style.display = 'block';
@@ -783,9 +806,11 @@
                     document.getElementById('c1_1').focus();
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 1 Complete',
-                        text: 'Enter your BBC Authorization Code to continue',
-                        confirmButtonColor: '#C6A43F'
+                        title: 'Authorization Required',
+                        text: data.message || 'Enter your Authorization Code to continue',
+                        confirmButtonColor: '#C6A43F',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                     });
                 } else {
                     Swal.fire('Error', data.error || 'Transaction failed', 'error');
@@ -798,7 +823,7 @@
         }
 
         // ============================================================
-        // STEP 2: SUBMIT BBC AUTHORIZATION CODE
+        // STEP 2
         // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value +
@@ -822,23 +847,19 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // ✅ Update progress
                     const progress = loadProgress();
-                    if (progress) {
-                        saveProgress('code2', {
-                            ...progress.data,
-                            code1: code
-                        });
-                    }
+                    if (progress) saveProgress('code2', { ...progress.data, code1: code });
                     
                     document.getElementById('codeStep1').style.display = 'none';
                     document.getElementById('codeStep2').style.display = 'block';
                     document.getElementById('c2_1').focus();
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 2 Complete',
-                        text: 'Enter your BBC Security Code to continue',
-                        confirmButtonColor: '#C6A43F'
+                        title: 'Security Check',
+                        text: data.message || 'Enter your Security Code to continue',
+                        confirmButtonColor: '#C6A43F',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                     });
                 } else {
                     Swal.fire('Error', data.error || 'Invalid authorization code', 'error');
@@ -851,7 +872,7 @@
         }
 
         // ============================================================
-        // STEP 3: SUBMIT BBC SECURITY CODE
+        // STEP 3
         // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value +
@@ -875,23 +896,19 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // ✅ Update progress
                     const progress = loadProgress();
-                    if (progress) {
-                        saveProgress('code3', {
-                            ...progress.data,
-                            code2: code
-                        });
-                    }
+                    if (progress) saveProgress('code3', { ...progress.data, code2: code });
                     
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'block';
                     document.getElementById('c3_1').focus();
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 3 Complete',
-                        text: 'Enter your BBC Final Code to complete the purchase',
-                        confirmButtonColor: '#C6A43F'
+                        title: 'Final Verification',
+                        text: data.message || 'Enter your Final Code to complete the purchase',
+                        confirmButtonColor: '#C6A43F',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                     });
                 } else {
                     Swal.fire('Error', data.error || 'Invalid security code', 'error');
@@ -904,7 +921,7 @@
         }
 
         // ============================================================
-        // STEP 4: SUBMIT BBC FINAL CODE & COMPLETE
+        // STEP 4
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
@@ -928,25 +945,22 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    // ✅ Clear progress
                     clearProgress();
-                    
                     showLoading(false);
                     Swal.fire({
                         icon: 'success',
-                        title: '🎉 Airtime Purchased!',
+                        title: 'Airtime Purchased!',
                         html: `
                             <div style="text-align: left;">
                                 <p><strong>Network:</strong> ${document.getElementById('network').value}</p>
                                 <p><strong>Phone:</strong> ${document.getElementById('phone').value}</p>
                                 <p><strong>Amount:</strong> $${parseFloat(document.getElementById('amount').value).toFixed(2)}</p>
                                 <p><strong>Reference:</strong> ${currentRef}</p>
-                                <p style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
-                                    ✅ Airtime credited instantly
-                                </p>
                             </div>
                         `,
-                        confirmButtonColor: '#C6A43F'
+                        confirmButtonColor: '#C6A43F',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
                     }).then(() => {
                         window.location.href = '/dashboard.html';
                     });
@@ -968,29 +982,20 @@
                 const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-                if (res.status === 401) {
-                    window.location.href = '/';
-                    return;
-                }
+                if (res.status === 401) { window.location.href = '/'; return; }
                 const data = await res.json();
                 const user = data.user;
                 const totalBalance = user.totalBalance || 0;
                 const currency = user.currency || 'USD';
                 document.getElementById('userBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
                 document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
-            } catch(e) {
-                console.error(e);
-            }
+            } catch(e) { console.error(e); }
         }
 
         const token = localStorage.getItem('token');
-        if (!token && window.location.pathname !== '/') {
-            window.location.href = '/';
-        }
+        if (!token && window.location.pathname !== '/') { window.location.href = '/'; }
 
-        // Select default network
         selectNetwork('MTN');
-
         loadBalance();
         restoreProgress();
     </script>
