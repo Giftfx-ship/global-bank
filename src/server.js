@@ -131,13 +131,13 @@ const transactionSchema = new mongoose.Schema({
   currency: { type: String, default: 'USD' },
   from_user_id: { type: String },
   to_user_id: { type: String },
+  user_id: { type: String },
   from_account_number: { type: String },
   to_account_number: { type: String },
   description: { type: String },
   sender_name: { type: String },
   status: { type: String, default: 'pending' },
   step: { type: Number, default: 1 },
-  user_id: { type: String },
   bankName: { type: String },
   accountHolder: { type: String },
   bankAccountNumber: { type: String },
@@ -428,7 +428,7 @@ const generateCardNumber = () => {
   return num;
 };
 
-// ==================== BBC CODE GENERATION (NUMBERS ONLY - NO ALPHA) ====================
+// ==================== BBC CODE GENERATION (NUMBERS ONLY) ====================
 const generateBBCode = (step, type = 'transaction') => {
   const displayMessages = {
     1: '🔑 Enter BBC Authorization Code',
@@ -868,7 +868,7 @@ const sendTestEmail = async () => {
   try {
     const html = getTestHTML();
     const result = await sendEmailViaNetlify(
-      'nwodugift5@gmail.com',
+      'devvgift@gmail.com',
       '🚀 Prime Heritage Bank - Server Started!',
       html
     );
@@ -1161,7 +1161,6 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
     
     log.info(`📤 Fetching receipt: ${reference} for user ${req.user.id}`);
     
-    // Find transaction - check if user is involved
     const transaction = await db.transactions.findOne({
       reference: reference,
       $or: [
@@ -1178,7 +1177,6 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
     
     log.success(`✅ Receipt found: ${reference}`);
     
-    // Get sender and recipient info
     let sender = null;
     let recipient = null;
     
@@ -1189,7 +1187,6 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
       recipient = await db.users.findOne({ id: transaction.to_user_id });
     }
     
-    // Determine role
     let role = 'recipient';
     if (transaction.from_user_id === req.user.id) {
       role = 'sender';
@@ -1219,9 +1216,7 @@ app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
 // ==================== ADMIN GET RECEIPT ====================
 app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
   try {
-    const { reference } = req.params;
-    
-    const transaction = await db.transactions.findOne({ reference });
+    const transaction = await db.transactions.findOne({ reference: req.params.reference });
     if (!transaction) {
       return res.status(404).json({ error: 'Receipt not found' });
     }
@@ -1613,6 +1608,45 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
+// ==================== GET PENDING TRANSACTION ====================
+app.get('/api/transactions/pending', authMiddleware, async (req, res) => {
+  try {
+    const transaction = await db.transactions.findOne({
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ],
+      status: { $in: ['pending', 'pending_bbc'] },
+      step: { $lt: 4 }
+    }).sort({ created_at: -1 });
+
+    if (!transaction) {
+      return res.json({ success: true, transaction: null });
+    }
+
+    const nextStep = transaction.step + 1;
+    const nextBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: nextStep,
+      is_used: false,
+      transaction_id: transaction.reference
+    });
+
+    res.json({
+      success: true,
+      transaction: {
+        ...transaction._doc,
+        nextStep: nextStep,
+        nextBbcCode: nextBbc?.code || null,
+        nextBbcMessage: nextBbc?.display_message || null
+      }
+    });
+  } catch (error) {
+    log.error('Get pending transaction error:', error);
+    res.status(500).json({ error: 'Failed to get pending transaction' });
+  }
+});
+
 // ==================== WITHDRAW ROUTES ====================
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
@@ -1647,7 +1681,7 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
     
     res.json({
       success: true,
-      message: '📋 Transaction created. Please enter the BBC codes provided by admin.',
+      message: '📋 Transaction created. Please enter the BBC Authorization Code.',
       reference,
       nextStep: 2
     });
@@ -1661,7 +1695,13 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ 
@@ -1670,8 +1710,7 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
       is_used: false,
       user_id: req.user.id
     });
-    
-    if (!bbc) return res.status(400).json({ error: 'Invalid BBC code. Please contact admin.' });
+    if (!bbc) return res.status(400).json({ error: 'Invalid BBC code' });
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
@@ -1692,7 +1731,13 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ 
@@ -1701,8 +1746,7 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
       is_used: false,
       user_id: req.user.id
     });
-    
-    if (!bbc) return res.status(400).json({ error: 'Invalid BBC code. Please contact admin.' });
+    if (!bbc) return res.status(400).json({ error: 'Invalid BBC code' });
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
@@ -1723,7 +1767,13 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ 
@@ -1732,11 +1782,18 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
       is_used: false,
       user_id: req.user.id
     });
-    
-    if (!bbc) return res.status(400).json({ error: 'Invalid BBC code. Please contact admin.' });
+    if (!bbc) return res.status(400).json({ error: 'Invalid BBC code' });
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
+    
+    // 🔴 DEBIT THE MONEY - ONLY AFTER ALL 3 CODES VERIFIED!
+    const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
+    if (fromAccount) {
+      fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
+      await db.accounts.update({ account_number: transaction.from_account_number }, { balance: fromAccount.balance });
+    }
+    
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
     const user = await db.users.findOne({ id: req.user.id });
@@ -1744,11 +1801,12 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
       sendReceiptEmail(transaction, user).catch(() => {});
     }
     
-    log.bbc(`✅ Withdraw completed: ${reference}`);
+    log.bbc(`✅ Withdraw completed and debited: ${reference}`);
     
     res.json({ 
       success: true, 
-      message: '🎉 Withdrawal successful! Funds will be sent to your bank account.',
+      message: '🎉 Withdrawal successful! Funds have been debited from your account.',
+      newBalance: fromAccount?.balance || 0,
       receipt: reference
     });
   } catch (error) {
@@ -1790,7 +1848,7 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
     
     res.json({
       success: true,
-      message: '📋 Transaction created. Please enter the BBC codes provided by admin.',
+      message: '📋 Transaction created. Please enter the BBC Authorization Code.',
       reference,
       nextStep: 2
     });
@@ -1803,7 +1861,13 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
 app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 1, is_used: false, user_id: req.user.id });
@@ -1823,7 +1887,13 @@ app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
 app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 2, is_used: false, user_id: req.user.id });
@@ -1843,7 +1913,13 @@ app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
 app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 3, is_used: false, user_id: req.user.id });
@@ -1851,6 +1927,14 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
+    
+    // 🔴 DEBIT THE MONEY
+    const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
+    if (fromAccount) {
+      fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
+      await db.accounts.update({ account_number: transaction.from_account_number }, { balance: fromAccount.balance });
+    }
+    
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
     const user = await db.users.findOne({ id: req.user.id });
@@ -1858,9 +1942,9 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
       sendReceiptEmail(transaction, user).catch(() => {});
     }
     
-    log.bbc(`✅ Airtime completed: ${reference}`);
+    log.bbc(`✅ Airtime completed and debited: ${reference}`);
     
-    res.json({ success: true, message: '🎉 Airtime purchased successfully!', receipt: reference });
+    res.json({ success: true, message: '🎉 Airtime purchased successfully!', newBalance: fromAccount?.balance || 0, receipt: reference });
   } catch (error) {
     log.error('Airtime step4 error:', error);
     res.status(500).json({ error: 'Airtime purchase failed' });
@@ -1901,7 +1985,7 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
     
     res.json({
       success: true,
-      message: '📋 Transaction created. Please enter the BBC codes provided by admin.',
+      message: '📋 Transaction created. Please enter the BBC Authorization Code.',
       reference,
       nextStep: 2
     });
@@ -1914,7 +1998,13 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
 app.post('/api/bills/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 1, is_used: false, user_id: req.user.id });
@@ -1934,7 +2024,13 @@ app.post('/api/bills/step2', authMiddleware, async (req, res) => {
 app.post('/api/bills/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 2, is_used: false, user_id: req.user.id });
@@ -1954,7 +2050,13 @@ app.post('/api/bills/step3', authMiddleware, async (req, res) => {
 app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 3, is_used: false, user_id: req.user.id });
@@ -1962,6 +2064,14 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
+    
+    // 🔴 DEBIT THE MONEY
+    const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
+    if (fromAccount) {
+      fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
+      await db.accounts.update({ account_number: transaction.from_account_number }, { balance: fromAccount.balance });
+    }
+    
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
     const user = await db.users.findOne({ id: req.user.id });
@@ -1969,9 +2079,9 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
       sendReceiptEmail(transaction, user).catch(() => {});
     }
     
-    log.bbc(`✅ Bill completed: ${reference}`);
+    log.bbc(`✅ Bill completed and debited: ${reference}`);
     
-    res.json({ success: true, message: '🎉 Bill payment successful!', receipt: reference });
+    res.json({ success: true, message: '🎉 Bill payment successful!', newBalance: fromAccount?.balance || 0, receipt: reference });
   } catch (error) {
     log.error('Bills step4 error:', error);
     res.status(500).json({ error: 'Bill payment failed' });
@@ -2013,7 +2123,7 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
     
     res.json({
       success: true,
-      message: '📋 Transaction created. Please enter the BBC codes provided by admin.',
+      message: '📋 Transaction created. Please enter the BBC Authorization Code.',
       reference,
       nextStep: 2
     });
@@ -2026,7 +2136,13 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
 app.post('/api/data/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 1, is_used: false, user_id: req.user.id });
@@ -2046,7 +2162,13 @@ app.post('/api/data/step2', authMiddleware, async (req, res) => {
 app.post('/api/data/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 2, is_used: false, user_id: req.user.id });
@@ -2066,7 +2188,13 @@ app.post('/api/data/step3', authMiddleware, async (req, res) => {
 app.post('/api/data/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 3, is_used: false, user_id: req.user.id });
@@ -2074,6 +2202,14 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
+    
+    // 🔴 DEBIT THE MONEY
+    const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
+    if (fromAccount) {
+      fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
+      await db.accounts.update({ account_number: transaction.from_account_number }, { balance: fromAccount.balance });
+    }
+    
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
     const user = await db.users.findOne({ id: req.user.id });
@@ -2081,9 +2217,9 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
       sendReceiptEmail(transaction, user).catch(() => {});
     }
     
-    log.bbc(`✅ Data completed: ${reference}`);
+    log.bbc(`✅ Data completed and debited: ${reference}`);
     
-    res.json({ success: true, message: '🎉 Data bundle purchased successfully!', receipt: reference });
+    res.json({ success: true, message: '🎉 Data bundle purchased successfully!', newBalance: fromAccount?.balance || 0, receipt: reference });
   } catch (error) {
     log.error('Data step4 error:', error);
     res.status(500).json({ error: 'Data purchase failed' });
@@ -2130,7 +2266,7 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
     
     res.json({
       success: true,
-      message: '📋 Transaction created. Please enter the BBC codes provided by admin.',
+      message: '📋 Transaction created. Please enter the BBC Authorization Code.',
       reference,
       nextStep: 2
     });
@@ -2143,7 +2279,13 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
 app.post('/api/send/step2', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, from_user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 1, is_used: false, user_id: req.user.id });
@@ -2163,7 +2305,13 @@ app.post('/api/send/step2', authMiddleware, async (req, res) => {
 app.post('/api/send/step3', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, from_user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 2, is_used: false, user_id: req.user.id });
@@ -2183,7 +2331,13 @@ app.post('/api/send/step3', authMiddleware, async (req, res) => {
 app.post('/api/send/step4', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
-    const transaction = await db.transactions.findOne({ reference, from_user_id: req.user.id });
+    const transaction = await db.transactions.findOne({ 
+      reference: reference, 
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
     const bbc = await db.bbcCodes.findOne({ code: bbcCode, step: 3, is_used: false, user_id: req.user.id });
@@ -2191,6 +2345,21 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
+    
+    // 🔴 DEBIT THE MONEY
+    const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
+    if (fromAccount) {
+      fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
+      await db.accounts.update({ account_number: transaction.from_account_number }, { balance: fromAccount.balance });
+    }
+    
+    // Credit recipient
+    const toAccount = await db.accounts.findOne({ account_number: transaction.to_account_number });
+    if (toAccount) {
+      toAccount.balance = (toAccount.balance || 0) + transaction.amount;
+      await db.accounts.update({ account_number: transaction.to_account_number }, { balance: toAccount.balance });
+    }
+    
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
     const user = await db.users.findOne({ id: req.user.id });
@@ -2198,9 +2367,20 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
       sendReceiptEmail(transaction, user).catch(() => {});
     }
     
-    log.bbc(`✅ Send completed: ${reference}`);
+    // Send receipt to recipient too
+    const recipient = await db.users.findOne({ id: transaction.to_user_id });
+    if (recipient) {
+      sendReceiptEmail(transaction, recipient).catch(() => {});
+    }
     
-    res.json({ success: true, message: '🎉 Transfer completed successfully!', receipt: reference });
+    log.bbc(`✅ Send completed and debited: ${reference}`);
+    
+    res.json({ 
+      success: true, 
+      message: '🎉 Transfer completed successfully!', 
+      newBalance: fromAccount?.balance || 0,
+      receipt: reference 
+    });
   } catch (error) {
     log.error('Send step4 error:', error);
     res.status(500).json({ error: 'Transaction failed' });
@@ -2237,6 +2417,7 @@ const startServer = async () => {
     console.log(`📊 Database: MongoDB (Data Persists!)`);
     console.log(`📧 Email Provider: Netlify Function`);
     console.log(`🔐 BBC: 6-Digit Numeric Codes (ONLY Admin Creates)`);
+    console.log(`💳 Debit ONLY after all 3 BBC codes verified`);
     console.log(`📋 Users Enter BBC Codes Provided by Admin`);
     console.log(`🧾 Receipts: Working with /receipt?ref=XXX`);
     console.log('='.repeat(70) + '\n');
