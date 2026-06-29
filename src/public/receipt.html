@@ -451,14 +451,8 @@
     </div>
 
     <script>
-        // ============================================================
-        // CONFIGURATION
-        // ============================================================
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
 
-        // ============================================================
-        // GET RECEIPT DATA
-        // ============================================================
         function getQueryParam(param) {
             const urlParams = new URLSearchParams(window.location.search);
             return urlParams.get(param);
@@ -467,9 +461,6 @@
         const reference = getQueryParam('ref');
         const isAdmin = getQueryParam('admin') === 'true';
 
-        // ============================================================
-        // LOAD RECEIPT
-        // ============================================================
         async function loadReceipt() {
             if (!reference) {
                 showError('No receipt reference provided.');
@@ -483,43 +474,21 @@
 
             try {
                 const token = localStorage.getItem('token');
-                if (!token) {
-                    window.location.href = '/';
-                    return;
-                }
+                if (!token) { window.location.href = '/'; return; }
 
-                let url;
-                if (isAdmin) {
-                    url = `${API_URL}/api/admin/receipt/${reference}`;
-                } else {
-                    url = `${API_URL}/api/receipt/${reference}`;
-                }
-
+                let url = isAdmin ? `${API_URL}/api/admin/receipt/${reference}` : `${API_URL}/api/receipt/${reference}`;
                 console.log('📤 Fetching receipt:', url);
 
-                const res = await fetch(url, {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-
+                const res = await fetch(url, { headers: { 'Authorization': `Bearer ${token}` } });
                 console.log('📥 Response status:', res.status);
 
-                if (res.status === 404) {
-                    showError('Receipt not found.');
-                    return;
-                }
-
-                if (res.status === 401) {
-                    window.location.href = '/';
-                    return;
-                }
+                if (res.status === 404) { showError('Receipt not found.'); return; }
+                if (res.status === 401) { window.location.href = '/'; return; }
 
                 const data = await res.json();
                 console.log('📥 Receipt data:', data);
 
-                if (!data.success) {
-                    showError(data.error || 'Failed to load receipt.');
-                    return;
-                }
+                if (!data.success) { showError(data.error || 'Failed to load receipt.'); return; }
 
                 renderReceipt(data);
                 loadingState.style.display = 'none';
@@ -532,9 +501,6 @@
             }
         }
 
-        // ============================================================
-        // RENDER RECEIPT
-        // ============================================================
         function renderReceipt(data) {
             const tx = data.transaction;
             const sender = data.sender || {};
@@ -560,7 +526,6 @@
                 bill_payment: '📄',
                 data_bundle: '🌐',
                 withdrawal: '🏦',
-                admin_transfer: '👑',
                 credit_transfer: '💳'
             };
             const typeNames = {
@@ -569,52 +534,38 @@
                 bill_payment: 'Bill Payment',
                 data_bundle: 'Data Bundle',
                 withdrawal: 'Bank Withdrawal',
-                admin_transfer: 'Admin Transfer',
                 credit_transfer: 'Credit Transfer'
             };
 
             document.getElementById('txIcon').textContent = typeIcons[tx.type] || '💳';
             document.getElementById('txType').textContent = typeNames[tx.type] || 'Transaction';
 
-            // Date & Time
             const txDate = new Date(tx.created_at || tx.completed_at || Date.now());
-            const dateStr = txDate.toLocaleDateString('en-US', { 
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
-            });
-            const timeStr = txDate.toLocaleTimeString('en-US', { 
-                hour: '2-digit', minute: '2-digit', second: '2-digit' 
-            });
+            const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
             const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
             
             document.getElementById('receiptDate').textContent = `${dateStr} • ${timezone}`;
             document.getElementById('txTime').textContent = `${dateStr} at ${timeStr}`;
             document.getElementById('txTimestamp').textContent = `${dateStr} ${timeStr} (${timezone})`;
 
-            // Amount
             document.getElementById('txCurrency').textContent = tx.currency || 'USD';
-            document.getElementById('txAmount').textContent = (tx.amount || 0).toLocaleString('en-US', { 
-                minimumFractionDigits: 2, maximumFractionDigits: 2 
-            });
+            document.getElementById('txAmount').textContent = (tx.amount || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            // Receipt ID
             document.getElementById('receiptRef').textContent = '#' + (tx.reference || 'N/A');
 
-            // Details
             document.getElementById('txFrom').textContent = tx.from_account_number || '—';
             document.getElementById('txTo').textContent = tx.to_account_number || '—';
             document.getElementById('txDesc').textContent = tx.description || tx.purpose || '—';
             document.getElementById('txSender').textContent = tx.sender_name || sender.full_name || '—';
             document.getElementById('txId').textContent = tx.id || '—';
             document.getElementById('txStatus').textContent = (tx.status || 'completed').toUpperCase();
-            document.getElementById('txStatus').style.color = 
-                tx.status === 'completed' ? '#10B981' : tx.status === 'pending' ? '#F59E0B' : '#EF4444';
+            document.getElementById('txStatus').style.color = tx.status === 'completed' ? '#10B981' : tx.status === 'pending' ? '#F59E0B' : '#EF4444';
 
-            // Sender Row
             if (!tx.sender_name && !sender.full_name) {
                 document.getElementById('senderRow').style.display = 'none';
             }
 
-            // Role Banner
             const roleText = document.getElementById('roleText');
             const roleBadge = document.getElementById('roleBadge');
             
@@ -639,45 +590,24 @@
             document.title = `Receipt ${tx.reference || ''} | Prime Heritage Bank`;
         }
 
-        // ============================================================
-        // ERROR STATE
-        // ============================================================
         function showError(message) {
             document.getElementById('loadingState').style.display = 'none';
             document.getElementById('errorState').style.display = 'block';
             document.getElementById('errorMessage').textContent = message;
         }
 
-        // ============================================================
-        // SHARE RECEIPT AS IMAGE
-        // ============================================================
         async function shareReceipt() {
             try {
-                Swal.fire({
-                    title: 'Generating receipt image...',
-                    allowOutsideClick: false,
-                    didOpen: () => { Swal.showLoading(); }
-                });
-
+                Swal.fire({ title: 'Generating receipt image...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
                 const receiptCard = document.querySelector('.receipt-card');
-                const canvas = await html2canvas(receiptCard, {
-                    scale: 2,
-                    backgroundColor: '#0A0E1A',
-                    logging: false,
-                    useCORS: true,
-                    allowTaint: true
-                });
-
+                const canvas = await html2canvas(receiptCard, { scale: 2, backgroundColor: '#0A0E1A', logging: false, useCORS: true, allowTaint: true });
                 const imageDataUrl = canvas.toDataURL('image/png');
                 Swal.close();
 
                 if (navigator.share) {
                     const blob = await fetch(imageDataUrl).then(res => res.blob());
                     const file = new File([blob], 'receipt.png', { type: 'image/png' });
-                    await navigator.share({
-                        title: 'Transaction Receipt',
-                        files: [file]
-                    });
+                    await navigator.share({ title: 'Transaction Receipt', files: [file] });
                 } else {
                     const link = document.createElement('a');
                     link.download = `receipt-${document.getElementById('receiptRef').textContent || 'transaction'}.png`;
@@ -685,35 +615,17 @@
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
-                    
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Image Downloaded!',
-                        timer: 1500,
-                        showConfirmButton: false,
-                        background: '#1a1a2e',
-                        color: '#fff'
-                    });
+                    Swal.fire({ icon: 'success', title: 'Image Downloaded!', timer: 1500, showConfirmButton: false });
                 }
             } catch (error) {
                 console.error('Share error:', error);
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Share Failed',
-                    text: 'Unable to share receipt.',
-                    background: '#1a1a2e',
-                    color: '#fff'
-                });
+                Swal.fire({ icon: 'error', title: 'Share Failed', text: 'Unable to share receipt.' });
             }
         }
 
-        // ============================================================
-        // DOWNLOAD RECEIPT
-        // ============================================================
         function downloadReceipt() {
             const content = document.getElementById('receiptContent');
             const styles = document.querySelector('style').innerHTML;
-            const theme = 'dark';
 
             const receiptHTML = `
                 <!DOCTYPE html>
@@ -722,27 +634,11 @@
                     <meta charset="UTF-8">
                     <meta name="viewport" content="width=device-width, initial-scale=1.0">
                     <title>Receipt ${document.getElementById('receiptRef').textContent}</title>
-                    <style>
-                        ${styles}
-                        body { padding: 20px; background: #0A0E1A; }
-                        .back-btn, .action-buttons { display: none !important; }
-                        .container { max-width: 500px; margin: 0 auto; }
-                        @media print {
-                            body { background: white !important; }
-                            .receipt-card { box-shadow: none !important; border: 1px solid #ddd !important; }
-                            .receipt-header { background: #f8f8f8 !important; }
-                        }
-                    </style>
+                    <style>${styles} body { padding: 20px; background: #0A0E1A; } .back-btn, .action-buttons { display: none !important; } .container { max-width: 500px; margin: 0 auto; } @media print { body { background: white !important; } .receipt-card { box-shadow: none !important; border: 1px solid #ddd !important; } .receipt-header { background: #f8f8f8 !important; } }</style>
                 </head>
                 <body>
-                    <div class="container">
-                        <div class="receipt-card">
-                            ${content.innerHTML}
-                        </div>
-                    </div>
-                    <script>
-                        window.onload = function() { setTimeout(function() { window.print(); }, 500); };
-                    <\/script>
+                    <div class="container"><div class="receipt-card">${content.innerHTML}</div></div>
+                    <script>window.onload = function() { setTimeout(function() { window.print(); }, 500); };<\/script>
                 </body>
                 </html>
             `;
@@ -756,33 +652,13 @@
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Download Started!',
-                timer: 1500,
-                showConfirmButton: false,
-                background: '#1a1a2e',
-                color: '#fff'
-            });
+            Swal.fire({ icon: 'success', title: 'Download Started!', timer: 1500, showConfirm: false });
         }
 
-        // ============================================================
-        // PRINT RECEIPT
-        // ============================================================
-        function printReceipt() {
-            window.print();
-        }
+        function printReceipt() { window.print(); }
 
-        // ============================================================
-        // INIT
-        // ============================================================
         const token = localStorage.getItem('token');
-        if (!token) {
-            window.location.href = '/';
-        } else {
-            loadReceipt();
-        }
+        if (!token) { window.location.href = '/'; } else { loadReceipt(); }
     </script>
 </body>
 </html>
