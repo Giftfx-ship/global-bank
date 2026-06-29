@@ -80,7 +80,8 @@ const memoryDB = {
   dataHistory: [],
   withdrawHistory: [],
   auditLogs: [],
-  receipts: []
+  receipts: [],
+  transactionFlows: [] // Store active transaction flows
 };
 
 // ==================== MONGODB SCHEMAS ====================
@@ -152,7 +153,21 @@ const transactionSchema = new mongoose.Schema({
   dataSize: { type: String },
   country: { type: String },
   created_at: { type: Date, default: Date.now },
-  completed_at: { type: Date }
+  completed_at: { type: Date },
+  last_activity: { type: Date, default: Date.now } // Track last activity for flow persistence
+});
+
+const transactionFlowSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  transaction_reference: { type: String, required: true },
+  transaction_type: { type: String, required: true },
+  current_step: { type: Number, default: 1 },
+  data: { type: mongoose.Schema.Types.Mixed, default: {} }, // Store all transaction data
+  status: { type: String, default: 'active' }, // active, completed, expired
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now },
+  expires_at: { type: Date, default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) } // 24 hour expiry
 });
 
 const bbcCodeSchema = new mongoose.Schema({
@@ -211,6 +226,7 @@ const supportTicketSchema = new mongoose.Schema({
 const User = mongoose.model('User', userSchema);
 const Account = mongoose.model('Account', accountSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
+const TransactionFlow = mongoose.model('TransactionFlow', transactionFlowSchema);
 const BBCCode = mongoose.model('BBCCode', bbcCodeSchema);
 const Card = mongoose.model('Card', cardSchema);
 const Loan = mongoose.model('Loan', loanSchema);
@@ -304,6 +320,35 @@ const db = {
           for (const key in filter) { if (t[key] !== filter[key]) return false; } return true;
         });
         if (idx > -1) memoryDB.transactions.splice(idx, 1);
+      }
+    }
+  },
+  transactionFlows: {
+    find: async (filter) => {
+      try { return await TransactionFlow.find(filter || {}); } catch(e) { return memoryDB.transactionFlows; }
+    },
+    findOne: async (filter) => {
+      try { return await TransactionFlow.findOne(filter); } catch(e) { return memoryDB.transactionFlows.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await TransactionFlow.create(data); } catch(e) { memoryDB.transactionFlows.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await TransactionFlow.updateOne(filter, update); } catch(e) {
+        const flow = memoryDB.transactionFlows.find(f => {
+          for (const key in filter) { if (f[key] !== filter[key]) return false; } return true;
+        });
+        if (flow) { Object.assign(flow, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await TransactionFlow.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.transactionFlows.findIndex(f => {
+          for (const key in filter) { if (f[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.transactionFlows.splice(idx, 1);
       }
     }
   },
@@ -1608,6 +1653,88 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
+// ==================== GET ACTIVE TRANSACTION FLOW ====================
+app.get('/api/transaction/flow', authMiddleware, async (req, res) => {
+  try {
+    // Find active flow for this user
+    let flow = await db.transactionFlows.findOne({
+      user_id: req.user.id,
+      status: 'active'
+    });
+
+    // If no active flow, check for pending transaction
+    if (!flow) {
+      const pendingTx = await db.transactions.findOne({
+        $or: [
+          { from_user_id: req.user.id },
+          { user_id: req.user.id }
+        ],
+        status: 'pending',
+        step: { $lt: 4 } // Only steps 1-3
+      }).sort({ last_activity: -1 });
+
+      if (pendingTx) {
+        // Create flow from pending transaction
+        flow = {
+          id: uuidv4(),
+          user_id: req.user.id,
+          transaction_reference: pendingTx.reference,
+          transaction_type: pendingTx.type,
+          current_step: pendingTx.step || 1,
+          data: { ...pendingTx._doc },
+          status: 'active',
+          created_at: pendingTx.created_at,
+          updated_at: new Date().toISOString(),
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+        };
+        await db.transactionFlows.create(flow);
+      }
+    }
+
+    if (!flow) {
+      return res.json({ success: true, flow: null });
+    }
+
+    // Get the associated transaction
+    const transaction = await db.transactions.findOne({ reference: flow.transaction_reference });
+    
+    // Check if flow is expired
+    if (new Date(flow.expires_at) < new Date()) {
+      flow.status = 'expired';
+      await db.transactionFlows.update({ id: flow.id }, { status: 'expired' });
+      return res.json({ success: true, flow: null, message: 'Transaction flow expired' });
+    }
+
+    // Update last activity
+    await db.transactionFlows.update(
+      { id: flow.id },
+      { updated_at: new Date().toISOString() }
+    );
+
+    res.json({
+      success: true,
+      flow: {
+        ...flow._doc,
+        transaction: transaction
+      }
+    });
+  } catch (error) {
+    log.error('Get transaction flow error:', error);
+    res.status(500).json({ error: 'Failed to get transaction flow' });
+  }
+});
+
+// ==================== CLEAR TRANSACTION FLOW ====================
+app.post('/api/transaction/flow/clear', authMiddleware, async (req, res) => {
+  try {
+    await db.transactionFlows.delete({ user_id: req.user.id, status: 'active' });
+    res.json({ success: true, message: 'Transaction flow cleared' });
+  } catch (error) {
+    log.error('Clear transaction flow error:', error);
+    res.status(500).json({ error: 'Failed to clear transaction flow' });
+  }
+});
+
 // ==================== GET PENDING TRANSACTION ====================
 app.get('/api/transactions/pending', authMiddleware, async (req, res) => {
   try {
@@ -1647,7 +1774,7 @@ app.get('/api/transactions/pending', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== WITHDRAW ROUTES ====================
+// ==================== WITHDRAW ROUTES (3 Steps Only) ====================
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
@@ -1673,10 +1800,27 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
       sender_name: req.user.full_name,
       status: 'pending', 
       step: 1, 
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      last_activity: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
+    
+    // Create transaction flow
+    const flow = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      transaction_reference: reference,
+      transaction_type: 'withdrawal',
+      current_step: 1,
+      data: transaction,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    };
+    await db.transactionFlows.create(flow);
+    
     log.bbc(`✅ Withdraw transaction created: ${reference}`);
     
     res.json({
@@ -1714,7 +1858,13 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 2 });
+    await db.transactions.update({ reference }, { step: 2, last_activity: new Date().toISOString() });
+    
+    // Update flow
+    await db.transactionFlows.update(
+      { transaction_reference: reference },
+      { current_step: 2, updated_at: new Date().toISOString() }
+    );
     
     res.json({ 
       success: true, 
@@ -1750,12 +1900,30 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 3 });
+    
+    // Get the BBC code for step 3 (final)
+    const finalBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: 3,
+      is_used: false,
+      transaction_id: reference
+    });
+    
+    // Update transaction to step 3 (waiting for final code)
+    await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
+    
+    // Update flow
+    await db.transactionFlows.update(
+      { transaction_reference: reference },
+      { current_step: 3, updated_at: new Date().toISOString() }
+    );
     
     res.json({ 
       success: true, 
       message: '✅ Security code verified! Enter Final Code.', 
-      nextStep: 4
+      nextStep: 4,
+      finalBbcCode: finalBbc?.code || null,
+      finalBbcMessage: finalBbc?.display_message || 'Enter Final BBC Code'
     });
   } catch (error) {
     log.error('Withdraw step3 error:', error);
@@ -1763,7 +1931,7 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
   }
 });
 
-app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
+app.post('/api/withdraw/final', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     
@@ -1787,7 +1955,7 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
-    // 🔴 DEBIT THE MONEY - ONLY AFTER ALL 3 CODES VERIFIED!
+    // DEBIT THE MONEY - AFTER ALL 3 CODES VERIFIED
     const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
     if (fromAccount) {
       fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
@@ -1795,6 +1963,9 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
     }
     
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
+    
+    // Clear the flow
+    await db.transactionFlows.delete({ transaction_reference: reference });
     
     const user = await db.users.findOne({ id: req.user.id });
     if (user) {
@@ -1810,12 +1981,12 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
       receipt: reference
     });
   } catch (error) {
-    log.error('Withdraw step4 error:', error);
+    log.error('Withdraw final error:', error);
     res.status(500).json({ error: 'Withdrawal failed' });
   }
 });
 
-// ==================== AIRTIME ROUTES ====================
+// ==================== AIRTIME ROUTES (3 Steps Only) ====================
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
@@ -1840,10 +2011,26 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
       sender_name: req.user.full_name, 
       status: 'pending', 
       step: 1,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      last_activity: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
+    
+    const flow = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      transaction_reference: reference,
+      transaction_type: 'airtime',
+      current_step: 1,
+      data: transaction,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    };
+    await db.transactionFlows.create(flow);
+    
     log.bbc(`✅ Airtime transaction created: ${reference}`);
     
     res.json({
@@ -1875,7 +2062,8 @@ app.post('/api/airtime/step2', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 2 });
+    await db.transactions.update({ reference }, { step: 2, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 2, updated_at: new Date().toISOString() });
     
     res.json({ success: true, message: '✅ Verified! Enter Security Code.', nextStep: 3 });
   } catch (error) {
@@ -1901,16 +2089,25 @@ app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 3 });
+    await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
+    // Get final BBC code
+    const finalBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: 3,
+      is_used: false,
+      transaction_id: reference
+    });
+    
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
   } catch (error) {
     log.error('Airtime step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
 
-app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
+app.post('/api/airtime/final', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     const transaction = await db.transactions.findOne({ 
@@ -1928,7 +2125,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
-    // 🔴 DEBIT THE MONEY
+    // DEBIT THE MONEY
     const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
     if (fromAccount) {
       fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
@@ -1936,6 +2133,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
     }
     
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
+    await db.transactionFlows.delete({ transaction_reference: reference });
     
     const user = await db.users.findOne({ id: req.user.id });
     if (user) {
@@ -1946,12 +2144,12 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
     
     res.json({ success: true, message: '🎉 Airtime purchased successfully!', newBalance: fromAccount?.balance || 0, receipt: reference });
   } catch (error) {
-    log.error('Airtime step4 error:', error);
+    log.error('Airtime final error:', error);
     res.status(500).json({ error: 'Airtime purchase failed' });
   }
 });
 
-// ==================== BILLS ROUTES ====================
+// ==================== BILLS ROUTES (3 Steps Only) ====================
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
@@ -1977,10 +2175,26 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
       sender_name: req.user.full_name,
       status: 'pending', 
       step: 1, 
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      last_activity: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
+    
+    const flow = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      transaction_reference: reference,
+      transaction_type: 'bill_payment',
+      current_step: 1,
+      data: transaction,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    };
+    await db.transactionFlows.create(flow);
+    
     log.bbc(`✅ Bill transaction created: ${reference}`);
     
     res.json({
@@ -2012,7 +2226,8 @@ app.post('/api/bills/step2', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 2 });
+    await db.transactions.update({ reference }, { step: 2, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 2, updated_at: new Date().toISOString() });
     
     res.json({ success: true, message: '✅ Verified! Enter Security Code.', nextStep: 3 });
   } catch (error) {
@@ -2038,16 +2253,24 @@ app.post('/api/bills/step3', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 3 });
+    await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
+    const finalBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: 3,
+      is_used: false,
+      transaction_id: reference
+    });
+    
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
   } catch (error) {
     log.error('Bills step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
 
-app.post('/api/bills/step4', authMiddleware, async (req, res) => {
+app.post('/api/bills/final', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     const transaction = await db.transactions.findOne({ 
@@ -2065,7 +2288,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
-    // 🔴 DEBIT THE MONEY
+    // DEBIT THE MONEY
     const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
     if (fromAccount) {
       fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
@@ -2073,6 +2296,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
     }
     
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
+    await db.transactionFlows.delete({ transaction_reference: reference });
     
     const user = await db.users.findOne({ id: req.user.id });
     if (user) {
@@ -2083,12 +2307,12 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
     
     res.json({ success: true, message: '🎉 Bill payment successful!', newBalance: fromAccount?.balance || 0, receipt: reference });
   } catch (error) {
-    log.error('Bills step4 error:', error);
+    log.error('Bills final error:', error);
     res.status(500).json({ error: 'Bill payment failed' });
   }
 });
 
-// ==================== DATA ROUTES ====================
+// ==================== DATA ROUTES (3 Steps Only) ====================
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
@@ -2115,10 +2339,26 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
       sender_name: req.user.full_name,
       status: 'pending', 
       step: 1, 
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      last_activity: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
+    
+    const flow = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      transaction_reference: reference,
+      transaction_type: 'data_bundle',
+      current_step: 1,
+      data: transaction,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    };
+    await db.transactionFlows.create(flow);
+    
     log.bbc(`✅ Data transaction created: ${reference}`);
     
     res.json({
@@ -2150,7 +2390,8 @@ app.post('/api/data/step2', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 2 });
+    await db.transactions.update({ reference }, { step: 2, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 2, updated_at: new Date().toISOString() });
     
     res.json({ success: true, message: '✅ Verified! Enter Security Code.', nextStep: 3 });
   } catch (error) {
@@ -2176,16 +2417,24 @@ app.post('/api/data/step3', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 3 });
+    await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
+    const finalBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: 3,
+      is_used: false,
+      transaction_id: reference
+    });
+    
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
   } catch (error) {
     log.error('Data step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
 
-app.post('/api/data/step4', authMiddleware, async (req, res) => {
+app.post('/api/data/final', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     const transaction = await db.transactions.findOne({ 
@@ -2203,7 +2452,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
-    // 🔴 DEBIT THE MONEY
+    // DEBIT THE MONEY
     const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
     if (fromAccount) {
       fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
@@ -2211,6 +2460,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
     }
     
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
+    await db.transactionFlows.delete({ transaction_reference: reference });
     
     const user = await db.users.findOne({ id: req.user.id });
     if (user) {
@@ -2221,12 +2471,12 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
     
     res.json({ success: true, message: '🎉 Data bundle purchased successfully!', newBalance: fromAccount?.balance || 0, receipt: reference });
   } catch (error) {
-    log.error('Data step4 error:', error);
+    log.error('Data final error:', error);
     res.status(500).json({ error: 'Data purchase failed' });
   }
 });
 
-// ==================== SEND ROUTES ====================
+// ==================== SEND ROUTES (3 Steps Only) ====================
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
@@ -2258,10 +2508,26 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
       sender_name: req.user.full_name,
       status: 'pending', 
       step: 1, 
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      last_activity: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
+    
+    const flow = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      transaction_reference: reference,
+      transaction_type: 'transfer',
+      current_step: 1,
+      data: transaction,
+      status: 'active',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    };
+    await db.transactionFlows.create(flow);
+    
     log.bbc(`✅ Send transaction created: ${reference}`);
     
     res.json({
@@ -2293,7 +2559,8 @@ app.post('/api/send/step2', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 2 });
+    await db.transactions.update({ reference }, { step: 2, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 2, updated_at: new Date().toISOString() });
     
     res.json({ success: true, message: '✅ Verified! Enter Security Code.', nextStep: 3 });
   } catch (error) {
@@ -2319,16 +2586,24 @@ app.post('/api/send/step3', authMiddleware, async (req, res) => {
     if (new Date(bbc.expires_at) < new Date()) return res.status(400).json({ error: 'BBC code expired' });
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
-    await db.transactions.update({ reference }, { step: 3 });
+    await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
+    await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
+    const finalBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: 3,
+      is_used: false,
+      transaction_id: reference
+    });
+    
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
   } catch (error) {
     log.error('Send step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
   }
 });
 
-app.post('/api/send/step4', authMiddleware, async (req, res) => {
+app.post('/api/send/final', authMiddleware, async (req, res) => {
   try {
     const { reference, bbcCode } = req.body;
     const transaction = await db.transactions.findOne({ 
@@ -2346,7 +2621,7 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
-    // 🔴 DEBIT THE MONEY
+    // DEBIT THE MONEY
     const fromAccount = await db.accounts.findOne({ account_number: transaction.from_account_number });
     if (fromAccount) {
       fromAccount.balance = (fromAccount.balance || 0) - transaction.amount;
@@ -2361,6 +2636,7 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
     }
     
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
+    await db.transactionFlows.delete({ transaction_reference: reference });
     
     const user = await db.users.findOne({ id: req.user.id });
     if (user) {
@@ -2382,7 +2658,7 @@ app.post('/api/send/step4', authMiddleware, async (req, res) => {
       receipt: reference 
     });
   } catch (error) {
-    log.error('Send step4 error:', error);
+    log.error('Send final error:', error);
     res.status(500).json({ error: 'Transaction failed' });
   }
 });
@@ -2419,6 +2695,7 @@ const startServer = async () => {
     console.log(`🔐 BBC: 6-Digit Numeric Codes (ONLY Admin Creates)`);
     console.log(`💳 Debit ONLY after all 3 BBC codes verified`);
     console.log(`📋 Users Enter BBC Codes Provided by Admin`);
+    console.log(`🔄 Transaction Flow: Saved in MongoDB (Persists on Refresh)`);
     console.log(`🧾 Receipts: Working with /receipt?ref=XXX`);
     console.log('='.repeat(70) + '\n');
     
