@@ -67,10 +67,6 @@
             from { opacity: 0; transform: translateY(30px); } 
             to { opacity: 1; transform: translateY(0); } 
         }
-        @keyframes fadeIn { 
-            from { opacity: 0; } 
-            to { opacity: 1; } 
-        }
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         
@@ -538,7 +534,7 @@
                 <div class="form-group">
                     <label><i class="fas fa-signal"></i> Select Network</label>
                     <div class="network-grid" id="networkGrid">
-                        <div class="network-option" data-network="MTN" onclick="selectNetwork('MTN')">
+                        <div class="network-option selected" data-network="MTN" onclick="selectNetwork('MTN')">
                             <i class="fas fa-tower-broadcast"></i>
                             <div class="network-name">MTN</div>
                         </div>
@@ -714,6 +710,8 @@
                 }
             });
             loadPlans();
+            // Save progress
+            saveProgress('step1', { network: network });
         }
         
         function loadPlans() {
@@ -737,6 +735,16 @@
             document.querySelectorAll('.plan-card').forEach(p => p.classList.remove('selected'));
             element.classList.add('selected');
             selectedPlan = { size, price, validity };
+            // Save plan selection
+            const progress = loadProgress();
+            if (progress) {
+                saveProgress(progress.step, {
+                    ...progress.data,
+                    planSize: size,
+                    planPrice: price,
+                    planValidity: validity
+                });
+            }
         }
         
         function setTheme(theme) {
@@ -767,9 +775,131 @@
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
+
+        // ============================================================
+        // SAVE PROGRESS TO localStorage
+        // ============================================================
+        function saveProgress(step, data) {
+            const progress = {
+                step: step,
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('dataProgress', JSON.stringify(progress));
+            console.log('✅ Data progress saved:', step);
+        }
+
+        function clearProgress() {
+            localStorage.removeItem('dataProgress');
+            console.log('✅ Data progress cleared');
+        }
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem('dataProgress');
+                if (saved) {
+                    const progress = JSON.parse(saved);
+                    if (Date.now() - progress.timestamp < 3600000) {
+                        return progress;
+                    }
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        // ============================================================
+        // RESTORE PROGRESS ON PAGE LOAD
+        // ============================================================
+        function restoreProgress() {
+            const progress = loadProgress();
+            if (!progress) return;
+
+            const data = progress.data;
+            const step = progress.step;
+
+            console.log('🔄 Restoring data progress:', step);
+
+            // Restore form fields
+            if (data.phone) document.getElementById('phone').value = data.phone;
+            if (data.network) {
+                selectNetwork(data.network);
+                // Load plans after network selection
+                setTimeout(loadPlans, 100);
+                // Restore plan selection if saved
+                if (data.planSize && data.planPrice && data.planValidity) {
+                    setTimeout(() => {
+                        const planCards = document.querySelectorAll('.plan-card');
+                        planCards.forEach(card => {
+                            const sizeEl = card.querySelector('.plan-size');
+                            if (sizeEl && sizeEl.textContent === data.planSize) {
+                                card.click();
+                            }
+                        });
+                    }, 200);
+                }
+            }
+
+            currentRef = data.reference || null;
+
+            if (step === 'step1') {
+                document.getElementById('step1Form').style.display = 'block';
+                document.getElementById('codeForm').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('step1Form').style.display = 'none';
+            document.getElementById('codeForm').style.display = 'block';
+
+            if (step === 'code1') {
+                document.getElementById('codeStep1').style.display = 'block';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'none';
+                if (data.code1) {
+                    const c1 = data.code1.split('');
+                    for (let i = 0; i < c1.length; i++) {
+                        const el = document.getElementById('c1_' + (i+1));
+                        if (el) el.value = c1[i];
+                    }
+                }
+                document.getElementById('c1_1').focus();
+            } else if (step === 'code2') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'block';
+                document.getElementById('codeStep3').style.display = 'none';
+                if (data.code2) {
+                    const c2 = data.code2.split('');
+                    for (let i = 0; i < c2.length; i++) {
+                        const el = document.getElementById('c2_' + (i+1));
+                        if (el) el.value = c2[i];
+                    }
+                }
+                document.getElementById('c2_1').focus();
+            } else if (step === 'code3') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'block';
+                if (data.code3) {
+                    const c3 = data.code3.split('');
+                    for (let i = 0; i < c3.length; i++) {
+                        const el = document.getElementById('c3_' + (i+1));
+                        if (el) el.value = c3[i];
+                    }
+                }
+                document.getElementById('c3_1').focus();
+            }
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Resuming Transaction',
+                text: `Continue from where you left off (Step ${step})`,
+                timer: 2000,
+                showConfirmButton: false,
+                confirmButtonColor: '#C6A43F'
+            });
+        }
         
         // ============================================================
-        // STEP 1: SUBMIT DATA DETAILS (FAKE)
+        // STEP 1: SUBMIT DATA DETAILS
         // ============================================================
         async function dataStep1() {
             const network = document.getElementById('network').value;
@@ -791,36 +921,50 @@
             
             showLoading(true);
             try {
-                // ✅ FAKE - Generate random reference and codes
-                const fakeRef = 'DAT-' + Date.now().toString(36).toUpperCase() + '-' + 
-                               Math.random().toString(36).substring(2, 6).toUpperCase();
-                currentRef = fakeRef;
-                
-                const codes = [];
-                for (let i = 0; i < 3; i++) {
-                    codes.push(Math.floor(100000 + Math.random() * 900000).toString());
-                }
-                
-                localStorage.setItem('fakeDataRef', currentRef);
-                localStorage.setItem('fakeDataCodes', JSON.stringify(codes));
-                localStorage.setItem('fakeDataStep', '1');
-                
-                console.log('✅ FAKE Data Purchase Started - Reference:', currentRef);
-                console.log('✅ BBC Codes:', codes);
-                
-                document.getElementById('step1Form').style.display = 'none';
-                document.getElementById('codeForm').style.display = 'block';
-                document.getElementById('codeStep1').style.display = 'block';
-                document.getElementById('codeStep2').style.display = 'none';
-                document.getElementById('codeStep3').style.display = 'none';
-                document.getElementById('c1_1').focus();
-                
-                Swal.fire({
-                    icon: 'info',
-                    title: 'Authorization Required',
-                    text: `Enter BBC Authorization Code: ${codes[0]}`,
-                    confirmButtonColor: '#C6A43F'
+                const res = await fetch(`${API_URL}/api/data/step1`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phone,
+                        countryCode: '234',
+                        network: network,
+                        planName: selectedPlan.size,
+                        dataSize: selectedPlan.size,
+                        amount: selectedPlan.price,
+                        transactionPin: pin
+                    })
                 });
+                const data = await res.json();
+                if (data.success) {
+                    currentRef = data.reference;
+                    
+                    saveProgress('code1', {
+                        network,
+                        phone,
+                        planSize: selectedPlan.size,
+                        planPrice: selectedPlan.price,
+                        planValidity: selectedPlan.validity,
+                        reference: currentRef
+                    });
+                    
+                    document.getElementById('step1Form').style.display = 'none';
+                    document.getElementById('codeForm').style.display = 'block';
+                    document.getElementById('codeStep1').style.display = 'block';
+                    document.getElementById('codeStep2').style.display = 'none';
+                    document.getElementById('codeStep3').style.display = 'none';
+                    document.getElementById('c1_1').focus();
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Authorization Required',
+                        text: 'Enter your BBC Authorization Code to continue',
+                        confirmButtonColor: '#C6A43F'
+                    });
+                } else {
+                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
+                }
             } catch(e) {
                 Swal.fire('Error', 'Network error. Please try again.', 'error');
             } finally {
@@ -829,7 +973,7 @@
         }
         
         // ============================================================
-        // STEP 2: SUBMIT BBC AUTHORIZATION CODE (FAKE CHECK)
+        // STEP 2: SUBMIT BBC AUTHORIZATION CODE
         // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value + 
@@ -843,25 +987,35 @@
             
             showLoading(true);
             try {
-                console.log('✅ Step 1 Code Entered:', code);
-                
-                const storedCodes = JSON.parse(localStorage.getItem('fakeDataCodes') || '[]');
-                
-                if (code.length === 6) {
-                    localStorage.setItem('fakeDataStep', '2');
+                const res = await fetch(`${API_URL}/api/data/step2`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const progress = loadProgress();
+                    if (progress) {
+                        saveProgress('code2', {
+                            ...progress.data,
+                            code1: code
+                        });
+                    }
                     
                     document.getElementById('codeStep1').style.display = 'none';
                     document.getElementById('codeStep2').style.display = 'block';
                     document.getElementById('c2_1').focus();
-                    
                     Swal.fire({
                         icon: 'info',
                         title: 'Security Check',
-                        text: `Enter BBC Security Code: ${storedCodes[1] || '789012'}`,
+                        text: 'Enter your BBC Security Code to continue',
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
-                    Swal.fire('Error', 'Invalid authorization code', 'error');
+                    Swal.fire('Error', data.error || 'Invalid code', 'error');
                 }
             } catch(e) {
                 Swal.fire('Error', 'Verification failed', 'error');
@@ -871,7 +1025,7 @@
         }
         
         // ============================================================
-        // STEP 3: SUBMIT BBC SECURITY CODE (FAKE CHECK)
+        // STEP 3: SUBMIT BBC SECURITY CODE
         // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value + 
@@ -885,25 +1039,35 @@
             
             showLoading(true);
             try {
-                console.log('✅ Step 2 Code Entered:', code);
-                
-                const storedCodes = JSON.parse(localStorage.getItem('fakeDataCodes') || '[]');
-                
-                if (code.length === 6) {
-                    localStorage.setItem('fakeDataStep', '3');
+                const res = await fetch(`${API_URL}/api/data/step3`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const progress = loadProgress();
+                    if (progress) {
+                        saveProgress('code3', {
+                            ...progress.data,
+                            code2: code
+                        });
+                    }
                     
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'block';
                     document.getElementById('c3_1').focus();
-                    
                     Swal.fire({
                         icon: 'info',
                         title: 'Final Verification',
-                        text: `Enter BBC Final Code: ${storedCodes[2] || '345678'}`,
+                        text: 'Enter your BBC Final Code to complete the purchase',
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
-                    Swal.fire('Error', 'Invalid security code', 'error');
+                    Swal.fire('Error', data.error || 'Invalid code', 'error');
                 }
             } catch(e) {
                 Swal.fire('Error', 'Verification failed', 'error');
@@ -913,7 +1077,7 @@
         }
         
         // ============================================================
-        // STEP 4: SUBMIT BBC FINAL CODE & COMPLETE (FAKE SUCCESS)
+        // STEP 4: SUBMIT BBC FINAL CODE & COMPLETE
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value + 
@@ -927,10 +1091,17 @@
             
             showLoading(true);
             try {
-                console.log('✅ Step 3 Code Entered:', code);
-                
-                if (code.length === 6) {
-                    localStorage.setItem('fakeDataStep', 'completed');
+                const res = await fetch(`${API_URL}/api/data/step4`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    clearProgress();
                     
                     showLoading(false);
                     Swal.fire({
@@ -951,7 +1122,7 @@
                         window.location.href = '/dashboard.html';
                     });
                 } else {
-                    Swal.fire('Error', 'Invalid final code', 'error');
+                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
                     showLoading(false);
                 }
             } catch(e) {
@@ -982,36 +1153,6 @@
                 console.error(e);
             }
         }
-
-        // ============================================================
-        // CHECK FOR EXISTING FAKE TRANSACTION ON LOAD
-        // ============================================================
-        function checkExistingTransaction() {
-            const step = localStorage.getItem('fakeDataStep');
-            const ref = localStorage.getItem('fakeDataRef');
-            
-            if (step && ref && step !== 'completed') {
-                document.getElementById('step1Form').style.display = 'none';
-                document.getElementById('codeForm').style.display = 'block';
-                
-                if (step === '1') {
-                    document.getElementById('codeStep1').style.display = 'block';
-                    document.getElementById('codeStep2').style.display = 'none';
-                    document.getElementById('codeStep3').style.display = 'none';
-                } else if (step === '2') {
-                    document.getElementById('codeStep1').style.display = 'none';
-                    document.getElementById('codeStep2').style.display = 'block';
-                    document.getElementById('codeStep3').style.display = 'none';
-                } else if (step === '3') {
-                    document.getElementById('codeStep1').style.display = 'none';
-                    document.getElementById('codeStep2').style.display = 'none';
-                    document.getElementById('codeStep3').style.display = 'block';
-                }
-                
-                currentRef = ref;
-                console.log('✅ Resuming fake data transaction:', currentRef);
-            }
-        }
         
         // Initialize
         selectNetwork('MTN');
@@ -1022,7 +1163,7 @@
         }
         
         loadBalance();
-        checkExistingTransaction();
+        restoreProgress();
     </script>
 </body>
 </html>
