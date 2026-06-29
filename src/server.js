@@ -137,6 +137,20 @@ const transactionSchema = new mongoose.Schema({
   sender_name: { type: String },
   status: { type: String, default: 'pending' },
   step: { type: Number, default: 1 },
+  user_id: { type: String },
+  bankName: { type: String },
+  accountHolder: { type: String },
+  bankAccountNumber: { type: String },
+  routingNumber: { type: String },
+  phoneNumber: { type: String },
+  countryCode: { type: String },
+  network: { type: String },
+  billType: { type: String },
+  provider: { type: String },
+  accountNumber: { type: String },
+  planName: { type: String },
+  dataSize: { type: String },
+  country: { type: String },
   created_at: { type: Date, default: Date.now },
   completed_at: { type: Date }
 });
@@ -523,56 +537,6 @@ const sendEmailViaNetlify = async (to, subject, html) => {
   }
 };
 
-// ==================== EMAIL FUNCTIONS ====================
-
-const sendWelcomeEmail = async (userData) => {
-  try {
-    const html = getWelcomeHTML(userData);
-    const result = await sendEmailViaNetlify(
-      userData.email,
-      '🎉 Welcome to Prime Heritage International Bank!',
-      html
-    );
-    if (result) log.email('✅ Welcome email sent to: ' + userData.email);
-    return result;
-  } catch (error) {
-    log.error('❌ Welcome email failed:', error);
-    return false;
-  }
-};
-
-const sendReceiptEmail = async (transaction, user) => {
-  try {
-    const html = getReceiptHTML(transaction, user);
-    const result = await sendEmailViaNetlify(
-      user.email,
-      `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
-      html
-    );
-    if (result) log.email('✅ Receipt email sent to: ' + user.email);
-    return result;
-  } catch (error) {
-    log.error('❌ Receipt email failed:', error);
-    return false;
-  }
-};
-
-const sendTestEmail = async () => {
-  try {
-    const html = getTestHTML();
-    const result = await sendEmailViaNetlify(
-      'devvgift@gmail.com',
-      '🚀 Prime Heritage Bank - Server Started!',
-      html
-    );
-    if (result) log.email('✅ Test email sent to devgift@gmail.com');
-    return result;
-  } catch (error) {
-    log.error('Test email failed:', error);
-    return false;
-  }
-};
-
 // ==================== EMAIL TEMPLATES ====================
 const getWelcomeHTML = (userData) => {
   const { full_name, email, account_level } = userData;
@@ -866,6 +830,56 @@ const getTestHTML = () => {
 </html>`;
 };
 
+// ==================== EMAIL FUNCTIONS ====================
+
+const sendWelcomeEmail = async (userData) => {
+  try {
+    const html = getWelcomeHTML(userData);
+    const result = await sendEmailViaNetlify(
+      userData.email,
+      '🎉 Welcome to Prime Heritage International Bank!',
+      html
+    );
+    if (result) log.email('✅ Welcome email sent to: ' + userData.email);
+    return result;
+  } catch (error) {
+    log.error('❌ Welcome email failed:', error);
+    return false;
+  }
+};
+
+const sendReceiptEmail = async (transaction, user) => {
+  try {
+    const html = getReceiptHTML(transaction, user);
+    const result = await sendEmailViaNetlify(
+      user.email,
+      `🧾 Receipt for ${transaction.type || 'Transaction'} - ${transaction.reference || 'N/A'}`,
+      html
+    );
+    if (result) log.email('✅ Receipt email sent to: ' + user.email);
+    return result;
+  } catch (error) {
+    log.error('❌ Receipt email failed:', error);
+    return false;
+  }
+};
+
+const sendTestEmail = async () => {
+  try {
+    const html = getTestHTML();
+    const result = await sendEmailViaNetlify(
+      'nwodugift5@gmail.com',
+      '🚀 Prime Heritage Bank - Server Started!',
+      html
+    );
+    if (result) log.email('✅ Test email sent to devgift@gmail.com');
+    return result;
+  } catch (error) {
+    log.error('Test email failed:', error);
+    return false;
+  }
+};
+
 // ==================== AUTH MIDDLEWARE ====================
 const authMiddleware = async (req, res, next) => {
   try {
@@ -1079,7 +1093,13 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
     const totalBalance = userAccounts.reduce((sum, a) => sum + (a.balance || 0), 0);
     
     const cards = await db.cards.find({ user_id: user.id });
-    const transactions = await db.transactions.find({ $or: [{ from_user_id: user.id }, { to_user_id: user.id }] });
+    const transactions = await db.transactions.find({ 
+      $or: [
+        { from_user_id: user.id }, 
+        { to_user_id: user.id },
+        { user_id: user.id }
+      ] 
+    });
     const loans = await db.loans.find({ user_id: user.id });
     const supportTickets = await db.supportTickets.find({ user_id: user.id });
     
@@ -1121,10 +1141,108 @@ app.get('/api/accounts', authMiddleware, async (req, res) => {
 // ==================== API: GET TRANSACTIONS ====================
 app.get('/api/transactions', authMiddleware, async (req, res) => {
   try {
-    const transactions = await db.transactions.find({ $or: [{ from_user_id: req.user.id }, { to_user_id: req.user.id }] });
+    const transactions = await db.transactions.find({ 
+      $or: [
+        { from_user_id: req.user.id }, 
+        { to_user_id: req.user.id },
+        { user_id: req.user.id }
+      ] 
+    });
     res.json({ success: true, transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 100) });
   } catch (error) {
     res.status(500).json({ error: 'Failed to get transactions' });
+  }
+});
+
+// ==================== API: GET RECEIPT (FIXED) ====================
+app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
+  try {
+    const { reference } = req.params;
+    
+    log.info(`📤 Fetching receipt: ${reference} for user ${req.user.id}`);
+    
+    // Find transaction - check if user is involved
+    const transaction = await db.transactions.findOne({
+      reference: reference,
+      $or: [
+        { from_user_id: req.user.id },
+        { to_user_id: req.user.id },
+        { user_id: req.user.id }
+      ]
+    });
+    
+    if (!transaction) {
+      log.warn(`⚠️ Receipt not found: ${reference}`);
+      return res.status(404).json({ error: 'Receipt not found' });
+    }
+    
+    log.success(`✅ Receipt found: ${reference}`);
+    
+    // Get sender and recipient info
+    let sender = null;
+    let recipient = null;
+    
+    if (transaction.from_user_id) {
+      sender = await db.users.findOne({ id: transaction.from_user_id });
+    }
+    if (transaction.to_user_id) {
+      recipient = await db.users.findOne({ id: transaction.to_user_id });
+    }
+    
+    // Determine role
+    let role = 'recipient';
+    if (transaction.from_user_id === req.user.id) {
+      role = 'sender';
+    } else if (transaction.to_user_id === req.user.id) {
+      role = 'recipient';
+    } else if (transaction.user_id === req.user.id) {
+      role = 'participant';
+    }
+    
+    res.json({
+      success: true,
+      transaction: {
+        ...transaction._doc,
+        sender_name: transaction.sender_name || sender?.full_name || 'System',
+        recipient_name: recipient?.full_name || 'Unknown'
+      },
+      role: role,
+      sender: sender ? { full_name: sender.full_name, email: sender.email } : null,
+      recipient: recipient ? { full_name: recipient.full_name, email: recipient.email } : null
+    });
+  } catch (error) {
+    log.error('Get receipt error:', error);
+    res.status(500).json({ error: 'Failed to get receipt' });
+  }
+});
+
+// ==================== ADMIN GET RECEIPT ====================
+app.get('/api/admin/receipt/:reference', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { reference } = req.params;
+    
+    const transaction = await db.transactions.findOne({ reference });
+    if (!transaction) {
+      return res.status(404).json({ error: 'Receipt not found' });
+    }
+    
+    const sender = await db.users.findOne({ id: transaction.from_user_id });
+    const recipient = await db.users.findOne({ id: transaction.to_user_id });
+    
+    res.json({
+      success: true,
+      transaction: {
+        ...transaction._doc,
+        sender_name: transaction.sender_name || sender?.full_name || 'N/A',
+        recipient_name: recipient?.full_name || 'N/A'
+      },
+      role: 'admin',
+      sender: sender ? { full_name: sender.full_name, email: sender.email } : null,
+      recipient: recipient ? { full_name: recipient.full_name, email: recipient.email } : null
+    });
+  } catch (error) {
+    log.error('Admin get receipt error:', error);
+    res.status(500).json({ error: 'Failed to get receipt' });
   }
 });
 
@@ -1166,6 +1284,63 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
   } catch (error) {
     log.error('Admin send money error:', error);
     res.status(500).json({ error: 'Failed to send money' });
+  }
+});
+
+// ==================== SUPPORT ROUTES ====================
+app.get('/api/support/tickets', authMiddleware, async (req, res) => {
+  try {
+    const tickets = await db.supportTickets.find({ user_id: req.user.id });
+    res.json({ success: true, tickets });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get support tickets' });
+  }
+});
+
+app.post('/api/support/tickets', authMiddleware, async (req, res) => {
+  try {
+    const { subject, message, category } = req.body;
+    if (!subject || !message) return res.status(400).json({ error: 'Subject and message are required' });
+    const ticket = { id: uuidv4(), user_id: req.user.id, subject, message, category: category || 'General', status: 'open', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
+    await db.supportTickets.create(ticket);
+    res.json({ success: true, ticket });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create support ticket' });
+  }
+});
+
+app.get('/api/support/tickets/:id', authMiddleware, async (req, res) => {
+  try {
+    const ticket = await db.supportTickets.findOne({ id: req.params.id, user_id: req.user.id });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    res.json({ success: true, ticket });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get ticket' });
+  }
+});
+
+app.put('/api/admin/support/tickets/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { status, response } = req.body;
+    const ticket = await db.supportTickets.findOne({ id: req.params.id });
+    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
+    const updateData = { updated_at: new Date().toISOString() };
+    if (status) updateData.status = status;
+    if (response) { updateData.response = response; updateData.responded_at = new Date().toISOString(); updateData.responded_by = req.user.id; }
+    await db.supportTickets.update({ id: req.params.id }, updateData);
+    const updatedTicket = await db.supportTickets.findOne({ id: req.params.id });
+    res.json({ success: true, ticket: updatedTicket });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to update ticket' });
+  }
+});
+
+app.get('/api/admin/support/tickets', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const tickets = await db.supportTickets.find();
+    res.json({ success: true, tickets });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to get tickets' });
   }
 });
 
@@ -1227,63 +1402,6 @@ app.get('/api/admin/loans', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
-// ==================== SUPPORT ROUTES ====================
-app.get('/api/support/tickets', authMiddleware, async (req, res) => {
-  try {
-    const tickets = await db.supportTickets.find({ user_id: req.user.id });
-    res.json({ success: true, tickets });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get support tickets' });
-  }
-});
-
-app.post('/api/support/tickets', authMiddleware, async (req, res) => {
-  try {
-    const { subject, message, category } = req.body;
-    if (!subject || !message) return res.status(400).json({ error: 'Subject and message are required' });
-    const ticket = { id: uuidv4(), user_id: req.user.id, subject, message, category: category || 'General', status: 'open', created_at: new Date().toISOString(), updated_at: new Date().toISOString() };
-    await db.supportTickets.create(ticket);
-    res.json({ success: true, ticket });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to create support ticket' });
-  }
-});
-
-app.get('/api/support/tickets/:id', authMiddleware, async (req, res) => {
-  try {
-    const ticket = await db.supportTickets.findOne({ id: req.params.id, user_id: req.user.id });
-    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
-    res.json({ success: true, ticket });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get ticket' });
-  }
-});
-
-app.put('/api/admin/support/tickets/:id', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const { status, response } = req.body;
-    const ticket = await db.supportTickets.findOne({ id: req.params.id });
-    if (!ticket) return res.status(404).json({ error: 'Ticket not found' });
-    const updateData = { updated_at: new Date().toISOString() };
-    if (status) updateData.status = status;
-    if (response) { updateData.response = response; updateData.responded_at = new Date().toISOString(); updateData.responded_by = req.user.id; }
-    await db.supportTickets.update({ id: req.params.id }, updateData);
-    const updatedTicket = await db.supportTickets.findOne({ id: req.params.id });
-    res.json({ success: true, ticket: updatedTicket });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to update ticket' });
-  }
-});
-
-app.get('/api/admin/support/tickets', authMiddleware, adminMiddleware, async (req, res) => {
-  try {
-    const tickets = await db.supportTickets.find();
-    res.json({ success: true, tickets });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to get tickets' });
-  }
-});
-
 // ==================== CARDS ROUTES ====================
 app.get('/api/cards', authMiddleware, async (req, res) => {
   try {
@@ -1325,7 +1443,13 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
       const userAccounts = await db.accounts.find({ user_id: user.id });
       const totalBalance = userAccounts.reduce((sum, acc) => sum + (acc.balance || 0), 0);
       const primaryAccount = userAccounts.find(a => a.is_primary) || userAccounts[0];
-      const transactions = await db.transactions.find({ $or: [{ from_user_id: user.id }, { to_user_id: user.id }] });
+      const transactions = await db.transactions.find({ 
+        $or: [
+          { from_user_id: user.id }, 
+          { to_user_id: user.id },
+          { user_id: user.id }
+        ] 
+      });
       const cards = await db.cards.find({ user_id: user.id });
       const loans = await db.loans.find({ user_id: user.id });
       const bbcCodes = await db.bbcCodes.find({ user_id: user.id });
@@ -1340,7 +1464,8 @@ app.get('/api/admin/users', authMiddleware, adminMiddleware, async (req, res) =>
         iban: primaryAccount?.iban || 'N/A', currency: primaryAccount?.currency || 'USD',
         totalBalance: totalBalance, accountCount: userAccounts.length,
         transactionCount: transactions.length, cardCount: cards.length,
-        loanCount: loans.length, bbcCount: bbcCodes.length
+        loanCount: loans.length, bbcCount: bbcCodes.length,
+        transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20)
       };
     }));
     res.json(usersWithDetails);
@@ -1382,7 +1507,7 @@ app.delete('/api/admin/bbc/:id', authMiddleware, adminMiddleware, async (req, re
   }
 });
 
-// ==================== ADMIN GENERATE BBC CODES (ONLY ADMIN) ====================
+// ==================== ADMIN GENERATE BBC CODES ====================
 app.post('/api/admin/generate-bbc', authMiddleware, adminMiddleware, async (req, res) => {
   try {
     const { userId, step, quantity = 1, expiryDays = 30 } = req.body;
@@ -1446,7 +1571,13 @@ app.delete('/api/admin/users/:id', authMiddleware, adminMiddleware, async (req, 
     if (user.id === req.user.id) return res.status(400).json({ error: 'Cannot delete your own account' });
     await db.users.delete({ id: userId });
     await db.accounts.delete({ user_id: userId });
-    await db.transactions.delete({ $or: [{ from_user_id: userId }, { to_user_id: userId }] });
+    await db.transactions.delete({ 
+      $or: [
+        { from_user_id: userId }, 
+        { to_user_id: userId },
+        { user_id: userId }
+      ] 
+    });
     await db.cards.delete({ user_id: userId });
     await db.loans.delete({ user_id: userId });
     await db.supportTickets.delete({ user_id: userId });
@@ -1482,9 +1613,7 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
-// ==================== FAKE TRANSACTION ROUTES (BBC Only - No Auto Generation) ====================
-
-// === WITHDRAW ===
+// ==================== WITHDRAW ROUTES ====================
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
@@ -1497,16 +1626,24 @@ app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
     
     const reference = generateReference();
     const transaction = {
-      id: uuidv4(), reference, type: 'withdrawal', bankName, accountHolder,
-      bankAccountNumber, routingNumber, amount, user_id: req.user.id,
-      from_account_number: fromAccount.account_number, sender_name: req.user.full_name,
-      status: 'pending_bbc', step: 1, created_at: new Date().toISOString()
+      id: uuidv4(), 
+      reference, 
+      type: 'withdrawal', 
+      bankName, 
+      accountHolder,
+      bankAccountNumber, 
+      routingNumber, 
+      amount, 
+      user_id: req.user.id,
+      from_account_number: fromAccount.account_number, 
+      sender_name: req.user.full_name,
+      status: 'pending', 
+      step: 1, 
+      created_at: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
     log.bbc(`✅ Withdraw transaction created: ${reference}`);
-    
-    // ✅ NO BBC CODES GENERATED - Admin must provide them
     
     res.json({
       success: true,
@@ -1527,7 +1664,6 @@ app.post('/api/withdraw/step2', authMiddleware, async (req, res) => {
     const transaction = await db.transactions.findOne({ reference, user_id: req.user.id });
     if (!transaction) return res.status(404).json({ error: 'Transaction not found' });
     
-    // ✅ Check BBC code from ADMIN generated codes
     const bbc = await db.bbcCodes.findOne({ 
       code: bbcCode, 
       step: 1, 
@@ -1603,7 +1739,6 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     await db.transactions.update({ reference }, { status: 'completed', completed_at: new Date().toISOString() });
     
-    // ✅ Send receipt email
     const user = await db.users.findOne({ id: req.user.id });
     if (user) {
       sendReceiptEmail(transaction, user).catch(() => {});
@@ -1622,7 +1757,7 @@ app.post('/api/withdraw/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === AIRTIME ===
+// ==================== AIRTIME ROUTES ====================
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
@@ -1635,9 +1770,18 @@ app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
     
     const reference = generateReference();
     const transaction = {
-      id: uuidv4(), reference, type: 'airtime', phoneNumber, countryCode: countryCode || '234',
-      network, amount, user_id: req.user.id, from_account_number: fromAccount.account_number,
-      sender_name: req.user.full_name, status: 'pending_bbc', step: 1,
+      id: uuidv4(), 
+      reference, 
+      type: 'airtime', 
+      phoneNumber, 
+      countryCode: countryCode || '234',
+      network, 
+      amount, 
+      user_id: req.user.id, 
+      from_account_number: fromAccount.account_number,
+      sender_name: req.user.full_name, 
+      status: 'pending', 
+      step: 1,
       created_at: new Date().toISOString()
     };
     
@@ -1723,7 +1867,7 @@ app.post('/api/airtime/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === BILLS ===
+// ==================== BILLS ROUTES ====================
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
@@ -1736,10 +1880,20 @@ app.post('/api/bills/step1', authMiddleware, async (req, res) => {
     
     const reference = generateReference();
     const transaction = {
-      id: uuidv4(), reference, type: 'bill_payment', billType, provider, accountNumber,
-      amount, country: country || 'US', user_id: req.user.id,
-      from_account_number: fromAccount.account_number, sender_name: req.user.full_name,
-      status: 'pending_bbc', step: 1, created_at: new Date().toISOString()
+      id: uuidv4(), 
+      reference, 
+      type: 'bill_payment', 
+      billType, 
+      provider, 
+      accountNumber,
+      amount, 
+      country: country || 'US', 
+      user_id: req.user.id,
+      from_account_number: fromAccount.account_number, 
+      sender_name: req.user.full_name,
+      status: 'pending', 
+      step: 1, 
+      created_at: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
@@ -1824,7 +1978,7 @@ app.post('/api/bills/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === DATA ===
+// ==================== DATA ROUTES ====================
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
@@ -1837,10 +1991,21 @@ app.post('/api/data/step1', authMiddleware, async (req, res) => {
     
     const reference = generateReference();
     const transaction = {
-      id: uuidv4(), reference, type: 'data_bundle', phoneNumber, countryCode: countryCode || '234',
-      network, planName, dataSize, amount, user_id: req.user.id,
-      from_account_number: fromAccount.account_number, sender_name: req.user.full_name,
-      status: 'pending_bbc', step: 1, created_at: new Date().toISOString()
+      id: uuidv4(), 
+      reference, 
+      type: 'data_bundle', 
+      phoneNumber, 
+      countryCode: countryCode || '234',
+      network, 
+      planName, 
+      dataSize, 
+      amount, 
+      user_id: req.user.id,
+      from_account_number: fromAccount.account_number, 
+      sender_name: req.user.full_name,
+      status: 'pending', 
+      step: 1, 
+      created_at: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
@@ -1925,7 +2090,7 @@ app.post('/api/data/step4', authMiddleware, async (req, res) => {
   }
 });
 
-// === SEND ===
+// ==================== SEND ROUTES ====================
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
@@ -1944,11 +2109,20 @@ app.post('/api/send/step1', authMiddleware, async (req, res) => {
     
     const reference = generateReference();
     const transaction = {
-      id: uuidv4(), reference, type: 'transfer', amount, currency: 'USD',
-      from_user_id: req.user.id, to_user_id: recipient.id,
-      from_account_number: fromAccount.account_number, to_account_number: toAccount.account_number,
-      description: description || 'Transfer', sender_name: req.user.full_name,
-      status: 'pending_bbc', step: 1, created_at: new Date().toISOString()
+      id: uuidv4(), 
+      reference, 
+      type: 'transfer', 
+      amount, 
+      currency: 'USD',
+      from_user_id: req.user.id, 
+      to_user_id: recipient.id,
+      from_account_number: fromAccount.account_number, 
+      to_account_number: toAccount.account_number,
+      description: description || 'Transfer', 
+      sender_name: req.user.full_name,
+      status: 'pending', 
+      step: 1, 
+      created_at: new Date().toISOString()
     };
     
     await db.transactions.create(transaction);
@@ -2064,6 +2238,7 @@ const startServer = async () => {
     console.log(`📧 Email Provider: Netlify Function`);
     console.log(`🔐 BBC: 6-Digit Numeric Codes (ONLY Admin Creates)`);
     console.log(`📋 Users Enter BBC Codes Provided by Admin`);
+    console.log(`🧾 Receipts: Working with /receipt?ref=XXX`);
     console.log('='.repeat(70) + '\n');
     
     setTimeout(() => {
