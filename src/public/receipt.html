@@ -21,9 +21,29 @@
             --info: #3B82F6;
         }
 
+        [data-theme="dark"] {
+            --bg-body: #0A0E1A;
+            --bg-card: rgba(17, 24, 39, 0.95);
+            --border: rgba(31, 41, 55, 0.5);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --input-bg: #0F1622;
+            --glass-bg: rgba(17, 24, 39, 0.8);
+        }
+
+        [data-theme="light"] {
+            --bg-body: #F3F4F6;
+            --bg-card: rgba(255, 255, 255, 0.95);
+            --border: rgba(229, 231, 235, 0.5);
+            --text-primary: #111827;
+            --text-secondary: #6B7280;
+            --input-bg: #F9FAFB;
+            --glass-bg: rgba(255, 255, 255, 0.8);
+        }
+
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: #0A0E1A;
+            background: var(--bg-body);
             min-height: 100vh;
             padding: 20px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -54,6 +74,7 @@
             background: rgba(198, 164, 63, 0.08);
             border: 1px solid rgba(198, 164, 63, 0.15);
             text-decoration: none;
+            transition: all 0.3s;
         }
         .back-btn:hover {
             background: rgba(198, 164, 63, 0.15);
@@ -61,10 +82,10 @@
         }
 
         .receipt-card {
-            background: rgba(17, 24, 39, 0.95);
+            background: var(--bg-card);
             backdrop-filter: blur(20px);
             border-radius: 28px;
-            border: 1px solid rgba(198, 164, 63, 0.15);
+            border: 1px solid var(--border);
             overflow: hidden;
             box-shadow: 0 25px 60px rgba(0,0,0,0.3);
             transition: all 0.3s;
@@ -186,10 +207,10 @@
         .amount-section .amount {
             font-size: 38px;
             font-weight: 800;
-            color: #FFFFFF;
+            color: var(--text-primary);
         }
         .amount-section .amount .currency { color: #C6A43F; }
-        .amount-section .amount-label { color: rgba(255,255,255,0.3); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
+        .amount-section .amount-label { color: var(--text-secondary); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; }
 
         .detail-row {
             display: flex;
@@ -198,9 +219,9 @@
             border-bottom: 1px solid rgba(255,255,255,0.04);
         }
         .detail-row:last-child { border-bottom: none; }
-        .detail-label { color: rgba(255,255,255,0.4); font-size: 12px; font-weight: 500; }
+        .detail-label { color: var(--text-secondary); font-size: 12px; font-weight: 500; }
         .detail-label i { margin-right: 8px; color: var(--gold); width: 16px; }
-        .detail-value { color: #FFFFFF; font-weight: 500; font-size: 13px; text-align: right; word-break: break-word; max-width: 60%; }
+        .detail-value { color: var(--text-primary); font-weight: 500; font-size: 13px; text-align: right; word-break: break-word; max-width: 60%; }
         .detail-value .gold-text { color: #C6A43F; }
         .detail-value.mono { font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 0.5px; }
 
@@ -213,11 +234,12 @@
             display: flex;
             align-items: center;
             gap: 12px;
+            flex-wrap: wrap;
         }
 
         .info-banner i { color: #C6A43F; font-size: 18px; }
-        .info-banner .info-text { color: rgba(255,255,255,0.6); font-size: 12px; }
-        .info-banner .info-text strong { color: #FFFFFF; }
+        .info-banner .info-text { color: var(--text-secondary); font-size: 12px; }
+        .info-banner .info-text strong { color: var(--text-primary); }
         .info-banner .role-badge { margin-left: auto; padding: 4px 12px; border-radius: 50px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
         .role-recipient { background: rgba(16,185,129,0.15); color: #10B981; }
         .role-sender { background: rgba(245,158,11,0.15); color: #F59E0B; }
@@ -229,8 +251,8 @@
             text-align: center;
         }
         .receipt-footer .thank-you { color: #C6A43F; font-size: 16px; font-weight: 700; }
-        .receipt-footer .tagline { color: rgba(255,255,255,0.2); font-size: 11px; margin-top: 4px; }
-        .receipt-footer .footer-meta { margin-top: 12px; display: flex; justify-content: center; gap: 20px; font-size: 10px; color: rgba(255,255,255,0.12); }
+        .receipt-footer .tagline { color: var(--text-secondary); font-size: 11px; margin-top: 4px; opacity: 0.5; }
+        .receipt-footer .footer-meta { margin-top: 12px; display: flex; justify-content: center; gap: 20px; font-size: 10px; color: var(--text-secondary); opacity: 0.3; flex-wrap: wrap; }
 
         .action-buttons {
             display: flex;
@@ -251,14 +273,14 @@
             justify-content: center;
             gap: 10px;
             border: none;
-            background: rgba(17, 24, 39, 0.95);
-            border: 1px solid rgba(31, 41, 55, 0.5);
-            color: #9CA3AF;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
         }
         .btn-action:hover { transform: translateY(-3px); }
         .btn-share { background: linear-gradient(135deg, #C6A43F, #9E8032); color: #0A0E1A; border: none; }
         .btn-share:hover { box-shadow: 0 10px 30px rgba(198,164,63,0.3); }
-        .btn-download { background: rgba(255,255,255,0.05); border: 1px solid rgba(31, 41, 55, 0.5); color: #9CA3AF; }
+        .btn-download { background: rgba(255,255,255,0.05); border: 1px solid var(--border); color: var(--text-secondary); }
         .btn-download:hover { background: rgba(255,255,255,0.1); }
         .btn-print { background: rgba(59, 130, 246, 0.1); color: #3B82F6; border: 1px solid rgba(59, 130, 246, 0.15); }
         .btn-print:hover { background: rgba(59, 130, 246, 0.2); }
@@ -277,15 +299,15 @@
             margin: 0 auto 16px;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        .loading-state p { color: #9CA3AF; font-size: 14px; }
+        .loading-state p { color: var(--text-secondary); font-size: 14px; }
 
         .error-state {
             text-align: center;
             padding: 60px 20px;
         }
         .error-state i { font-size: 48px; color: #EF4444; margin-bottom: 16px; display: block; }
-        .error-state h3 { color: #FFFFFF; font-size: 20px; margin-bottom: 8px; }
-        .error-state p { color: #9CA3AF; font-size: 14px; }
+        .error-state h3 { color: var(--text-primary); font-size: 20px; margin-bottom: 8px; }
+        .error-state p { color: var(--text-secondary); font-size: 14px; }
 
         @media (max-width: 500px) {
             body { padding: 12px; }
@@ -473,9 +495,13 @@
                     url = `${API_URL}/api/receipt/${reference}`;
                 }
 
+                console.log('📤 Fetching receipt:', url);
+
                 const res = await fetch(url, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+
+                console.log('📥 Response status:', res.status);
 
                 if (res.status === 404) {
                     showError('Receipt not found.');
@@ -488,6 +514,7 @@
                 }
 
                 const data = await res.json();
+                console.log('📥 Receipt data:', data);
 
                 if (!data.success) {
                     showError(data.error || 'Failed to load receipt.');
