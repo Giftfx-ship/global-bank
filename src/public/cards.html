@@ -18,6 +18,7 @@
             --error: #EF4444;
             --warning: #F59E0B;
             --info: #3B82F6;
+            --gradient-gold: linear-gradient(135deg, #C6A43F, #9E8032);
         }
 
         [data-theme="dark"] {
@@ -25,27 +26,31 @@
             --bg-card: rgba(17, 24, 39, 0.95);
             --border: rgba(31, 41, 55, 0.5);
             --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
             --input-bg: #0F1622;
             --glass-bg: rgba(17, 24, 39, 0.8);
+            --card-gradient: linear-gradient(145deg, #0d1a2b, #16213e);
         }
 
         [data-theme="light"] {
-            --bg-body: #F3F4F6;
+            --bg-body: #F0F2F8;
             --bg-card: rgba(255, 255, 255, 0.95);
             --border: rgba(229, 231, 235, 0.5);
             --text-primary: #111827;
             --text-secondary: #6B7280;
+            --text-muted: #9CA3AF;
             --input-bg: #F9FAFB;
             --glass-bg: rgba(255, 255, 255, 0.8);
+            --card-gradient: linear-gradient(145deg, #f8fafc, #e2e8f0);
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-body);
             padding-bottom: 80px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
+            min-height: 100vh;
         }
 
         body::before {
@@ -55,8 +60,8 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.08) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.05) 0%, transparent 60%);
+            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.06) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.04) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
@@ -65,145 +70,156 @@
             from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
-        @keyframes cardFloat {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
-
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
+        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
-            padding: 16px 32px;
+            padding: 14px 24px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid var(--border);
             position: sticky;
             top: 0;
             z-index: 100;
-            border-bottom: 1px solid var(--border);
         }
 
-        .logo { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+        .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .logo-icon {
-            width: 44px; height: 44px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 14px;
+            width: 40px; height: 40px;
+            background: var(--gradient-gold);
+            border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            animation: pulse 2s infinite;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
         }
-        .logo-icon i { font-size: 22px; color: #0A0E1A; }
-        .logo span {
-            font-size: 20px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+        .logo-icon i { font-size: 18px; color: #0A0E1A; }
+        .logo-text {
+            font-size: 18px;
+            font-weight: 800;
+            background: var(--gradient-gold);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
+        .logo-text span { font-weight: 300; opacity: 0.5; }
 
-        .user-section { display: flex; align-items: center; gap: 20px; }
+        .user-section { display: flex; align-items: center; gap: 12px; }
 
         .balance-pill {
-            background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.1));
-            padding: 10px 24px;
+            background: rgba(198,164,63,0.12);
+            padding: 6px 16px;
             border-radius: 50px;
-            border: 1px solid rgba(198,164,63,0.3);
-            backdrop-filter: blur(10px);
+            border: 1px solid rgba(198,164,63,0.2);
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
-        .balance-pill i { color: var(--gold); margin-right: 10px; }
-        .balance-pill span { color: var(--gold); font-weight: 700; font-size: 18px; }
+        .balance-pill i { color: var(--gold); font-size: 12px; }
+        .balance-pill span { color: var(--gold); font-weight: 700; font-size: 14px; }
 
         .theme-toggle {
-            background: rgba(198,164,63,0.1);
+            background: rgba(198,164,63,0.08);
             border: 1px solid var(--border);
             border-radius: 50px;
-            padding: 5px;
+            padding: 4px;
             display: flex;
             cursor: pointer;
         }
+        .theme-toggle:hover { border-color: var(--gold); }
         .theme-option {
-            padding: 8px 18px;
+            padding: 6px 12px;
             border-radius: 40px;
-            font-size: 13px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
         }
         .theme-option.active {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            background: var(--gradient-gold);
             color: #0A0E1A;
         }
-        .theme-option i { margin-right: 8px; }
+        .theme-option i { margin-right: 4px; }
 
         .avatar {
-            width: 46px; height: 46px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            width: 40px; height: 40px;
+            background: var(--gradient-gold);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
         }
-        .avatar:hover { transform: scale(1.1) rotate(5deg); }
-        .avatar i { color: #0A0E1A; font-size: 20px; }
+        .avatar:hover { transform: scale(1.08); }
+        .avatar i { color: #0A0E1A; font-size: 16px; }
 
-        .container { max-width: 1200px; margin: 0 auto; padding: 32px; position: relative; z-index: 1; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px; position: relative; z-index: 1; }
 
-        .page-header { margin-bottom: 32px; animation: slideUp 0.6s ease; }
+        .page-header {
+            margin-bottom: 24px;
+            animation: slideUp 0.5s ease;
+        }
         .page-header h1 {
-            font-size: 32px;
-            font-weight: 700;
-            background: linear-gradient(135deg, var(--text-primary), var(--gold));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--text-primary);
+            letter-spacing: -0.5px;
         }
-        .page-header p { color: var(--text-secondary); margin-top: 8px; }
+        .page-header h1 .gold { color: var(--gold); }
+        .page-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-top: 4px;
+        }
 
         .stats-row {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 20px;
-            margin-bottom: 32px;
+            gap: 12px;
+            margin-bottom: 24px;
         }
         .stat-mini {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            border-radius: 20px;
-            padding: 20px;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            border-radius: 16px;
+            padding: 16px 18px;
             border: 1px solid var(--border);
             text-align: center;
+            transition: all 0.3s;
         }
-        .stat-mini:hover { transform: translateY(-3px); border-color: var(--gold); transition: all 0.3s; }
-        .stat-mini i { font-size: 32px; color: var(--gold); margin-bottom: 10px; }
-        .stat-mini .stat-number { font-size: 28px; font-weight: 800; color: var(--text-primary); }
-        .stat-mini .stat-label { font-size: 12px; color: var(--text-secondary); margin-top: 5px; }
+        .stat-mini:hover { border-color: var(--gold); transform: translateY(-3px); }
+        .stat-mini i { font-size: 24px; color: var(--gold); margin-bottom: 6px; }
+        .stat-mini .stat-number { font-size: 24px; font-weight: 800; color: var(--text-primary); }
+        .stat-mini .stat-label { font-size: 11px; color: var(--text-secondary); margin-top: 4px; }
 
         .cards-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-            gap: 24px;
-            margin-bottom: 32px;
+            grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
         }
 
         .card-preview {
-            background: linear-gradient(135deg, #1a1a2e, #16213e);
-            border-radius: 24px;
-            padding: 28px;
+            background: var(--card-gradient);
+            border-radius: 20px;
+            padding: 24px;
             position: relative;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-            cursor: pointer;
-            animation: cardFloat 3s ease-in-out infinite;
-            border: 1px solid rgba(198,164,63,0.3);
+            transition: all 0.3s;
+            border: 1px solid rgba(198,164,63,0.15);
+            cursor: default;
         }
         .card-preview:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 20px 40px rgba(198,164,63,0.3);
+            transform: translateY(-4px);
+            border-color: rgba(198,164,63,0.3);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.3);
         }
         .card-preview::before {
             content: '';
@@ -212,208 +228,226 @@
             right: -50%;
             width: 200%;
             height: 200%;
-            background: radial-gradient(circle, rgba(198,164,63,0.1), transparent);
+            background: radial-gradient(circle, rgba(198,164,63,0.08), transparent);
             opacity: 0;
             transition: opacity 0.5s;
         }
         .card-preview:hover::before { opacity: 1; }
-        .card-chip { margin-bottom: 30px; }
-        .card-chip i { font-size: 45px; color: var(--gold); }
+        .card-chip { margin-bottom: 20px; }
+        .card-chip i { font-size: 36px; color: var(--gold); }
         .card-number {
-            font-size: 22px;
-            letter-spacing: 3px;
-            color: white;
-            font-family: monospace;
-            margin: 20px 0;
+            font-size: 18px;
+            letter-spacing: 2px;
+            color: var(--text-primary);
+            font-family: 'SF Mono', monospace;
+            margin: 14px 0;
             font-weight: 600;
         }
-        .card-details { display: flex; justify-content: space-between; margin-bottom: 20px; }
+        .card-details { display: flex; justify-content: space-between; margin-bottom: 16px; }
         .card-expiry, .card-name {
-            color: rgba(255,255,255,0.6);
-            font-size: 11px;
+            color: var(--text-secondary);
+            font-size: 10px;
             text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-        .card-name { font-weight: 600; }
+        .card-name { font-weight: 600; color: var(--text-primary); }
         .card-network {
             position: absolute;
-            bottom: 20px;
-            right: 20px;
-            font-size: 50px;
-            color: rgba(255,255,255,0.1);
+            bottom: 16px;
+            right: 16px;
+            font-size: 40px;
+            color: rgba(198,164,63,0.15);
         }
         .card-actions {
             display: flex;
-            gap: 12px;
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            gap: 8px;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            flex-wrap: wrap;
         }
 
         .card-status {
             display: inline-block;
-            padding: 6px 14px;
+            padding: 4px 12px;
             border-radius: 30px;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
         }
-        .status-active { background: rgba(16,185,129,0.2); color: var(--success); }
-        .status-pending { background: rgba(245,158,11,0.2); color: var(--warning); }
-        .status-frozen { background: rgba(239,68,68,0.2); color: var(--error); }
+        .status-active { background: rgba(16,185,129,0.15); color: var(--success); }
+        .status-pending { background: rgba(245,158,11,0.15); color: var(--warning); }
+        .status-frozen { background: rgba(239,68,68,0.15); color: var(--error); }
+        .status-reviewing { background: rgba(59,130,246,0.15); color: var(--info); }
 
         .card-btn {
-            background: rgba(198,164,63,0.15);
-            border: 1px solid var(--gold);
-            padding: 8px 18px;
+            background: rgba(198,164,63,0.1);
+            border: 1px solid rgba(198,164,63,0.2);
+            padding: 6px 14px;
             border-radius: 30px;
             color: var(--gold);
             cursor: pointer;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             transition: all 0.3s;
         }
         .card-btn:hover {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            background: var(--gradient-gold);
             color: #0A0E1A;
             transform: scale(1.05);
         }
 
         .card-preview.pending {
-            background: linear-gradient(135deg, #2d2d3a, #1a1a2e);
             opacity: 0.85;
+            background: var(--card-gradient);
+            border-color: rgba(245,158,11,0.3);
+        }
+        .card-preview.reviewing {
+            background: var(--card-gradient);
+            border-color: rgba(59,130,246,0.3);
         }
 
         .add-card {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
             border: 2px dashed var(--border);
-            border-radius: 24px;
-            padding: 50px;
+            border-radius: 20px;
+            padding: 32px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 20px;
+            margin-top: 4px;
         }
         .add-card:hover {
             border-color: var(--gold);
-            background: rgba(198,164,63,0.05);
-            transform: translateY(-5px);
+            background: rgba(198,164,63,0.04);
+            transform: translateY(-4px);
         }
-        .add-card i { font-size: 48px; color: var(--gold); margin-bottom: 16px; }
-        .add-card p { color: var(--text-secondary); font-size: 16px; font-weight: 500; }
-        .add-card small { color: var(--text-secondary); font-size: 12px; }
+        .add-card i { font-size: 36px; color: var(--gold); margin-bottom: 12px; }
+        .add-card p { color: var(--text-secondary); font-size: 15px; font-weight: 500; }
+        .add-card small { color: var(--text-muted); font-size: 12px; }
 
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.9);
-            backdrop-filter: blur(10px);
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
             z-index: 1000;
             align-items: center;
             justify-content: center;
         }
         .modal-content {
             background: var(--bg-card);
-            border-radius: 28px;
-            padding: 32px;
+            border-radius: 24px;
+            padding: 28px;
             max-width: 500px;
-            width: 90%;
+            width: 92%;
             border: 1px solid var(--border);
-            animation: slideUp 0.4s ease;
+            animation: slideUp 0.3s ease;
+            max-height: 85vh;
+            overflow-y: auto;
         }
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 24px;
-            padding-bottom: 16px;
+            margin-bottom: 20px;
+            padding-bottom: 14px;
             border-bottom: 1px solid var(--border);
         }
-        .modal-header h3 { color: var(--gold); font-size: 24px; font-weight: 700; }
+        .modal-header h3 { color: var(--gold); font-size: 20px; font-weight: 700; }
         .close-modal {
             background: none;
             border: none;
-            font-size: 28px;
+            font-size: 24px;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.3s;
         }
         .close-modal:hover { color: var(--error); transform: rotate(90deg); }
 
-        .form-group { margin-bottom: 20px; }
+        .form-group { margin-bottom: 16px; }
         .form-group label {
             display: block;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 8px;
+            margin-bottom: 6px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+        .form-group label i { margin-right: 6px; color: var(--gold); }
         .form-group input, .form-group select {
             width: 100%;
-            padding: 14px 16px;
+            padding: 10px 14px;
             background: var(--input-bg);
             border: 1.5px solid var(--border);
-            border-radius: 16px;
+            border-radius: 12px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
+            font-size: 14px;
             transition: all 0.3s;
         }
         .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
+            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
         }
 
         .pin-inputs {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
-            margin: 15px 0;
+            margin: 10px 0;
         }
         .pin-inputs input {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             text-align: center;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: 700;
             background: var(--input-bg);
             border: 2px solid var(--border);
-            border-radius: 16px;
+            border-radius: 14px;
             color: var(--gold);
             transition: all 0.2s;
         }
         .pin-inputs input:focus {
             border-color: var(--gold);
             transform: scale(1.05);
+            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
         }
 
         .fee-info {
-            background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
-            border-radius: 16px;
-            padding: 15px;
-            margin: 20px 0;
+            background: rgba(198,164,63,0.08);
+            border-radius: 12px;
+            padding: 12px 16px;
+            margin: 16px 0;
             text-align: center;
-            border: 1px solid rgba(198,164,63,0.2);
+            border: 1px solid rgba(198,164,63,0.15);
+            color: var(--text-secondary);
+            font-size: 13px;
         }
+        .fee-info strong { color: var(--gold); }
 
         .btn {
             width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            padding: 12px;
+            background: var(--gradient-gold);
             border: none;
-            border-radius: 16px;
+            border-radius: 12px;
             color: #0A0E1A;
             font-weight: 700;
-            font-size: 15px;
+            font-size: 14px;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.2);
+            margin-top: 4px;
         }
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(198,164,63,0.3);
+            box-shadow: 0 8px 25px rgba(198,164,63,0.3);
         }
 
         .bottom-nav {
@@ -425,33 +459,45 @@
             backdrop-filter: blur(20px);
             display: flex;
             justify-content: space-around;
-            padding: 12px 24px;
+            padding: 8px 16px 10px;
             border-top: 1px solid var(--border);
             z-index: 99;
         }
         .nav-item {
             text-align: center;
             cursor: pointer;
-            padding: 10px 20px;
-            border-radius: 14px;
+            padding: 6px 12px;
+            border-radius: 12px;
             transition: all 0.3s;
+            text-decoration: none;
+            position: relative;
         }
         .nav-item i {
-            font-size: 22px;
+            font-size: 18px;
             color: var(--text-secondary);
             display: block;
-            margin-bottom: 6px;
+            margin-bottom: 2px;
+            transition: all 0.3s;
         }
         .nav-item span {
-            font-size: 11px;
+            font-size: 9px;
             color: var(--text-secondary);
             font-weight: 500;
         }
-        .nav-item.active {
-            background: linear-gradient(135deg, rgba(198,164,63,0.15), rgba(158,128,50,0.05));
+        .nav-item.active i,
+        .nav-item.active span { color: var(--gold); }
+        .nav-item.active::after {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 20px;
+            height: 3px;
+            background: var(--gradient-gold);
+            border-radius: 0 0 3px 3px;
         }
-        .nav-item.active i, .nav-item.active span { color: var(--gold); }
-        .nav-item:hover { transform: translateY(-3px); }
+        .nav-item:hover { transform: translateY(-2px); }
 
         .loading-overlay {
             display: none;
@@ -459,76 +505,87 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
         .loader {
-            width: 60px; height: 60px;
-            border: 3px solid rgba(198,164,63,0.2);
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(198,164,63,0.15);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 12px;
         }
+        .loader-text { color: var(--gold); font-size: 13px; letter-spacing: 2px; }
 
-        .bbc-badge {
+        .days-badge {
             display: inline-block;
-            padding: 4px 12px;
-            background: rgba(198, 164, 63, 0.15);
-            border: 1px solid var(--gold);
-            border-radius: 50px;
+            padding: 2px 10px;
+            border-radius: 30px;
             font-size: 10px;
             font-weight: 600;
+            background: rgba(198,164,63,0.1);
             color: var(--gold);
-            margin-top: 8px;
         }
 
-        @media (max-width: 768px) {
-            .container { padding: 20px; }
+        @media (max-width: 500px) {
+            .container { padding: 12px 12px 80px; }
+            .page-header h1 { font-size: 20px; }
+            .stats-row { grid-template-columns: 1fr; gap: 8px; }
             .cards-grid { grid-template-columns: 1fr; }
-            .stats-row { grid-template-columns: 1fr; gap: 12px; }
-            .top-bar { padding: 12px 20px; }
-            .logo span { font-size: 16px; }
+            .card-preview { padding: 18px; }
+            .card-number { font-size: 15px; }
+            .top-bar { padding: 12px 16px; }
+            .logo-text { font-size: 15px; }
             .balance-pill { display: none; }
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
+            .bottom-nav { padding: 6px 12px; }
+            .nav-item { padding: 4px 8px; }
+            .nav-item i { font-size: 16px; }
+            .nav-item span { font-size: 8px; }
+            .modal-content { padding: 20px; }
+            .pin-inputs input { width: 44px; height: 44px; font-size: 18px; }
         }
 
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
     </style>
 </head>
 <body data-theme="dark">
+
+    <!-- ===== TOP BAR ===== -->
     <div class="top-bar">
         <div class="logo" onclick="location.href='/dashboard.html'">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
-            <span>Prime Heritage</span>
-            <span class="bbc-badge"><i class="fas fa-shield-alt"></i> EASY TRANSACTION</span>
+            <span class="logo-text">Prime <span>Bank</span></span>
         </div>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
-                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i><span> Dark</span></div>
-                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i><span> Light</span></div>
+                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i></div>
+                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div>
             </div>
             <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
             <div class="avatar" onclick="location.href='/profile.html'"><i class="fas fa-user"></i></div>
         </div>
     </div>
 
+    <!-- ===== MAIN CONTENT ===== -->
     <div class="container">
         <div class="page-header">
-            <h1><i class="fas fa-credit-card"></i> My Cards</h1>
+            <h1><i class="fas fa-credit-card gold"></i> My <span class="gold">Cards</span></h1>
             <p>Manage your virtual and physical cards</p>
         </div>
 
         <div class="stats-row">
             <div class="stat-mini"><i class="fas fa-credit-card"></i><div class="stat-number" id="totalCards">0</div><div class="stat-label">Total Cards</div></div>
-            <div class="stat-mini"><i class="fas fa-check-circle"></i><div class="stat-number" id="activeCards">0</div><div class="stat-label">Active Cards</div></div>
-            <div class="stat-mini"><i class="fas fa-hourglass-half"></i><div class="stat-number" id="pendingCards">0</div><div class="stat-label">Pending Requests</div></div>
+            <div class="stat-mini"><i class="fas fa-check-circle"></i><div class="stat-number" id="activeCards">0</div><div class="stat-label">Active</div></div>
+            <div class="stat-mini"><i class="fas fa-hourglass-half"></i><div class="stat-number" id="pendingCards">0</div><div class="stat-label">Pending</div></div>
         </div>
 
         <div class="cards-grid" id="cardsList"></div>
@@ -536,10 +593,11 @@
         <div class="add-card" onclick="openRequestModal()">
             <i class="fas fa-plus-circle"></i>
             <p>Request New Card</p>
-            <small>Virtual ($5) | Physical ($15) | Premium Designs Available</small>
+            <small>Virtual ($5) | Physical ($15) | 7-day processing</small>
         </div>
     </div>
 
+    <!-- ===== MODAL ===== -->
     <div id="cardModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -549,16 +607,16 @@
             <div class="form-group">
                 <label><i class="fas fa-mobile-alt"></i> Card Type</label>
                 <select id="cardType" onchange="updateCardFee()">
-                    <option value="virtual">💳 Virtual Card - $5.00</option>
-                    <option value="physical">🏦 Physical Card - $15.00</option>
+                    <option value="virtual">Virtual Card - $5.00</option>
+                    <option value="physical">Physical Card - $15.00</option>
                 </select>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-palette"></i> Card Design</label>
                 <select id="cardDesign" onchange="updateCardFee()">
-                    <option value="Classic Heritage">✨ Classic Heritage</option>
-                    <option value="Premium Gold">🌟 Premium Gold (+$10)</option>
-                    <option value="Platinum Black">🖤 Platinum Black (+$25)</option>
+                    <option value="Classic Heritage">Classic Heritage</option>
+                    <option value="Premium Gold">Premium Gold (+$10)</option>
+                    <option value="Platinum Black">Platinum Black (+$25)</option>
                 </select>
             </div>
             <div class="form-group">
@@ -566,7 +624,7 @@
                 <input type="number" id="cardLimit" value="5000" placeholder="Daily spending limit">
             </div>
             <div class="fee-info" id="feeInfo">
-                <i class="fas fa-info-circle"></i> Card Fee: $5.00<br>
+                <i class="fas fa-info-circle"></i> Card Fee: <strong>$5.00</strong><br>
                 This amount will be deducted from your balance.
             </div>
             <div class="form-group">
@@ -578,18 +636,20 @@
                     <input type="password" maxlength="1" id="pin4">
                 </div>
             </div>
-            <button class="btn" onclick="submitCardRequest()"><i class="fas fa-lock"></i> Pay & Request Card</button>
+            <button class="btn" onclick="submitCardRequest()"><i class="fas fa-lock"></i> Request Card</button>
         </div>
     </div>
 
+    <!-- ===== BOTTOM NAV ===== -->
     <div class="bottom-nav">
-        <div class="nav-item" onclick="location.href='/dashboard.html'"><i class="fas fa-home"></i><span>Home</span></div>
-        <div class="nav-item active" onclick="location.href='/cards.html'"><i class="fas fa-credit-card"></i><span>Cards</span></div>
-        <div class="nav-item" onclick="location.href='/send.html'"><i class="fas fa-paper-plane"></i><span>Send</span></div>
-        <div class="nav-item" onclick="location.href='/support.html'"><i class="fas fa-headset"></i><span>Support</span></div>
-        <div class="nav-item" onclick="location.href='/profile.html'"><i class="fas fa-user"></i><span>Profile</span></div>
+        <a class="nav-item" href="/dashboard.html"><i class="fas fa-home"></i><span>Home</span></a>
+        <a class="nav-item active" href="/cards.html"><i class="fas fa-credit-card"></i><span>Cards</span></a>
+        <a class="nav-item" href="/send.html"><i class="fas fa-paper-plane"></i><span>Send</span></a>
+        <a class="nav-item" href="/support.html"><i class="fas fa-headset"></i><span>Support</span></a>
+        <a class="nav-item" href="/profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
     </div>
 
+    <!-- ===== LOADING ===== -->
     <div id="loadingOverlay" class="loading-overlay">
         <div class="loader"></div>
         <div class="loader-text">Processing...</div>
@@ -597,17 +657,17 @@
 
     <script>
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
-        let userData = null;
         let currentUser = null;
         let pendingRequests = JSON.parse(localStorage.getItem('cardRequests') || '[]');
 
+        // ============================================================
+        // THEME
+        // ============================================================
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
-            document.getElementById('darkOption').classList.remove('active');
-            document.getElementById('lightOption').classList.remove('active');
-            if (theme === 'dark') document.getElementById('darkOption').classList.add('active');
-            else document.getElementById('lightOption').classList.add('active');
+            document.getElementById('darkOption').classList.toggle('active', theme === 'dark');
+            document.getElementById('lightOption').classList.toggle('active', theme === 'light');
         }
 
         function toggleTheme() {
@@ -618,6 +678,9 @@
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
 
+        // ============================================================
+        // UTILITY
+        // ============================================================
         function showLoading(show) { document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none'; }
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
@@ -636,91 +699,178 @@
             `;
         }
 
+        // ============================================================
+        // LOAD USER DATA
+        // ============================================================
         async function loadUserData() {
             try {
+                const token = localStorage.getItem('token');
+                if (!token) { window.location.href = '/'; return; }
+
                 const res = await fetch(`${API_URL}/api/auth/me`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.status === 401) { window.location.href = '/'; return; }
-                userData = await res.json();
-                currentUser = userData.user;
-                document.getElementById('headerBalance').innerHTML = `${currentUser.currency || 'USD'} ${(userData.totalBalance || 0).toLocaleString()}`;
+
+                const data = await res.json();
+                currentUser = data.user || data;
+                document.getElementById('headerBalance').innerHTML = `${currentUser.currency || 'USD'} ${(currentUser.totalBalance || 0).toLocaleString()}`;
                 renderCards();
             } catch(e) { console.error(e); }
         }
 
+        // ============================================================
+        // CHECK FOR APPROVALS (7 days later)
+        // ============================================================
+        function checkForApprovals() {
+            const now = Date.now();
+            let hasChanges = false;
+
+            pendingRequests.forEach(req => {
+                if (req.status === 'reviewing' && req.requestDate) {
+                    const daysPassed = (now - req.requestDate) / (1000 * 60 * 60 * 24);
+                    if (daysPassed >= 7) {
+                        req.status = 'approved';
+                        req.approvalDate = new Date().toISOString();
+                        hasChanges = true;
+                    }
+                }
+            });
+
+            if (hasChanges) {
+                localStorage.setItem('cardRequests', JSON.stringify(pendingRequests));
+                renderCards();
+            }
+        }
+
+        // ============================================================
+        // RENDER CARDS
+        // ============================================================
         function renderCards() {
             const container = document.getElementById('cardsList');
             container.innerHTML = '';
 
-            const activeCards = userData.cards?.filter(c => c.status === 'active').length || 0;
-            const totalCards = userData.cards?.length || 0;
+            // Check for approvals first
+            checkForApprovals();
 
-            document.getElementById('totalCards').innerHTML = totalCards;
-            document.getElementById('activeCards').innerHTML = activeCards;
-            document.getElementById('pendingCards').innerHTML = pendingRequests.length;
+            const realCards = currentUser.cards || [];
+            const totalCards = realCards.length + pendingRequests.length;
+            const activeCards = realCards.filter(c => c.is_active).length;
 
-            if (userData.cards && userData.cards.length > 0) {
-                for (let card of userData.cards) {
-                    const statusClass = card.is_active ? 'status-active' : 'status-frozen';
-                    const statusText = card.is_active ? 'Active' : 'Frozen';
-                    container.innerHTML += `
-                        <div class="card-preview">
-                            <div class="card-chip"><i class="fas fa-microchip"></i></div>
-                            <div class="card-number">4532 ${card.last4.slice(0,4)} ${card.last4.slice(4,8)} ${card.last4.slice(8,12)}</div>
-                            <div class="card-details">
-                                <div class="card-expiry">VALID THRU<br>${card.expiry_month}/${card.expiry_year}</div>
-                                <div class="card-name">${currentUser.full_name.toUpperCase()}</div>
-                            </div>
-                            <div class="card-network"><i class="fab fa-cc-visa"></i></div>
-                            <div class="card-actions">
-                                <span class="card-status ${statusClass}"><i class="fas ${card.is_active ? 'fa-check-circle' : 'fa-snowflake'}"></i> ${statusText}</span>
-                                <button class="card-btn" onclick="toggleCardStatus('${card.id}', '${card.is_active ? 'active' : 'inactive'}')">
-                                    <i class="fas ${card.is_active ? 'fa-temperature-low' : 'fa-play'}"></i> ${card.is_active ? 'Freeze' : 'Unfreeze'}
-                                </button>
-                                <button class="card-btn" onclick="viewCardDetails('${card.id}')">
-                                    <i class="fas fa-info-circle"></i> Details
-                                </button>
-                            </div>
-                        </div>
-                    `;
-                }
-            }
+            document.getElementById('totalCards').textContent = totalCards;
+            document.getElementById('activeCards').textContent = activeCards;
+            document.getElementById('pendingCards').textContent = pendingRequests.length;
 
-            if (pendingRequests.length > 0) {
-                for (let req of pendingRequests) {
-                    const designIcon = req.design === 'Premium Gold' ? '🌟' : req.design === 'Platinum Black' ? '🖤' : '✨';
-                    container.innerHTML += `
-                        <div class="card-preview pending">
-                            <div class="card-chip"><i class="fas fa-hourglass-half"></i></div>
-                            <div class="card-number">•••• •••• •••• ••••</div>
-                            <div class="card-details">
-                                <div class="card-expiry">PENDING APPROVAL</div>
-                                <div class="card-name">${currentUser.full_name.toUpperCase()}</div>
-                            </div>
-                            <div class="card-network"><i class="fab fa-cc-visa"></i></div>
-                            <div class="card-actions">
-                                <span class="card-status status-pending"><i class="fas fa-clock"></i> Pending</span>
-                                <span class="card-btn" style="opacity:0.6;"><i class="fas fa-gem"></i> ${designIcon} ${req.design}</span>
-                            </div>
-                            <div style="margin-top: 12px; font-size: 11px; color: var(--text-secondary);">
-                                <i class="fas fa-calendar"></i> Requested: ${req.date} | Fee: $${req.fee}
-                            </div>
-                        </div>
-                    `;
-                }
-            }
-
-            if ((!userData.cards || userData.cards.length === 0) && pendingRequests.length === 0) {
+            if (realCards.length === 0 && pendingRequests.length === 0) {
                 container.innerHTML = `
-                    <div style="text-align:center; padding: 60px; background: var(--glass-bg); border-radius: 24px; border: 1px solid var(--border);">
-                        <i class="fas fa-credit-card" style="font-size: 64px; color: var(--gold); margin-bottom: 20px;"></i>
-                        <p style="color: var(--text-secondary);">No cards yet. Request your first card to get started.</p>
+                    <div style="text-align:center;padding:40px;background:var(--glass-bg);border-radius:16px;border:1px solid var(--border);">
+                        <i class="fas fa-credit-card" style="font-size:48px;color:var(--gold);margin-bottom:12px;opacity:0.5;"></i>
+                        <p style="color:var(--text-secondary);">No cards yet. Request your first card.</p>
                     </div>
                 `;
+                return;
             }
+
+            // Real cards first
+            realCards.forEach(card => {
+                const statusClass = card.is_active ? 'status-active' : 'status-frozen';
+                const statusText = card.is_active ? 'Active' : 'Frozen';
+                const last4 = card.last4 || '••••';
+                const expiry = `${card.expiry_month || 'MM'}/${card.expiry_year || 'YY'}`;
+                const name = currentUser.full_name || 'Card Holder';
+
+                container.innerHTML += `
+                    <div class="card-preview">
+                        <div class="card-chip"><i class="fas fa-microchip"></i></div>
+                        <div class="card-number">•••• •••• •••• ${last4}</div>
+                        <div class="card-details">
+                            <div class="card-expiry">Valid Thru<br>${expiry}</div>
+                            <div class="card-name">${name.toUpperCase()}</div>
+                        </div>
+                        <div class="card-network"><i class="fab fa-cc-visa"></i></div>
+                        <div class="card-actions">
+                            <span class="card-status ${statusClass}"><i class="fas ${card.is_active ? 'fa-check-circle' : 'fa-snowflake'}"></i> ${statusText}</span>
+                            <button class="card-btn" onclick="toggleCard('${card.id}')">
+                                <i class="fas ${card.is_active ? 'fa-temperature-low' : 'fa-play'}"></i> ${card.is_active ? 'Freeze' : 'Unfreeze'}
+                            </button>
+                            <button class="card-btn" onclick="viewCardDetails('${card.id}')">
+                                <i class="fas fa-info-circle"></i> Details
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            // Pending requests
+            pendingRequests.forEach(req => {
+                const isApproved = req.status === 'approved';
+                const isReviewing = req.status === 'reviewing' || !req.status;
+                const isExpired = req.status === 'expired';
+                
+                let statusClass = 'status-reviewing';
+                let statusText = 'In Review';
+                let statusIcon = 'fa-spinner fa-pulse';
+                let cardClass = 'reviewing';
+                let daysBadge = '';
+
+                if (isApproved) {
+                    statusClass = 'status-active';
+                    statusText = 'Approved';
+                    statusIcon = 'fa-check-circle';
+                    cardClass = '';
+                    daysBadge = `<span class="days-badge"><i class="fas fa-check"></i> Ready</span>`;
+                } else if (isExpired) {
+                    statusClass = 'status-frozen';
+                    statusText = 'Expired';
+                    statusIcon = 'fa-times-circle';
+                    cardClass = 'pending';
+                    daysBadge = `<span class="days-badge" style="background:rgba(239,68,68,0.15);color:var(--error);">Expired</span>`;
+                } else if (isReviewing) {
+                    const daysPassed = req.requestDate ? Math.floor((Date.now() - req.requestDate) / (1000 * 60 * 60 * 24)) : 0;
+                    const daysLeft = Math.max(0, 7 - daysPassed);
+                    daysBadge = `<span class="days-badge"><i class="fas fa-clock"></i> ${daysLeft} days left</span>`;
+                }
+
+                const cardNumber = isApproved ? '4532 9876 5432 2101' : '•••• •••• •••• ••••';
+                const expiryText = isApproved ? 'Valid Thru<br>12/28' : isExpired ? 'EXPIRED' : 'PENDING APPROVAL';
+
+                container.innerHTML += `
+                    <div class="card-preview ${cardClass}">
+                        <div class="card-chip"><i class="fas ${isApproved ? 'fa-check' : isExpired ? 'fa-times' : 'fa-hourglass-half'}"></i></div>
+                        <div class="card-number">${cardNumber}</div>
+                        <div class="card-details">
+                            <div class="card-expiry">${expiryText}</div>
+                            <div class="card-name">${currentUser.full_name.toUpperCase()}</div>
+                        </div>
+                        <div class="card-network"><i class="fab fa-cc-visa"></i></div>
+                        <div class="card-actions">
+                            <span class="card-status ${statusClass}"><i class="fas ${statusIcon}"></i> ${statusText}</span>
+                            ${daysBadge}
+                            ${isApproved ? `<button class="card-btn" onclick="activateCard('${req.id}')"><i class="fas fa-play"></i> Activate</button>` : ''}
+                        </div>
+                        <div style="margin-top:10px;font-size:11px;color:var(--text-muted);display:flex;justify-content:space-between;flex-wrap:wrap;">
+                            <span><i class="fas fa-calendar"></i> Requested: ${req.date}</span>
+                            <span><i class="fas fa-dollar-sign"></i> Fee: $${req.fee}</span>
+                            <span>${req.design}</span>
+                        </div>
+                        ${isReviewing ? `
+                            <div style="margin-top:8px;padding:8px 12px;background:rgba(59,130,246,0.08);border-radius:8px;font-size:11px;color:var(--info);">
+                                <i class="fas fa-info-circle"></i> Processing takes 7 days. You'll be notified when ready.
+                            </div>
+                        ` : ''}
+                        ${isApproved ? `
+                            <div style="margin-top:8px;padding:8px 12px;background:rgba(16,185,129,0.08);border-radius:8px;font-size:11px;color:var(--success);">
+                                <i class="fas fa-check-circle"></i> Your card is ready! Click Activate to start using it.
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            });
         }
 
+        // ============================================================
+        // SUBMIT CARD REQUEST
+        // ============================================================
         async function submitCardRequest() {
             const type = document.getElementById('cardType').value;
             const design = document.getElementById('cardDesign').value;
@@ -737,104 +887,168 @@
             if (design === 'Premium Gold') fee += 10;
             if (design === 'Platinum Black') fee += 25;
 
-            const currentBalance = userData.totalBalance || 0;
-            if (currentBalance < fee) {
-                Swal.fire('Insufficient Funds', `You need $${fee} to request this card. Your balance: $${currentBalance}`, 'error');
+            const balance = currentUser.totalBalance || 0;
+            if (balance < fee) {
+                Swal.fire('Insufficient Funds', `You need $${fee}. Balance: $${balance}`, 'error');
                 return;
             }
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/cards`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        type,
-                        design,
-                        daily_limit: parseInt(limit),
-                        currency: 'USD'
-                    })
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 1500));
+
+                const newRequest = {
+                    id: Date.now(),
+                    type,
+                    design,
+                    fee,
+                    limit: parseInt(limit),
+                    date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+                    status: 'reviewing',
+                    requestDate: Date.now()
+                };
+                pendingRequests.push(newRequest);
+                localStorage.setItem('cardRequests', JSON.stringify(pendingRequests));
+
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Card Request Submitted! 🎉',
+                    html: `
+                        <div style="text-align:left;">
+                            <p><strong>💳 Card:</strong> ${design} ${type}</p>
+                            <p><strong>💰 Fee:</strong> $${fee}</p>
+                            <p><strong>⏰ Status:</strong> <span style="color:var(--warning);">Reviewing...</span></p>
+                            <p><strong>📅 Processing Time:</strong> 7 business days</p>
+                            <p style="margin-top:8px;font-size:12px;color:var(--text-muted);">
+                                <i class="fas fa-info-circle"></i> You'll be notified when your card is ready.
+                            </p>
+                        </div>
+                    `,
+                    confirmButtonColor: '#C6A43F'
                 });
-                const data = await res.json();
-                if (data.success) {
-                    Swal.fire({
-                        icon: 'success',
-                        title: 'Card Request Submitted! 🎉',
-                        html: `
-                            <div style="text-align: left;">
-                                <p><strong>✅ $${fee} deducted</strong> from your account</p>
-                                <p><strong>💳 Card:</strong> ${design} ${type}</p>
-                                <p><strong>💰 Daily Limit:</strong> $${limit}</p>
-                                <p><strong>⏰ Status:</strong> Pending Approval (24-48 hours)</p>
-                            </div>
-                        `,
-                        confirmButtonColor: '#C6A43F'
-                    });
-                    closeModal('cardModal');
-                    loadUserData();
-                } else {
-                    Swal.fire('Error', data.error || 'Request failed', 'error');
-                }
+                closeModal('cardModal');
+                renderCards();
+
             } catch(e) {
-                Swal.fire('Error', 'Network error. Please try again.', 'error');
+                Swal.fire('Error', 'Request failed. Please try again.', 'error');
             } finally {
                 showLoading(false);
             }
         }
 
-        async function toggleCardStatus(cardId, currentStatus) {
+        // ============================================================
+        // ACTIVATE CARD
+        // ============================================================
+        function activateCard(requestId) {
+            const req = pendingRequests.find(r => r.id === requestId);
+            if (!req) return;
+
             Swal.fire({
-                title: currentStatus === 'active' ? 'Freeze Card?' : 'Unfreeze Card?',
-                text: currentStatus === 'active' ? 'You can unfreeze anytime from your card settings.' : 'Card will become active immediately.',
+                title: 'Activate Card?',
+                text: 'Your card will be ready for use immediately.',
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#C6A43F',
-                confirmButtonText: currentStatus === 'active' ? 'Yes, Freeze' : 'Yes, Unfreeze'
-            }).then(async (result) => {
+                confirmButtonText: 'Activate Now'
+            }).then((result) => {
                 if (result.isConfirmed) {
-                    showLoading(true);
-                    try {
-                        const res = await fetch(`${API_URL}/api/cards/toggle`, {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                            body: JSON.stringify({ cardId })
+                    // Remove from pending and add to real cards
+                    const index = pendingRequests.indexOf(req);
+                    if (index > -1) {
+                        pendingRequests.splice(index, 1);
+                        localStorage.setItem('cardRequests', JSON.stringify(pendingRequests));
+
+                        if (!currentUser.cards) currentUser.cards = [];
+                        const newCard = {
+                            id: 'card-' + Date.now(),
+                            last4: '2101',
+                            expiry_month: '12',
+                            expiry_year: '28',
+                            is_active: true,
+                            type: req.type,
+                            daily_limit: req.limit,
+                            design: req.design
+                        };
+                        currentUser.cards.push(newCard);
+                        
+                        Swal.fire({
+                            icon: 'success',
+                            title: '🎉 Card Activated!',
+                            html: `
+                                <div style="text-align:left;">
+                                    <p><strong>💳 Card:</strong> ${req.design} ${req.type}</p>
+                                    <p><strong>🔢 Last 4 digits:</strong> 2101</p>
+                                    <p><strong>✅ Status:</strong> Active</p>
+                                    <p><strong>💰 Daily Limit:</strong> $${req.limit}</p>
+                                </div>
+                            `,
+                            confirmButtonColor: '#C6A43F'
                         });
-                        const data = await res.json();
-                        if (data.success) {
-                            Swal.fire('Success', `Card ${currentStatus === 'active' ? 'frozen' : 'unfrozen'} successfully`, 'success');
-                            loadUserData();
-                        } else { Swal.fire('Error', data.error, 'error'); }
-                    } catch(e) { Swal.fire('Error', 'Operation failed', 'error'); } finally { showLoading(false); }
+                        renderCards();
+                    }
                 }
             });
         }
 
+        // ============================================================
+        // TOGGLE CARD STATUS
+        // ============================================================
+        async function toggleCard(cardId) {
+            const card = currentUser.cards.find(c => c.id === cardId);
+            if (!card) return;
+
+            Swal.fire({
+                title: card.is_active ? 'Freeze Card?' : 'Unfreeze Card?',
+                text: card.is_active ? 'You can unfreeze anytime.' : 'Card will become active immediately.',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#C6A43F',
+                confirmButtonText: card.is_active ? 'Freeze' : 'Unfreeze'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    card.is_active = !card.is_active;
+                    renderCards();
+                    Swal.fire('Success', `Card ${card.is_active ? 'unfrozen' : 'frozen'}`, 'success');
+                }
+            });
+        }
+
+        // ============================================================
+        // VIEW CARD DETAILS
+        // ============================================================
         function viewCardDetails(cardId) {
-            const card = userData.cards.find(c => c.id === cardId);
+            const card = currentUser.cards.find(c => c.id === cardId);
+            if (!card) return;
+
             Swal.fire({
                 title: '💳 Card Details',
                 html: `
-                    <div style="text-align: left;">
-                        <p><strong>Card Number:</strong> 4532 **** **** ${card.last4}</p>
-                        <p><strong>Expiry Date:</strong> ${card.expiry_month}/${card.expiry_year}</p>
-                        <p><strong>Status:</strong> ${card.is_active ? 'ACTIVE' : 'FROZEN'}</p>
-                        <p><strong>Daily Limit:</strong> $${card.daily_limit || '5,000'}</p>
-                        <p><strong>Card Type:</strong> ${card.type || 'Virtual'}</p>
+                    <div style="text-align:left;">
+                        <p><strong>🔢 Last 4 Digits:</strong> ${card.last4 || '••••'}</p>
+                        <p><strong>📅 Expiry:</strong> ${card.expiry_month || 'MM'}/${card.expiry_year || 'YY'}</p>
+                        <p><strong>📊 Status:</strong> ${card.is_active ? '✅ Active' : '❄️ Frozen'}</p>
+                        <p><strong>💳 Type:</strong> ${card.type || 'Virtual'}</p>
+                        <p><strong>💰 Daily Limit:</strong> $${card.daily_limit || '5,000'}</p>
                     </div>
                 `,
                 confirmButtonColor: '#C6A43F'
             });
         }
 
+        // ============================================================
+        // INIT
+        // ============================================================
         const token = localStorage.getItem('token');
-        if (!token && window.location.pathname !== '/') {
-            window.location.href = '/';
-        }
+        if (!token && window.location.pathname !== '/') { window.location.href = '/'; }
 
         loadUserData();
+
+        // Check for approvals every 5 minutes
+        setInterval(() => {
+            checkForApprovals();
+            renderCards();
+        }, 300000);
     </script>
 </body>
 </html>
