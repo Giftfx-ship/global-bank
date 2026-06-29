@@ -993,7 +993,7 @@
         }
 
         // ============================================================
-        // FINAL: Verify Final Code & Complete Transaction
+        // FINAL: Verify Final Code & Complete Transaction (FIXED)
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
@@ -1007,7 +1007,8 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/withdraw/step4`, {
+                // FIX: Use /withdraw/final instead of /withdraw/step4
+                const res = await fetch(`${API_URL}/api/withdraw/final`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1016,6 +1017,7 @@
                     body: JSON.stringify({ reference: currentRef, bbcCode: code })
                 });
                 const data = await res.json();
+                
                 if (data.success) {
                     clearProgress();
                     showLoading(false);
@@ -1062,6 +1064,7 @@
                     showLoading(false);
                 }
             } catch(e) {
+                console.error('Final error:', e);
                 Swal.fire('Error', 'Withdrawal failed. Please try again.', 'error');
                 showLoading(false);
             }
