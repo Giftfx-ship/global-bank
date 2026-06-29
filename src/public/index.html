@@ -18,19 +18,22 @@
             --bg-secondary: #111827;
             --bg-card: #0F1622;
             --text-primary: #FFFFFF;
-            --text-secondary: #9CA3AF;
+            --text-secondary: #94A3B8;
+            --text-muted: #64748B;
             --border-color: #1F2937;
             --shadow-gold: rgba(198, 164, 63, 0.3);
             --radius: 24px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --gradient-gold: linear-gradient(135deg, #C6A43F, #9E8032);
         }
 
         [data-theme="light"] {
-            --bg-primary: #F3F4F6;
+            --bg-primary: #F0F2F8;
             --bg-secondary: #FFFFFF;
             --bg-card: #FFFFFF;
-            --text-primary: #111827;
-            --text-secondary: #6B7280;
+            --text-primary: #0A1628;
+            --text-secondary: #5A6B7D;
+            --text-muted: #8A9BAE;
             --border-color: #E5E7EB;
             --shadow-gold: rgba(198, 164, 63, 0.2);
         }
@@ -45,6 +48,7 @@
             position: relative;
             overflow-x: hidden;
             transition: var(--transition);
+            padding: 20px;
         }
 
         .bg-effects {
@@ -108,16 +112,6 @@
             66% { transform: translate(-20px, 40px) scale(0.9); }
         }
 
-        .container {
-            position: relative;
-            z-index: 1;
-            width: 100%;
-            max-width: 520px;
-            padding: 20px;
-            opacity: 0;
-            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
-        }
-
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(40px); }
             to { opacity: 1; transform: translateY(0); }
@@ -131,94 +125,109 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 520px;
+            padding: 20px;
+            opacity: 0;
+            animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) 0.5s forwards;
+        }
+
         .logo-section {
             text-align: center;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
         }
 
         .logo-icon {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border-radius: 28px;
+            width: 76px;
+            height: 76px;
+            background: var(--gradient-gold);
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 16px;
+            margin: 0 auto 14px;
             box-shadow: 0 20px 40px -12px var(--shadow-gold);
             transition: var(--transition);
             animation: pulse 3s ease-in-out infinite;
         }
 
-        .logo-icon:hover {
-            transform: scale(1.05) rotate(-5deg);
-        }
-
-        .logo-icon i {
-            font-size: 40px;
-            color: var(--bg-primary);
-        }
+        .logo-icon:hover { transform: scale(1.05) rotate(-5deg); }
+        .logo-icon i { font-size: 36px; color: #0A0E1A; }
 
         .logo-section h1 {
-            background: linear-gradient(135deg, var(--gold), var(--gold-light));
+            background: var(--gradient-gold);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            font-size: 28px;
+            font-size: 26px;
             font-weight: 800;
             letter-spacing: -0.5px;
-            margin-bottom: 6px;
         }
 
         .logo-section .tagline {
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 500;
             letter-spacing: 1px;
             text-transform: uppercase;
+            margin-top: 2px;
         }
+
+        .badge-tag {
+            display: inline-block;
+            padding: 4px 14px;
+            background: rgba(198, 164, 63, 0.12);
+            border: 1px solid var(--gold);
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gold);
+            margin-top: 10px;
+        }
+        .badge-tag i { margin-right: 4px; }
 
         .card {
             background: var(--bg-secondary);
             backdrop-filter: blur(20px);
             border-radius: var(--radius);
-            padding: 32px;
+            padding: 28px 24px;
             border: 1px solid var(--border-color);
             box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
             transition: var(--transition);
         }
 
-        .card:hover {
-            border-color: rgba(198, 164, 63, 0.3);
-        }
+        .card:hover { border-color: rgba(198, 164, 63, 0.3); }
 
         .tabs {
             display: flex;
-            gap: 8px;
-            margin-bottom: 28px;
+            gap: 6px;
+            margin-bottom: 24px;
             background: var(--bg-card);
-            padding: 6px;
-            border-radius: 18px;
+            padding: 4px;
+            border-radius: 16px;
             border: 1px solid var(--border-color);
         }
 
         .tab {
             flex: 1;
             text-align: center;
-            padding: 12px 16px;
+            padding: 10px 12px;
             border: none;
             background: transparent;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             cursor: pointer;
-            border-radius: 14px;
+            border-radius: 12px;
             color: var(--text-secondary);
             transition: var(--transition);
             position: relative;
         }
 
         .tab.active {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: var(--bg-primary);
+            background: var(--gradient-gold);
+            color: #0A0E1A;
             transform: scale(1.02);
             box-shadow: 0 8px 20px var(--shadow-gold);
         }
@@ -228,35 +237,30 @@
             background: rgba(198, 164, 63, 0.08);
         }
 
-        .tab i { margin-right: 8px; }
+        .tab i { margin-right: 6px; }
 
-        .form-group {
-            margin-bottom: 18px;
-        }
+        .form-group { margin-bottom: 16px; }
 
         .form-group label {
             display: block;
-            font-size: 11px;
+            font-size: 10px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 6px;
+            margin-bottom: 4px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
 
-        .form-group label i {
-            margin-right: 8px;
-            color: var(--gold);
-        }
+        .form-group label i { margin-right: 6px; color: var(--gold); }
 
         .form-group input,
         .form-group select {
             width: 100%;
-            padding: 14px 16px;
+            padding: 12px 14px;
             background: var(--bg-card);
             border: 1.5px solid var(--border-color);
-            border-radius: 14px;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 13px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             transition: var(--transition);
@@ -266,33 +270,26 @@
         .form-group select:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 3px rgba(198, 164, 63, 0.1);
+            box-shadow: 0 0 0 3px rgba(198, 164, 63, 0.08);
             transform: translateY(-1px);
         }
 
-        .form-group input:hover,
-        .form-group select:hover {
-            border-color: var(--gold);
-        }
-
-        .form-group input::placeholder {
-            color: #4B5563;
-        }
+        .form-group input::placeholder { color: var(--text-muted); }
 
         .row-2 {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 14px;
+            gap: 12px;
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: var(--bg-primary);
+            padding: 14px;
+            background: var(--gradient-gold);
+            color: #0A0E1A;
             border: none;
-            border-radius: 14px;
-            font-size: 14px;
+            border-radius: 12px;
+            font-size: 13px;
             font-weight: 700;
             cursor: pointer;
             transition: var(--transition);
@@ -311,15 +308,8 @@
             transition: width 0.6s, height 0.6s;
         }
 
-        .btn:hover::before {
-            width: 300px; height: 300px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px var(--shadow-gold);
-        }
-
+        .btn:hover::before { width: 300px; height: 300px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 10px 30px var(--shadow-gold); }
         .btn:active { transform: translateY(0); }
 
         .btn-secondary {
@@ -336,70 +326,66 @@
 
         .forgot-link {
             text-align: center;
-            margin-top: 16px;
+            margin-top: 14px;
         }
 
         .forgot-link a {
             color: var(--text-secondary);
             text-decoration: none;
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 500;
             transition: var(--transition);
         }
 
-        .forgot-link a:hover {
-            color: var(--gold);
+        .forgot-link a:hover { color: var(--gold); }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            background: var(--bg-card);
+            border-radius: 14px;
+            margin: 16px 0;
+            border: 2px solid var(--border-color);
+            cursor: pointer;
+            transition: var(--transition);
+            min-height: 60px;
+            user-select: none;
         }
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    padding: 18px 20px;
-    background: var(--bg-card);
-    border-radius: 16px;
-    margin: 20px 0;
-    border: 2px solid var(--border-color);
-    cursor: pointer;
-    transition: var(--transition);
-    min-height: 72px;
-    user-select: none;
-}
 
-.checkbox-group:hover {
-    border-color: var(--gold);
-    background: rgba(198, 164, 63, 0.08);
-}
+        .checkbox-group:hover {
+            border-color: var(--gold);
+            background: rgba(198, 164, 63, 0.06);
+        }
 
-.checkbox-group input[type="checkbox"] {
-    width: 28px;
-    height: 28px;
-    cursor: pointer;
-    accent-color: var(--gold);
-    flex-shrink: 0;
-}
+        .checkbox-group input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: var(--gold);
+            flex-shrink: 0;
+        }
 
-.checkbox-group label {
-    cursor: pointer;
-    font-size: 14px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin: 0;
-    flex: 1;
-}
+        .checkbox-group label {
+            cursor: pointer;
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin: 0;
+            flex: 1;
+        }
 
-.checkbox-group a {
-    color: var(--gold);
-    text-decoration: none;
-    font-weight: 600;
-}
+        .checkbox-group a {
+            color: var(--gold);
+            text-decoration: none;
+            font-weight: 600;
+        }
+        .checkbox-group a:hover { text-decoration: underline; }
 
-.checkbox-group a:hover {
-    text-decoration: underline;
-}
-      
         .password-strength {
-            margin-top: 8px;
-            height: 4px;
+            margin-top: 6px;
+            height: 3px;
             background: var(--border-color);
             border-radius: 4px;
             overflow: hidden;
@@ -413,26 +399,26 @@
         }
 
         .strength-text {
-            font-size: 11px;
-            margin-top: 6px;
+            font-size: 10px;
+            margin-top: 4px;
             color: var(--text-secondary);
         }
 
         .pin-inputs {
             display: flex;
-            gap: 10px;
+            gap: 8px;
             justify-content: center;
         }
 
         .pin-inputs input {
-            width: 56px;
-            height: 56px;
+            width: 48px;
+            height: 48px;
             text-align: center;
-            font-size: 22px;
+            font-size: 20px;
             font-weight: 700;
             background: var(--bg-card);
             border: 2px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 12px;
             color: var(--gold);
             transition: var(--transition);
         }
@@ -440,19 +426,20 @@
         .pin-inputs input:focus {
             border-color: var(--gold);
             transform: scale(1.05);
+            box-shadow: 0 0 0 3px rgba(198, 164, 63, 0.08);
         }
 
         .currency-selector {
             display: flex;
-            gap: 10px;
-            margin-top: 8px;
+            gap: 8px;
+            margin-top: 4px;
         }
 
         .currency-option {
             flex: 1;
-            padding: 12px;
+            padding: 10px;
             border: 1.5px solid var(--border-color);
-            border-radius: 14px;
+            border-radius: 12px;
             text-align: center;
             cursor: pointer;
             transition: var(--transition);
@@ -466,57 +453,53 @@
 
         .currency-option.selected {
             border-color: var(--gold);
-            background: linear-gradient(135deg, rgba(198, 164, 63, 0.15), rgba(158, 128, 50, 0.08));
+            background: rgba(198, 164, 63, 0.08);
             transform: scale(1.02);
         }
 
         .currency-option i {
-            font-size: 22px;
+            font-size: 20px;
             display: block;
-            margin-bottom: 4px;
+            margin-bottom: 2px;
             color: var(--text-secondary);
             transition: var(--transition);
         }
 
         .currency-option .symbol {
-            font-size: 13px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-primary);
         }
 
         .currency-option.selected i,
-        .currency-option.selected .symbol {
-            color: var(--gold);
-        }
+        .currency-option.selected .symbol { color: var(--gold); }
 
         .review-box {
             background: var(--bg-card);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 20px;
+            border-radius: 14px;
+            padding: 16px;
+            margin-bottom: 16px;
             border: 1px solid var(--border-color);
         }
 
         .review-item {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
+            padding: 6px 0;
             border-bottom: 1px solid var(--border-color);
         }
 
-        .review-item:last-child {
-            border-bottom: none;
-        }
+        .review-item:last-child { border-bottom: none; }
 
         .review-label {
             color: var(--text-secondary);
-            font-size: 12px;
+            font-size: 11px;
         }
 
         .review-value {
             color: var(--text-primary);
             font-weight: 600;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         .form-section {
@@ -527,28 +510,27 @@
         .form-section.active-section { display: block; }
 
         .section-title {
-            font-size: 18px;
+            font-size: 16px;
             font-weight: 700;
             color: var(--gold);
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
         }
-
-        .section-title i { font-size: 22px; }
+        .section-title i { font-size: 20px; }
 
         .progress-steps {
             display: flex;
             justify-content: space-between;
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             position: relative;
         }
 
         .progress-steps::before {
             content: '';
             position: absolute;
-            top: 18px;
+            top: 16px;
             left: 10%; right: 10%;
             height: 2px;
             background: var(--border-color);
@@ -566,25 +548,25 @@
         }
 
         .step-number {
-            width: 38px;
-            height: 38px;
+            width: 34px;
+            height: 34px;
             background: var(--bg-card);
             border: 2px solid var(--border-color);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 6px;
+            margin: 0 auto 4px;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 12px;
             color: var(--text-secondary);
             transition: var(--transition);
         }
 
         .step.active .step-number {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            background: var(--gradient-gold);
             border-color: var(--gold);
-            color: var(--bg-primary);
+            color: #0A0E1A;
             transform: scale(1.1);
             box-shadow: 0 0 20px var(--shadow-gold);
         }
@@ -598,12 +580,12 @@
         .step.completed .step-number span { display: none; }
         .step.completed .step-number::after {
             content: '✓';
-            font-size: 16px;
+            font-size: 14px;
             font-weight: bold;
         }
 
         .step-label {
-            font-size: 10px;
+            font-size: 9px;
             color: var(--text-secondary);
             font-weight: 500;
             transition: var(--transition);
@@ -616,10 +598,9 @@
 
         .btn-group {
             display: flex;
-            gap: 10px;
-            margin-top: 20px;
+            gap: 8px;
+            margin-top: 16px;
         }
-
         .btn-group .btn { margin-top: 0; }
 
         .loading-overlay {
@@ -636,83 +617,72 @@
         }
 
         .loading-spinner {
-            width: 60px; height: 60px;
+            width: 48px; height: 48px;
             border: 3px solid var(--border-color);
             border-top-color: var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
         }
 
         .loading-overlay p {
             color: var(--gold);
             font-weight: 500;
-            font-size: 14px;
+            font-size: 13px;
         }
 
         .theme-toggle {
             position: fixed;
-            top: 20px;
-            right: 20px;
+            top: 16px;
+            right: 16px;
             background: var(--bg-secondary);
             border: 1px solid var(--border-color);
             border-radius: 50px;
-            padding: 8px 16px;
+            padding: 4px 12px;
             display: flex;
-            gap: 8px;
+            gap: 4px;
             cursor: pointer;
             z-index: 100;
             transition: var(--transition);
         }
 
-        .theme-toggle:hover {
-            border-color: var(--gold);
-        }
+        .theme-toggle:hover { border-color: var(--gold); }
 
         .theme-toggle .theme-option {
-            padding: 6px 12px;
+            padding: 4px 10px;
             border-radius: 30px;
-            font-size: 12px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
             transition: var(--transition);
         }
 
         .theme-toggle .theme-option.active {
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            color: var(--bg-primary);
-        }
-
-        .bbc-badge {
-            display: inline-block;
-            padding: 4px 12px;
-            background: rgba(198, 164, 63, 0.15);
-            border: 1px solid var(--gold);
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--gold);
-            margin-top: 12px;
-        }
-
-        .bbc-badge i {
-            margin-right: 4px;
+            background: var(--gradient-gold);
+            color: #0A0E1A;
         }
 
         @media (max-width: 500px) {
-            .container { padding: 16px; }
-            .card { padding: 20px; }
-            .pin-inputs input { width: 48px; height: 48px; font-size: 18px; }
+            body { padding: 12px; }
+            .container { padding: 12px; }
+            .card { padding: 20px 16px; }
+            .logo-icon { width: 64px; height: 64px; }
+            .logo-icon i { font-size: 30px; }
+            .logo-section h1 { font-size: 22px; }
+            .pin-inputs input { width: 42px; height: 42px; font-size: 18px; }
             .row-2 { grid-template-columns: 1fr; }
-            .step-label { font-size: 8px; }
-            .step-number { width: 32px; height: 32px; font-size: 12px; }
-            .currency-selector { gap: 6px; }
-            .currency-option { padding: 10px; }
-            .theme-toggle { top: 10px; right: 10px; padding: 4px 10px; }
-            .theme-toggle .theme-option { padding: 4px 8px; font-size: 10px; }
+            .step-label { font-size: 7px; }
+            .step-number { width: 28px; height: 28px; font-size: 10px; }
+            .currency-selector { gap: 4px; }
+            .currency-option { padding: 8px; }
+            .theme-toggle { top: 8px; right: 8px; padding: 2px 8px; }
+            .theme-toggle .theme-option { padding: 2px 6px; font-size: 9px; }
+            .btn { padding: 12px; font-size: 12px; }
+            .checkbox-group { padding: 10px 12px; min-height: 50px; }
+            .checkbox-group label { font-size: 12px; }
         }
 
-        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-primary); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
@@ -734,7 +704,7 @@
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <h1>Prime Heritage Bank</h1>
             <div class="tagline">International Banking System 2026</div>
-            <div class="bbc-badge"><i class="fas fa-shield-alt"></i> WELCOME </div>
+            <div class="badge-tag"><i class="fas fa-shield-alt"></i> WELCOME</div>
         </div>
 
         <div class="card">
@@ -892,14 +862,14 @@
                         </div>
                     </div>
                     <div class="checkbox-group" onclick="toggleCheckbox(event)">
-    <input type="checkbox" id="termsCheckbox" onclick="event.stopPropagation()">
-    <label for="termsCheckbox">
-        I agree to the
-        <a href="#" onclick="event.stopPropagation()">Terms & Conditions</a>
-        and
-        <a href="#" onclick="event.stopPropagation()">Privacy Policy</a>
-    </label>
-</div>
+                        <input type="checkbox" id="termsCheckbox" onclick="event.stopPropagation()">
+                        <label for="termsCheckbox">
+                            I agree to the
+                            <a href="#" onclick="event.stopPropagation()">Terms & Conditions</a>
+                            and
+                            <a href="#" onclick="event.stopPropagation()">Privacy Policy</a>
+                        </label>
+                    </div>
                     <div class="btn-group">
                         <button class="btn btn-secondary" onclick="prevSection()">← Back</button>
                         <button class="btn" onclick="submitRegistration()">Open Account →</button>
@@ -1146,15 +1116,14 @@
                 if (next) next.focus();
             }
         }
-            function toggleCheckbox(event) {
-    if (event.target.tagName.toLowerCase() === 'a') return;
 
-    if (event.target.id !== 'termsCheckbox') {
-        const checkbox = document.getElementById('termsCheckbox');
-        checkbox.checked = !checkbox.checked;
-    }
-}
-        
+        function toggleCheckbox(event) {
+            if (event.target.tagName.toLowerCase() === 'a') return;
+            if (event.target.id !== 'termsCheckbox') {
+                const checkbox = document.getElementById('termsCheckbox');
+                checkbox.checked = !checkbox.checked;
+            }
+        }
 
         // ========== API CALLS ==========
         async function submitRegistration() {
@@ -1166,7 +1135,6 @@
 
             showLoading(true);
             try {
-                console.log('📝 Submitting registration to:', API_URL);
                 const response = await fetch(`${API_URL}/api/auth/register`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1177,12 +1145,10 @@
                         email: registrationData.email,
                         phone: registrationData.phone,
                         password: registrationData.password,
-                        transaction_pin: registrationData.transactionPin,
-                        currency: registrationData.currency || 'USD'
+                        transaction_pin: registrationData.transactionPin
                     })
                 });
                 const data = await response.json();
-                console.log('📝 Registration response:', data);
 
                 if (data.success) {
                     localStorage.setItem('token', data.token);
@@ -1195,7 +1161,7 @@
                         showConfirmButton: false
                     });
                     setTimeout(() => {
-                        window.location.href = data.user?.isAdmin ? '/admin.html' : '/dashboard.html';
+                        window.location.href = data.user?.is_admin ? '/admin.html' : '/dashboard.html';
                     }, 2000);
                 } else {
                     Swal.fire('Error', data.error || 'Registration failed', 'error');
@@ -1219,7 +1185,6 @@
 
             showLoading(true);
             try {
-                console.log('🔐 Login attempt:', identifier);
                 const response = await fetch(`${API_URL}/api/auth/login`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1229,7 +1194,6 @@
                     })
                 });
                 const data = await response.json();
-                console.log('🔐 Login response:', data);
 
                 if (data.success) {
                     localStorage.setItem('token', data.token);
