@@ -32,6 +32,8 @@
             --shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
             --glass-bg: rgba(17, 24, 39, 0.8);
             --table-hover: rgba(198,164,63,0.05);
+            --modal-overlay: rgba(0,0,0,0.85);
+            --user-card-bg: rgba(198,164,63,0.04);
         }
 
         [data-theme="light"] {
@@ -45,6 +47,8 @@
             --shadow: 0 25px 50px -12px rgba(0,0,0,0.15);
             --glass-bg: rgba(255, 255, 255, 0.8);
             --table-hover: rgba(198,164,63,0.08);
+            --modal-overlay: rgba(0,0,0,0.5);
+            --user-card-bg: rgba(198,164,63,0.06);
         }
 
         body {
@@ -73,6 +77,7 @@
             to { opacity: 1; transform: translateY(0) scale(1); }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
@@ -527,7 +532,7 @@
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
+            background: var(--modal-overlay);
             backdrop-filter: blur(12px);
             z-index: 1000;
             align-items: center;
@@ -539,10 +544,10 @@
             background: var(--bg-card);
             border-radius: 20px;
             padding: 28px;
-            max-width: 540px;
+            max-width: 560px;
             width: 92%;
             border: 1px solid var(--border);
-            max-height: 85vh;
+            max-height: 90vh;
             overflow-y: auto;
             box-shadow: var(--shadow);
         }
@@ -585,45 +590,188 @@
             transform: rotate(90deg);
         }
 
-        .form-group { margin-bottom: 16px; }
+        /* ===== IMPROVED FORM STYLES ===== */
+        .form-group { margin-bottom: 18px; }
         .form-group label {
             display: block;
-            font-size: 11px;
+            font-size: 12px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 4px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            letter-spacing: 0.3px;
         }
-        .form-group label i { margin-right: 6px; color: var(--gold); }
+        .form-group label i { margin-right: 8px; color: var(--gold); }
 
-        .form-group input, .form-group select, .form-group textarea {
+        .form-group input, 
+        .form-group select, 
+        .form-group textarea {
             width: 100%;
-            padding: 10px 14px;
+            padding: 12px 16px;
             background: var(--input-bg);
             border: 1.5px solid var(--border);
             border-radius: 12px;
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
-            font-size: 13px;
+            font-size: 14px;
             transition: all 0.3s;
         }
-        .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+        .form-group input:focus, 
+        .form-group select:focus, 
+        .form-group textarea:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
+            box-shadow: 0 0 0 4px rgba(198,164,63,0.1);
         }
         .form-group textarea { min-height: 70px; resize: vertical; }
 
+        /* User Select Dropdown with Avatar */
+        .user-select-wrapper {
+            position: relative;
+        }
+        
+        .user-select-wrapper select {
+            appearance: none;
+            -webkit-appearance: none;
+            padding-right: 44px;
+            cursor: pointer;
+        }
+        
+        .user-select-wrapper .select-arrow {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gold);
+            pointer-events: none;
+            font-size: 14px;
+        }
+        
+        .user-select-wrapper select option {
+            padding: 12px;
+            background: var(--bg-card);
+            color: var(--text-primary);
+        }
+
+        .user-select-wrapper select option:checked {
+            background: rgba(198,164,63,0.15);
+        }
+
+        /* Selected User Preview Card */
+        .selected-user-preview {
+            display: none;
+            background: var(--user-card-bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 18px;
+            margin-top: 10px;
+            align-items: center;
+            gap: 14px;
+            transition: all 0.3s;
+        }
+        .selected-user-preview.show {
+            display: flex;
+            animation: fadeInUp 0.3s ease;
+        }
+        
+        .selected-user-preview .avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 18px;
+            color: #0A0E1A;
+            flex-shrink: 0;
+        }
+        
+        .selected-user-preview .info {
+            flex: 1;
+        }
+        .selected-user-preview .info .name {
+            font-weight: 700;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+        .selected-user-preview .info .details {
+            color: var(--text-secondary);
+            font-size: 12px;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 2px;
+        }
+        .selected-user-preview .info .details span {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .selected-user-preview .info .details i {
+            color: var(--gold);
+            font-size: 11px;
+        }
+        .selected-user-preview .balance-badge {
+            background: rgba(198,164,63,0.12);
+            padding: 4px 14px;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--gold);
+            border: 1px solid rgba(198,164,63,0.2);
+            white-space: nowrap;
+        }
+
+        /* Amount Input with Currency */
+        .amount-input-wrapper {
+            position: relative;
+        }
+        .amount-input-wrapper .currency-label {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 16px;
+            pointer-events: none;
+        }
+        .amount-input-wrapper input {
+            padding-left: 44px !important;
+        }
+        .amount-input-wrapper .quick-amounts {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .amount-input-wrapper .quick-amounts button {
+            padding: 4px 14px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .amount-input-wrapper .quick-amounts button:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(198,164,63,0.05);
+        }
+
         .btn {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             border: none;
             border-radius: 12px;
             color: #0A0E1A;
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
             cursor: pointer;
             transition: all 0.3s;
             margin-top: 8px;
@@ -708,6 +856,17 @@
                 justify-content: center;
                 padding: 6px 12px;
                 font-size: 11px;
+            }
+            .selected-user-preview {
+                flex-direction: column;
+                text-align: center;
+                padding: 12px 14px;
+            }
+            .selected-user-preview .balance-badge {
+                margin-top: 6px;
+            }
+            .selected-user-preview .info .details {
+                justify-content: center;
             }
         }
     </style>
@@ -806,38 +965,81 @@
         </div>
     </div>
 
-    <!-- ===== SEND MONEY MODAL ===== -->
+    <!-- ===== SEND MONEY MODAL (IMPROVED UI) ===== -->
     <div id="sendModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
                 <h3><i class="fas fa-paper-plane"></i> Send Money</h3>
                 <button class="close-modal" onclick="closeModal('sendModal')">&times;</button>
             </div>
+            
             <input type="hidden" id="sendUserId">
+            
+            <!-- Select User -->
             <div class="form-group">
-                <label><i class="fas fa-user"></i> Recipient</label>
-                <input type="text" id="sendUserDisplay" readonly>
+                <label><i class="fas fa-user"></i> Select Recipient</label>
+                <div class="user-select-wrapper">
+                    <select id="sendUserSelect" onchange="updateUserPreview(this.value)">
+                        <option value="">-- Select a user --</option>
+                    </select>
+                    <i class="fas fa-chevron-down select-arrow"></i>
+                </div>
             </div>
+
+            <!-- User Preview -->
+            <div id="userPreview" class="selected-user-preview">
+                <div class="avatar" id="previewAvatar">U</div>
+                <div class="info">
+                    <div class="name" id="previewName">User Name</div>
+                    <div class="details">
+                        <span><i class="fas fa-id-card"></i> <span id="previewAccount">N/A</span></span>
+                        <span><i class="fas fa-envelope"></i> <span id="previewEmail">N/A</span></span>
+                    </div>
+                </div>
+                <div class="balance-badge" id="previewBalance">$0.00</div>
+            </div>
+
+            <!-- Sender Name -->
             <div class="form-group">
                 <label><i class="fas fa-user-tie"></i> Sender Name</label>
                 <input type="text" id="senderName" placeholder="e.g., Credit System" value="Credit System">
             </div>
+
+            <!-- Amount -->
             <div class="form-group">
                 <label><i class="fas fa-dollar-sign"></i> Amount</label>
-                <input type="number" id="sendAmount" placeholder="0.00" step="0.01" min="0.01">
+                <div class="amount-input-wrapper">
+                    <span class="currency-label">$</span>
+                    <input type="number" id="sendAmount" placeholder="0.00" step="0.01" min="0.01">
+                    <div class="quick-amounts">
+                        <button onclick="setQuickAmount(50)">$50</button>
+                        <button onclick="setQuickAmount(100)">$100</button>
+                        <button onclick="setQuickAmount(250)">$250</button>
+                        <button onclick="setQuickAmount(500)">$500</button>
+                        <button onclick="setQuickAmount(1000)">$1,000</button>
+                        <button onclick="setQuickAmount(5000)">$5,000</button>
+                    </div>
+                </div>
             </div>
+
+            <!-- Currency -->
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Currency</label>
                 <select id="sendCurrency">
                     <option value="USD">USD - US Dollar</option>
                     <option value="EUR">EUR - Euro</option>
                     <option value="GBP">GBP - British Pound</option>
+                    <option value="NGN">NGN - Nigerian Naira</option>
                 </select>
             </div>
+
+            <!-- Note -->
             <div class="form-group">
                 <label><i class="fas fa-pen"></i> Note (Optional)</label>
                 <input type="text" id="sendNote" placeholder="Credit transfer for...">
             </div>
+
+            <!-- Buttons -->
             <button class="btn" onclick="sendMoney()"><i class="fas fa-paper-plane"></i> Send Money</button>
             <button class="btn btn-secondary" onclick="closeModal('sendModal')">Cancel</button>
         </div>
@@ -938,6 +1140,37 @@
             return `${hours}h ${minutes}m`;
         }
 
+        function setQuickAmount(amount) {
+            document.getElementById('sendAmount').value = amount;
+            document.getElementById('sendAmount').focus();
+        }
+
+        // ============================================================
+        // USER PREVIEW
+        // ============================================================
+        function updateUserPreview(userId) {
+            const preview = document.getElementById('userPreview');
+            if (!userId) {
+                preview.classList.remove('show');
+                return;
+            }
+            
+            const user = users.find(u => u.id === userId);
+            if (!user) {
+                preview.classList.remove('show');
+                return;
+            }
+
+            document.getElementById('sendUserId').value = userId;
+            document.getElementById('previewAvatar').textContent = user.full_name?.charAt(0).toUpperCase() || 'U';
+            document.getElementById('previewName').textContent = user.full_name || 'Unknown';
+            document.getElementById('previewAccount').textContent = user.account_number || 'N/A';
+            document.getElementById('previewEmail').textContent = user.email || 'N/A';
+            document.getElementById('previewBalance').textContent = `${user.currency || '$'} ${(user.totalBalance || 0).toLocaleString()}`;
+            
+            preview.classList.add('show');
+        }
+
         // ============================================================
         // RENDER USERS
         // ============================================================
@@ -982,7 +1215,7 @@
                             </span>
                         </td>
                         <td>
-                            <button class="btn-sm" onclick="openSendModal('${u.id}', '${u.full_name}', '${u.account_number}')">
+                            <button class="btn-sm" onclick="openSendModal('${u.id}')">
                                 <i class="fas fa-paper-plane"></i> Send
                             </button>
                             ${!isAdmin ? `
@@ -1018,9 +1251,28 @@
         // ============================================================
         // USER MANAGEMENT
         // ============================================================
-        function openSendModal(id, name, acc) {
-            document.getElementById('sendUserId').value = id;
-            document.getElementById('sendUserDisplay').value = `${name} (${acc})`;
+        function openSendModal(userId) {
+            // Populate dropdown
+            const select = document.getElementById('sendUserSelect');
+            select.innerHTML = '<option value="">-- Select a user --</option>';
+            
+            users.forEach(u => {
+                const opt = document.createElement('option');
+                opt.value = u.id;
+                opt.textContent = `${u.full_name} (${u.account_number}) - ${u.currency} ${(u.totalBalance || 0).toLocaleString()}`;
+                if (u.id === userId) opt.selected = true;
+                select.appendChild(opt);
+            });
+            
+            // Update preview
+            updateUserPreview(userId);
+            
+            // Reset fields
+            document.getElementById('senderName').value = 'Credit System';
+            document.getElementById('sendAmount').value = '';
+            document.getElementById('sendCurrency').value = 'USD';
+            document.getElementById('sendNote').value = '';
+            
             openModal('sendModal');
         }
 
@@ -1030,27 +1282,62 @@
             const amount = parseFloat(document.getElementById('sendAmount').value);
             const currency = document.getElementById('sendCurrency').value;
             const note = document.getElementById('sendNote').value;
+            
             const user = users.find(u => u.id === userId);
 
-            if (!senderName) { Swal.fire('Error', 'Please enter sender name', 'error'); return; }
-            if (!amount || amount <= 0) { Swal.fire('Error', 'Please enter a valid amount', 'error'); return; }
+            if (!userId || !user) {
+                Swal.fire('Error', 'Please select a recipient', 'error');
+                return;
+            }
+            if (!senderName) { 
+                Swal.fire('Error', 'Please enter sender name', 'error'); 
+                return; 
+            }
+            if (!amount || amount <= 0) { 
+                Swal.fire('Error', 'Please enter a valid amount', 'error'); 
+                return; 
+            }
 
             showLoading(true);
             try {
                 const res = await fetch(`${API_URL}/api/admin/send`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
-                    body: JSON.stringify({ toAccountNumber: user.account_number, amount, currency, senderName, note })
+                    headers: { 
+                        'Content-Type': 'application/json', 
+                        'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                    },
+                    body: JSON.stringify({ 
+                        toAccountNumber: user.account_number, 
+                        amount, 
+                        currency, 
+                        senderName, 
+                        note 
+                    })
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire({ icon: 'success', title: 'Money Sent!', html: `
-                        <div style="text-align:left;">
-                            <p><strong>Amount:</strong> ${currency} ${amount.toFixed(2)}</p>
-                            <p><strong>Recipient:</strong> ${user.full_name}</p>
-                            <p><strong>Reference:</strong> ${data.transaction?.reference || 'N/A'}</p>
-                        </div>
-                    `, confirmButtonColor: '#C6A43F' });
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: '✅ Money Sent!', 
+                        html: `
+                            <div style="text-align:left;margin-top:10px;">
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Amount</span>
+                                    <span style="font-weight:700;color:var(--gold);">${currency} ${amount.toFixed(2)}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Recipient</span>
+                                    <span style="font-weight:600;">${user.full_name}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                                    <span style="color:var(--text-secondary);">Reference</span>
+                                    <span style="font-weight:600;font-family:monospace;font-size:12px;">${data.transaction?.reference || 'N/A'}</span>
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonColor: '#C6A43F',
+                        width: 420
+                    });
                     closeModal('sendModal');
                     loadUsers();
                 } else {
@@ -1111,7 +1398,10 @@
                     try {
                         const res = await fetch(`${API_URL}/api/admin/toggle-status`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                            headers: { 
+                                'Content-Type': 'application/json', 
+                                'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                            },
                             body: JSON.stringify({ userId })
                         });
                         const data = await res.json();
@@ -1156,6 +1446,9 @@
                     const currency = tx.currency || 'USD';
                     const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString() : 'Recent';
                     const ref = tx.reference || tx.id;
+                    const status = tx.status || 'completed';
+                    const statusColor = status === 'completed' ? 'var(--success)' : status === 'pending' ? 'var(--warning)' : 'var(--error)';
+                    
                     html += `
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border);">
                             <div>
@@ -1165,7 +1458,8 @@
                             </div>
                             <div style="text-align:right;">
                                 <div style="font-weight:700;color:${isIncoming ? 'var(--success)' : 'var(--error)'};">${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}</div>
-                                <button class="btn-sm" onclick="viewReceipt('${ref}')" style="margin-top:4px;"><i class="fas fa-receipt"></i> View</button>
+                                <span style="font-size:9px;color:${statusColor};font-weight:600;text-transform:uppercase;">${status}</span>
+                                <button class="btn-sm" onclick="viewReceipt('${ref}')" style="margin-top:4px;display:block;width:100%;justify-content:center;"><i class="fas fa-receipt"></i> View</button>
                             </div>
                         </div>
                     `;
@@ -1186,16 +1480,34 @@
         function openGenerateBBCModal() {
             const userOptions = users
                 .filter(u => !u.is_admin)
-                .map(u => `<option value="${u.id}">${u.full_name} (${u.account_number})</option>`)
+                .map(u => `<option value="${u.id}">${u.full_name} (${u.account_number}) - ${u.currency} ${(u.totalBalance || 0).toLocaleString()}</option>`)
                 .join('');
 
             Swal.fire({
                 title: 'Generate BBC Codes',
                 html: `
-                    <div class="form-group"><label>Select User</label><select id="bbcUserId" style="width:100%;padding:10px 14px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">${userOptions}</select></div>
-                    <div class="form-group"><label>Step</label><select id="bbcStep" style="width:100%;padding:10px 14px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);"><option value="1">Step 1 - Authorization</option><option value="2">Step 2 - Security</option><option value="3">Step 3 - Final</option></select></div>
-                    <div class="form-group"><label>Quantity</label><input type="number" id="bbcQuantity" value="5" min="1" max="100" style="width:100%;padding:10px 14px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);"></div>
-                    <div class="form-group"><label>Expiry (days)</label><input type="number" id="bbcExpiryDays" value="30" min="1" max="365" style="width:100%;padding:10px 14px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);"></div>
+                    <div class="form-group"><label>Select User</label>
+                        <div class="user-select-wrapper">
+                            <select id="bbcUserId" style="width:100%;padding:12px 16px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">${userOptions}</select>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Step</label>
+                        <div class="user-select-wrapper">
+                            <select id="bbcStep" style="width:100%;padding:12px 16px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
+                                <option value="1">Step 1 - Authorization Code</option>
+                                <option value="2">Step 2 - Security Code</option>
+                                <option value="3">Step 3 - Final Code</option>
+                            </select>
+                            <i class="fas fa-chevron-down select-arrow"></i>
+                        </div>
+                    </div>
+                    <div class="form-group"><label>Quantity</label>
+                        <input type="number" id="bbcQuantity" value="5" min="1" max="100" style="width:100%;padding:12px 16px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
+                    </div>
+                    <div class="form-group"><label>Expiry (days)</label>
+                        <input type="number" id="bbcExpiryDays" value="30" min="1" max="365" style="width:100%;padding:12px 16px;border-radius:12px;background:var(--input-bg);border:1px solid var(--border);color:var(--text-primary);">
+                    </div>
                 `,
                 confirmButtonText: 'Generate Codes',
                 confirmButtonColor: '#C6A43F',
@@ -1205,10 +1517,14 @@
                     const quantity = parseInt(document.getElementById('bbcQuantity').value);
                     const expiryDays = parseInt(document.getElementById('bbcExpiryDays').value);
                     if (!userId) { Swal.showValidationMessage('Please select a user'); return; }
+                    if (quantity < 1 || quantity > 100) { Swal.showValidationMessage('Quantity must be between 1 and 100'); return; }
                     try {
                         const res = await fetch(`${API_URL}/api/admin/generate-bbc`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                            headers: { 
+                                'Content-Type': 'application/json', 
+                                'Authorization': `Bearer ${localStorage.getItem('token')}` 
+                            },
                             body: JSON.stringify({ userId, step, quantity, expiryDays })
                         });
                         const data = await res.json();
@@ -1219,16 +1535,24 @@
             }).then((result) => {
                 if (result.isConfirmed && result.value) {
                     const codesHtml = result.value.codes.map(c => `
-                        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(198,164,63,0.06);padding:8px 12px;border-radius:8px;margin:4px 0;border:1px solid rgba(198,164,63,0.08);">
-                            <span style="font-family:monospace;color:var(--gold);font-size:14px;font-weight:600;letter-spacing:0.5px;">${c.code}</span>
+                        <div style="display:flex;justify-content:space-between;align-items:center;background:rgba(198,164,63,0.06);padding:10px 14px;border-radius:8px;margin:6px 0;border:1px solid rgba(198,164,63,0.08);">
+                            <span style="font-family:monospace;color:var(--gold);font-size:16px;font-weight:700;letter-spacing:0.5px;">${c.code}</span>
                             <div style="display:flex;gap:6px;align-items:center;">
-                                <span style="color:var(--text-secondary);font-size:9px;font-weight:500;">(Step ${c.step})</span>
-                                <button onclick="copyToClipboard('${c.code}')" class="btn-sm" style="padding:2px 8px;font-size:9px;"><i class="fas fa-copy"></i> Copy</button>
+                                <span style="color:var(--text-secondary);font-size:9px;font-weight:500;background:rgba(198,164,63,0.08);padding:2px 8px;border-radius:30px;">Step ${c.step}</span>
+                                <button onclick="copyToClipboard('${c.code}')" class="btn-sm" style="padding:4px 12px;font-size:10px;"><i class="fas fa-copy"></i> Copy</button>
                             </div>
                         </div>
                     `).join('');
-                    Swal.fire({ icon: 'success', title: 'BBC Codes Generated!', html: `<div style="max-height:280px;overflow-y:auto;text-align:left;"><p style="color:var(--text-secondary);font-size:10px;margin-bottom:8px;"><i class="fas fa-info-circle"></i> Click Copy to copy each code</p>${codesHtml}</div>`, confirmButtonColor: '#C6A43F', confirmButtonText: 'Done' });
+                    Swal.fire({ 
+                        icon: 'success', 
+                        title: 'BBC Codes Generated!', 
+                        html: `<div style="max-height:300px;overflow-y:auto;text-align:left;margin-top:8px;"><p style="color:var(--text-secondary);font-size:10px;margin-bottom:10px;"><i class="fas fa-info-circle"></i> ${result.value.codes.length} codes generated. Click Copy to copy each code.</p>${codesHtml}</div>`, 
+                        confirmButtonColor: '#C6A43F', 
+                        confirmButtonText: 'Done',
+                        width: 460
+                    });
                     loadUsers();
+                    loadBBCodes();
                 }
             });
         }
