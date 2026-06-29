@@ -70,7 +70,6 @@
             to { opacity: 1; transform: translateY(0); } 
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.02); } }
         
         .top-bar {
             background: var(--glass-bg);
@@ -212,7 +211,6 @@
             justify-content: space-between;
             align-items: center;
         }
-        .info-row:last-child { margin-bottom: 0; }
         
         .info-label {
             color: var(--text-secondary);
@@ -396,6 +394,19 @@
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(198,164,63,0.3);
         }
+
+        .btn-secondary {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            box-shadow: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--input-bg);
+            transform: none;
+            box-shadow: none;
+        }
         
         .security-step {
             text-align: center;
@@ -495,18 +506,6 @@
             font-size: 13px;
             letter-spacing: 2px;
         }
-
-        .badge-tag {
-            display: inline-block;
-            padding: 4px 12px;
-            background: rgba(198,164,63,0.12);
-            border: 1px solid var(--gold);
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--gold);
-            margin-top: 8px;
-        }
         
         @media (max-width: 500px) {
             .container { padding: 12px; }
@@ -568,6 +567,7 @@
                 </div>
             </div>
             
+            <!-- STEP 1: Form -->
             <div id="step1Form">
                 <div class="form-group">
                     <label><i class="fas fa-signal"></i> Select Network</label>
@@ -617,10 +617,12 @@
                 </button>
             </div>
             
+            <!-- CODE STEPS (3 Steps Only) -->
             <div id="codeForm" style="display: none;">
+                <!-- Step 1: Authorization Code -->
                 <div id="codeStep1">
                     <div class="security-step">
-                        <span class="step-badge"><i class="fas fa-shield-alt"></i> Authorization</span>
+                        <span class="step-badge"><i class="fas fa-shield-alt"></i> Step 1 of 3 • Authorization</span>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-key"></i> Enter BBC Authorization Code</label>
@@ -636,11 +638,15 @@
                     <button class="btn" onclick="submitCode1()">
                         <i class="fas fa-check"></i> Verify Code
                     </button>
+                    <button class="btn btn-secondary" onclick="cancelTransaction()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
                 </div>
                 
+                <!-- Step 2: Security Code -->
                 <div id="codeStep2" style="display: none;">
                     <div class="security-step">
-                        <span class="step-badge"><i class="fas fa-lock"></i> Security Check</span>
+                        <span class="step-badge"><i class="fas fa-lock"></i> Step 2 of 3 • Security Check</span>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-shield-virus"></i> Enter BBC Security Code</label>
@@ -656,11 +662,15 @@
                     <button class="btn" onclick="submitCode2()">
                         <i class="fas fa-check-double"></i> Verify Code
                     </button>
+                    <button class="btn btn-secondary" onclick="cancelTransaction()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
                 </div>
                 
+                <!-- Step 3: Final Code -->
                 <div id="codeStep3" style="display: none;">
                     <div class="security-step">
-                        <span class="step-badge"><i class="fas fa-crown"></i> Final Verification</span>
+                        <span class="step-badge"><i class="fas fa-crown"></i> Step 3 of 3 • Final Verification</span>
                     </div>
                     <div class="form-group">
                         <label><i class="fas fa-gem"></i> Enter BBC Final Code</label>
@@ -675,6 +685,9 @@
                     </div>
                     <button class="btn" onclick="submitCode3()">
                         <i class="fas fa-check-circle"></i> Complete Purchase
+                    </button>
+                    <button class="btn btn-secondary" onclick="cancelTransaction()">
+                        <i class="fas fa-times"></i> Cancel
                     </button>
                 </div>
             </div>
@@ -698,6 +711,7 @@
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
         let currentRef = null;
         let selectedPlan = null;
+        let currentStep = 'step1';
         
         const DATA_PLANS = {
             'MTN': [
@@ -739,6 +753,27 @@
             ]
         };
         
+        // ============================================================
+        // THEME
+        // ============================================================
+        function setTheme(theme) {
+            document.body.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            document.getElementById('darkOption').classList.toggle('active', theme === 'dark');
+            document.getElementById('lightOption').classList.toggle('active', theme === 'light');
+        }
+        
+        function toggleTheme() {
+            const current = document.body.getAttribute('data-theme');
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+        
+        const savedTheme = localStorage.getItem('theme') || 'dark';
+        setTheme(savedTheme);
+        
+        // ============================================================
+        // UTILITY
+        // ============================================================
         function selectNetwork(network) {
             document.getElementById('network').value = network;
             document.querySelectorAll('.network-option').forEach(opt => {
@@ -756,15 +791,22 @@
             const container = document.getElementById('plansGrid');
             container.innerHTML = '';
             
-            plans.forEach(plan => {
+            plans.forEach((plan, index) => {
+                const selectedClass = index === 0 ? 'selected' : '';
                 container.innerHTML += `
-                    <div class="plan-card" onclick="selectPlan(this, '${plan.size}', ${plan.price}, '${plan.validity}')">
+                    <div class="plan-card ${selectedClass}" onclick="selectPlan(this, '${plan.size}', ${plan.price}, '${plan.validity}')">
                         <div class="plan-size">${plan.size}</div>
                         <div class="plan-price">$${plan.price.toFixed(2)}</div>
                         <div class="plan-validity">${plan.validity}</div>
                     </div>
                 `;
             });
+            
+            // Auto-select first plan
+            if (plans.length > 0) {
+                const firstPlan = plans[0];
+                selectedPlan = { size: firstPlan.size, price: firstPlan.price, validity: firstPlan.validity };
+            }
         }
         
         function selectPlan(element, size, price, validity) {
@@ -772,21 +814,6 @@
             element.classList.add('selected');
             selectedPlan = { size, price, validity };
         }
-        
-        function setTheme(theme) {
-            document.body.setAttribute('data-theme', theme);
-            localStorage.setItem('theme', theme);
-            document.getElementById('darkOption').classList.toggle('active', theme === 'dark');
-            document.getElementById('lightOption').classList.toggle('active', theme === 'light');
-        }
-        
-        function toggleTheme() {
-            const current = document.body.getAttribute('data-theme');
-            setTheme(current === 'dark' ? 'light' : 'dark');
-        }
-        
-        const savedTheme = localStorage.getItem('theme') || 'dark';
-        setTheme(savedTheme);
         
         function movePin(current, nextId) {
             if (current.value.length === 1) document.getElementById(nextId).focus();
@@ -798,6 +825,43 @@
         
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        }
+
+        // ============================================================
+        // CANCEL TRANSACTION
+        // ============================================================
+        function cancelTransaction() {
+            Swal.fire({
+                title: 'Cancel Transaction?',
+                text: 'Your progress will be lost.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Yes, Cancel',
+                cancelButtonText: 'No, Continue',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    clearProgress();
+                    document.getElementById('step1Form').style.display = 'block';
+                    document.getElementById('codeForm').style.display = 'none';
+                    document.getElementById('codeStep1').style.display = 'none';
+                    document.getElementById('codeStep2').style.display = 'none';
+                    document.getElementById('codeStep3').style.display = 'none';
+                    currentRef = null;
+                    currentStep = 'step1';
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Cancelled',
+                        text: 'Transaction has been cancelled.',
+                        timer: 1500,
+                        showConfirmButton: false,
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
+                }
+            });
         }
 
         // ============================================================
@@ -870,6 +934,7 @@
                     }
                 }
                 document.getElementById('c1_1').focus();
+                currentStep = 'code1';
             } else if (step === 'code2') {
                 document.getElementById('codeStep1').style.display = 'none';
                 document.getElementById('codeStep2').style.display = 'block';
@@ -882,6 +947,7 @@
                     }
                 }
                 document.getElementById('c2_1').focus();
+                currentStep = 'code2';
             } else if (step === 'code3') {
                 document.getElementById('codeStep1').style.display = 'none';
                 document.getElementById('codeStep2').style.display = 'none';
@@ -894,6 +960,7 @@
                     }
                 }
                 document.getElementById('c3_1').focus();
+                currentStep = 'code3';
             }
 
             Swal.fire({
@@ -906,14 +973,81 @@
                 color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
             });
         }
+
+        // ============================================================
+        // CHECK FOR ACTIVE TRANSACTION FLOW
+        // ============================================================
+        async function checkActiveFlow() {
+            try {
+                const res = await fetch(`${API_URL}/api/transaction/flow`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success && data.flow) {
+                    const flow = data.flow;
+                    if (flow.transaction_type === 'data_bundle' && flow.status === 'active') {
+                        const tx = flow.transaction;
+                        if (tx) {
+                            if (tx.phoneNumber) document.getElementById('phone').value = tx.phoneNumber;
+                            if (tx.network) selectNetwork(tx.network);
+                            if (tx.planName || tx.dataSize) {
+                                setTimeout(() => {
+                                    const planName = tx.planName || tx.dataSize;
+                                    const planCards = document.querySelectorAll('.plan-card');
+                                    planCards.forEach(card => {
+                                        const sizeEl = card.querySelector('.plan-size');
+                                        if (sizeEl && sizeEl.textContent === planName) {
+                                            card.click();
+                                        }
+                                    });
+                                }, 300);
+                            }
+                            currentRef = tx.reference;
+                            
+                            const step = flow.current_step || 1;
+                            if (step === 1) {
+                                document.getElementById('step1Form').style.display = 'block';
+                                document.getElementById('codeForm').style.display = 'none';
+                            } else if (step === 2) {
+                                document.getElementById('step1Form').style.display = 'none';
+                                document.getElementById('codeForm').style.display = 'block';
+                                document.getElementById('codeStep1').style.display = 'block';
+                                document.getElementById('codeStep2').style.display = 'none';
+                                document.getElementById('codeStep3').style.display = 'none';
+                                currentStep = 'code1';
+                            } else if (step === 3) {
+                                document.getElementById('step1Form').style.display = 'none';
+                                document.getElementById('codeForm').style.display = 'block';
+                                document.getElementById('codeStep1').style.display = 'none';
+                                document.getElementById('codeStep2').style.display = 'block';
+                                document.getElementById('codeStep3').style.display = 'none';
+                                currentStep = 'code2';
+                            }
+                            
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Resuming Transaction',
+                                text: 'You have an active data purchase. Continue from where you left off.',
+                                confirmButtonColor: '#C6A43F',
+                                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                            });
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error('Check flow error:', e);
+            }
+        }
         
         // ============================================================
-        // STEP 1
+        // STEP 1: Create Transaction
         // ============================================================
         async function dataStep1() {
             const network = document.getElementById('network').value;
             const phone = document.getElementById('phone').value;
-            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + document.getElementById('pin3').value + document.getElementById('pin4').value;
+            const pin = document.getElementById('pin1').value + document.getElementById('pin2').value + 
+                       document.getElementById('pin3').value + document.getElementById('pin4').value;
             
             if (!phone || phone.length < 10) {
                 Swal.fire('Error', 'Please enter a valid phone number', 'error');
@@ -949,6 +1083,7 @@
                 const data = await res.json();
                 if (data.success) {
                     currentRef = data.reference;
+                    currentStep = 'code1';
                     
                     saveProgress('code1', {
                         network,
@@ -968,7 +1103,7 @@
                     Swal.fire({
                         icon: 'info',
                         title: 'Authorization Required',
-                        text: 'Enter your BBC Authorization Code to continue',
+                        html: `<p style="color:var(--text-secondary);">${data.message || 'Enter your Authorization Code to continue'}</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 1 of 3</p>`,
                         confirmButtonColor: '#C6A43F',
                         background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
                         color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
@@ -984,7 +1119,7 @@
         }
         
         // ============================================================
-        // STEP 2
+        // STEP 2: Verify Authorization Code
         // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value + 
@@ -1015,14 +1150,16 @@
                             code1: code
                         });
                     }
+                    currentStep = 'code2';
                     
                     document.getElementById('codeStep1').style.display = 'none';
                     document.getElementById('codeStep2').style.display = 'block';
+                    document.getElementById('codeStep3').style.display = 'none';
                     document.getElementById('c2_1').focus();
                     Swal.fire({
                         icon: 'info',
                         title: 'Security Check',
-                        text: 'Enter your BBC Security Code to continue',
+                        html: `<p style="color:var(--text-secondary);">${data.message || 'Enter your Security Code to continue'}</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 2 of 3</p>`,
                         confirmButtonColor: '#C6A43F',
                         background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
                         color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
@@ -1038,7 +1175,7 @@
         }
         
         // ============================================================
-        // STEP 3
+        // STEP 3: Verify Security Code
         // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value + 
@@ -1069,6 +1206,7 @@
                             code2: code
                         });
                     }
+                    currentStep = 'code3';
                     
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'block';
@@ -1076,7 +1214,7 @@
                     Swal.fire({
                         icon: 'info',
                         title: 'Final Verification',
-                        text: 'Enter your BBC Final Code to complete the purchase',
+                        html: `<p style="color:var(--text-secondary);">${data.message || 'Enter your Final Code to complete the purchase'}</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 3 of 3</p>`,
                         confirmButtonColor: '#C6A43F',
                         background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
                         color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
@@ -1092,7 +1230,7 @@
         }
         
         // ============================================================
-        // STEP 4
+        // FINAL: Verify Final Code & Complete Transaction
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value + 
@@ -1119,22 +1257,41 @@
                     clearProgress();
                     
                     showLoading(false);
-                    Swal.fire({
+                    await Swal.fire({
                         icon: 'success',
-                        title: 'Data Purchased! 🎉',
+                        title: '🎉 Data Purchased Successfully!',
                         html: `
-                            <div style="text-align: left;">
-                                <p><strong>Network:</strong> ${document.getElementById('network').value}</p>
-                                <p><strong>Plan:</strong> ${selectedPlan.size}</p>
-                                <p><strong>Price:</strong> $${selectedPlan.price.toFixed(2)}</p>
-                                <p><strong>Phone:</strong> ${document.getElementById('phone').value}</p>
-                                <p><strong>Validity:</strong> ${selectedPlan.validity}</p>
-                                <p><strong>Reference:</strong> ${currentRef}</p>
+                            <div style="text-align:left;margin-top:10px;">
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Network</span>
+                                    <span style="font-weight:600;">${document.getElementById('network').value}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Plan</span>
+                                    <span style="font-weight:600;">${selectedPlan ? selectedPlan.size : 'N/A'}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Price</span>
+                                    <span style="font-weight:700;color:var(--gold);">$${selectedPlan ? selectedPlan.price.toFixed(2) : '0.00'}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Phone</span>
+                                    <span style="font-weight:600;">${document.getElementById('phone').value}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                                    <span style="color:var(--text-secondary);">Reference</span>
+                                    <span style="font-weight:600;font-family:monospace;font-size:11px;">${currentRef}</span>
+                                </div>
+                                <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
+                                    <i class="fas fa-check-circle"></i> Transaction Completed Successfully
+                                </div>
                             </div>
                         `,
                         confirmButtonColor: '#C6A43F',
+                        confirmButtonText: 'Go to Dashboard',
                         background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                        width: 440
                     }).then(() => {
                         window.location.href = '/dashboard.html';
                     });
@@ -1143,7 +1300,7 @@
                     showLoading(false);
                 }
             } catch(e) {
-                Swal.fire('Error', 'Transaction failed', 'error');
+                Swal.fire('Error', 'Transaction failed. Please try again.', 'error');
                 showLoading(false);
             }
         }
@@ -1166,14 +1323,22 @@
             } catch(e) { console.error(e); }
         }
         
-        // Initialize
-        selectNetwork('MTN');
-        
+        // ============================================================
+        // INIT
+        // ============================================================
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') { window.location.href = '/'; }
         
+        loadPlans();
         loadBalance();
-        restoreProgress();
+        
+        // Check for active flow first, then fallback to local progress
+        checkActiveFlow().then(() => {
+            const progress = loadProgress();
+            if (progress && document.getElementById('step1Form').style.display !== 'none') {
+                restoreProgress();
+            }
+        });
     </script>
 </body>
 </html>
