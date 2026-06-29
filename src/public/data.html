@@ -1232,78 +1232,83 @@
         // ============================================================
         // FINAL: Verify Final Code & Complete Transaction
         // ============================================================
-        async function submitCode3() {
-            const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value + 
-                        document.getElementById('c3_3').value + document.getElementById('c3_4').value + 
-                        document.getElementById('c3_5').value + document.getElementById('c3_6').value;
+
+        // In data.html, replace the submitCode3 function with:
+async function submitCode3() {
+    const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
+                document.getElementById('c3_3').value + document.getElementById('c3_4').value +
+                document.getElementById('c3_5').value + document.getElementById('c3_6').value;
+
+    if (code.length !== 6) {
+        Swal.fire('Error', 'Please enter the complete 6-digit final code', 'error');
+        return;
+    }
+
+    showLoading(true);
+    try {
+        // FIX: Use /data/final instead of /data/step4
+        const res = await fetch(`${API_URL}/api/data/final`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ reference: currentRef, bbcCode: code })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+            clearProgress();
+            showLoading(false);
             
-            if (code.length !== 6) {
-                Swal.fire('Error', 'Please enter the complete 6-digit code', 'error');
-                return;
-            }
-            
-            showLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/api/data/step4`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    clearProgress();
-                    
-                    showLoading(false);
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '🎉 Data Purchased Successfully!',
-                        html: `
-                            <div style="text-align:left;margin-top:10px;">
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                                    <span style="color:var(--text-secondary);">Network</span>
-                                    <span style="font-weight:600;">${document.getElementById('network').value}</span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                                    <span style="color:var(--text-secondary);">Plan</span>
-                                    <span style="font-weight:600;">${selectedPlan ? selectedPlan.size : 'N/A'}</span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                                    <span style="color:var(--text-secondary);">Price</span>
-                                    <span style="font-weight:700;color:var(--gold);">$${selectedPlan ? selectedPlan.price.toFixed(2) : '0.00'}</span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                                    <span style="color:var(--text-secondary);">Phone</span>
-                                    <span style="font-weight:600;">${document.getElementById('phone').value}</span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                                    <span style="color:var(--text-secondary);">Reference</span>
-                                    <span style="font-weight:600;font-family:monospace;font-size:11px;">${currentRef}</span>
-                                </div>
-                                <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
-                                    <i class="fas fa-check-circle"></i> Transaction Completed Successfully
-                                </div>
-                            </div>
-                        `,
-                        confirmButtonColor: '#C6A43F',
-                        confirmButtonText: 'Go to Dashboard',
-                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
-                        width: 440
-                    }).then(() => {
-                        window.location.href = '/dashboard.html';
-                    });
-                } else {
-                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
-                    showLoading(false);
-                }
-            } catch(e) {
-                Swal.fire('Error', 'Transaction failed. Please try again.', 'error');
-                showLoading(false);
-            }
+            await Swal.fire({
+                icon: 'success',
+                title: '🎉 Data Purchased Successfully!',
+                html: `
+                    <div style="text-align:left;margin-top:10px;">
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Network</span>
+                            <span style="font-weight:600;">${document.getElementById('network').value}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Plan</span>
+                            <span style="font-weight:600;">${selectedPlan ? selectedPlan.size : 'N/A'}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Phone</span>
+                            <span style="font-weight:600;">${document.getElementById('phone').value}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Amount</span>
+                            <span style="font-weight:700;color:var(--gold);">$${selectedPlan ? selectedPlan.price.toFixed(2) : '0.00'}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                            <span style="color:var(--text-secondary);">Reference</span>
+                            <span style="font-weight:600;font-family:monospace;font-size:11px;">${currentRef}</span>
+                        </div>
+                        <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
+                            <i class="fas fa-check-circle"></i> Transaction Completed Successfully
+                        </div>
+                    </div>
+                `,
+                confirmButtonColor: '#C6A43F',
+                confirmButtonText: 'Go to Dashboard',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                width: 440
+            }).then(() => {
+                window.location.href = '/dashboard.html';
+            });
+        } else {
+            Swal.fire('Error', data.error || 'Data purchase failed', 'error');
+            showLoading(false);
         }
+    } catch(e) {
+        console.error('Final error:', e);
+        Swal.fire('Error', 'Data purchase failed. Please try again.', 'error');
+        showLoading(false);
+    }
+}
         
         // ============================================================
         // LOAD BALANCE
