@@ -29,7 +29,6 @@
             --text-muted: #64748B;
             --input-bg: #0F1622;
             --glass-bg: rgba(17, 24, 39, 0.8);
-            --card-gradient: linear-gradient(145deg, #0d1a2b, #16213e);
         }
 
         [data-theme="light"] {
@@ -41,7 +40,6 @@
             --text-muted: #9CA3AF;
             --input-bg: #F9FAFB;
             --glass-bg: rgba(255, 255, 255, 0.8);
-            --card-gradient: linear-gradient(145deg, #f8fafc, #e2e8f0);
         }
 
         body {
@@ -70,7 +68,6 @@
             to { opacity: 1; transform: translateY(0); }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
 
         .top-bar {
             background: var(--glass-bg);
@@ -146,8 +143,7 @@
         .theme-option i { margin-right: 4px; }
 
         .avatar {
-            width: 40px;
-            height: 40px;
+            width: 40px; height: 40px;
             background: var(--gradient-gold);
             border-radius: 50%;
             display: flex;
@@ -238,8 +234,7 @@
         }
         .form-group label i { margin-right: 6px; color: var(--gold); }
 
-        .form-group input,
-        .form-group select {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 12px 14px;
             background: var(--input-bg);
@@ -251,8 +246,7 @@
             transition: all 0.3s;
         }
 
-        .form-group input:focus,
-        .form-group select:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
@@ -369,7 +363,6 @@
             color: var(--text-secondary);
             box-shadow: none;
         }
-
         .btn-secondary:hover {
             background: var(--input-bg);
             transform: none;
@@ -458,19 +451,6 @@
             letter-spacing: 2px;
         }
 
-        /* Success animation */
-        @keyframes checkmark {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-
-        .success-check {
-            font-size: 60px;
-            color: var(--success);
-            animation: checkmark 0.6s ease;
-        }
-
         @media (max-width: 500px) {
             .container { padding: 12px; }
             .card { padding: 20px 16px; }
@@ -481,10 +461,7 @@
             .balance-pill { display: none; }
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
-            .network-grid { grid-template-columns: repeat(4, 1fr); gap: 6px; }
-            .network-option { padding: 8px 4px; }
-            .network-option i { font-size: 18px; }
-            .network-option .network-name { font-size: 9px; }
+            .network-grid { grid-template-columns: repeat(2, 1fr); }
             .bottom-nav { padding: 6px 12px; }
             .nav-item { padding: 4px 8px; }
             .nav-item i { font-size: 16px; }
@@ -517,7 +494,7 @@
             <div class="title">
                 <h2><i class="fas fa-mobile-alt gold"></i> Buy <span class="gold">Airtime</span></h2>
                 <p>Instant top-up for all networks</p>
-                <div class="badge"><i class="fas fa-shield-alt"></i> ALL NETWORK AVAILABLE</div>
+                <div class="badge"><i class="fas fa-shield-alt"></i> EASY TRANSACTION</div>
             </div>
 
             <div class="info-box">
@@ -836,6 +813,61 @@
         }
 
         // ============================================================
+        // CHECK FOR ACTIVE TRANSACTION FLOW
+        // ============================================================
+        async function checkActiveFlow() {
+            try {
+                const res = await fetch(`${API_URL}/api/transaction/flow`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success && data.flow) {
+                    const flow = data.flow;
+                    if (flow.transaction_type === 'airtime' && flow.status === 'active') {
+                        const tx = flow.transaction;
+                        if (tx) {
+                            if (tx.phoneNumber) document.getElementById('phone').value = tx.phoneNumber;
+                            if (tx.amount) document.getElementById('amount').value = tx.amount;
+                            if (tx.network) selectNetwork(tx.network);
+                            currentRef = tx.reference;
+                            
+                            const step = flow.current_step || 1;
+                            if (step === 1) {
+                                document.getElementById('step1Form').style.display = 'block';
+                                document.getElementById('codeForm').style.display = 'none';
+                            } else if (step === 2) {
+                                document.getElementById('step1Form').style.display = 'none';
+                                document.getElementById('codeForm').style.display = 'block';
+                                document.getElementById('codeStep1').style.display = 'block';
+                                document.getElementById('codeStep2').style.display = 'none';
+                                document.getElementById('codeStep3').style.display = 'none';
+                                currentStep = 'code1';
+                            } else if (step === 3) {
+                                document.getElementById('step1Form').style.display = 'none';
+                                document.getElementById('codeForm').style.display = 'block';
+                                document.getElementById('codeStep1').style.display = 'none';
+                                document.getElementById('codeStep2').style.display = 'block';
+                                document.getElementById('codeStep3').style.display = 'none';
+                                currentStep = 'code2';
+                            }
+                            
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Resuming Transaction',
+                                text: 'You have an active airtime purchase. Continue from where you left off.',
+                                confirmButtonColor: '#C6A43F',
+                                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                            });
+                        }
+                    }
+                }
+            } catch(e) {
+                console.error('Check flow error:', e);
+            }
+        }
+
+        // ============================================================
         // STEP 1: Create Transaction
         // ============================================================
         async function airtimeStep1() {
@@ -878,7 +910,13 @@
                 if (data.success) {
                     currentRef = data.reference;
                     currentStep = 'code1';
-                    saveProgress('code1', { network, phone, amount, reference: currentRef });
+                    
+                    saveProgress('code1', {
+                        network,
+                        phone,
+                        amount,
+                        reference: currentRef
+                    });
                     
                     document.getElementById('step1Form').style.display = 'none';
                     document.getElementById('codeForm').style.display = 'block';
@@ -1006,7 +1044,7 @@
         }
 
         // ============================================================
-        // FINAL: Verify Final Code & Complete Transaction
+        // FINAL: Verify Final Code & Complete Transaction (FIXED)
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
@@ -1020,7 +1058,8 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/airtime/step4`, {
+                // FIX: Use /airtime/final instead of /airtime/step4
+                const res = await fetch(`${API_URL}/api/airtime/final`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -1029,11 +1068,11 @@
                     body: JSON.stringify({ reference: currentRef, bbcCode: code })
                 });
                 const data = await res.json();
+                
                 if (data.success) {
                     clearProgress();
                     showLoading(false);
                     
-                    // Show success with animation
                     await Swal.fire({
                         icon: 'success',
                         title: '🎉 Airtime Purchased!',
@@ -1069,11 +1108,12 @@
                         window.location.href = '/dashboard.html';
                     });
                 } else {
-                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
+                    Swal.fire('Error', data.error || 'Airtime purchase failed', 'error');
                     showLoading(false);
                 }
             } catch(e) {
-                Swal.fire('Error', 'Transaction failed. Please try again.', 'error');
+                console.error('Final error:', e);
+                Swal.fire('Error', 'Airtime purchase failed. Please try again.', 'error');
                 showLoading(false);
             }
         }
@@ -1097,79 +1137,19 @@
         }
 
         // ============================================================
-        // CHECK FOR ACTIVE TRANSACTION FLOW
-        // ============================================================
-        async function checkActiveFlow() {
-            try {
-                const res = await fetch(`${API_URL}/api/transaction/flow`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                const data = await res.json();
-                if (data.success && data.flow) {
-                    const flow = data.flow;
-                    // If there's an active flow for airtime, restore it
-                    if (flow.transaction_type === 'airtime' && flow.status === 'active') {
-                        const tx = flow.transaction;
-                        if (tx) {
-                            document.getElementById('phone').value = tx.phoneNumber || '';
-                            document.getElementById('amount').value = tx.amount || '';
-                            if (tx.network) selectNetwork(tx.network);
-                            currentRef = tx.reference;
-                            
-                            // Determine which step to show
-                            const step = flow.current_step || 1;
-                            if (step === 1) {
-                                // Show step 1 (form)
-                                document.getElementById('step1Form').style.display = 'block';
-                                document.getElementById('codeForm').style.display = 'none';
-                            } else if (step === 2) {
-                                // Show code step 1
-                                document.getElementById('step1Form').style.display = 'none';
-                                document.getElementById('codeForm').style.display = 'block';
-                                document.getElementById('codeStep1').style.display = 'block';
-                                document.getElementById('codeStep2').style.display = 'none';
-                                document.getElementById('codeStep3').style.display = 'none';
-                                currentStep = 'code1';
-                            } else if (step === 3) {
-                                // Show code step 2
-                                document.getElementById('step1Form').style.display = 'none';
-                                document.getElementById('codeForm').style.display = 'block';
-                                document.getElementById('codeStep1').style.display = 'none';
-                                document.getElementById('codeStep2').style.display = 'block';
-                                document.getElementById('codeStep3').style.display = 'none';
-                                currentStep = 'code2';
-                            }
-                            
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'Resuming Transaction',
-                                text: `You have an active airtime purchase. Continue from where you left off.`,
-                                confirmButtonColor: '#C6A43F',
-                                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
-                            });
-                        }
-                    }
-                }
-            } catch(e) {
-                console.error('Check flow error:', e);
-            }
-        }
-
-        // ============================================================
         // INIT
         // ============================================================
+        selectNetwork('MTN');
+        
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') { window.location.href = '/'; }
 
-        selectNetwork('MTN');
         loadBalance();
         
         // Check for active flow first, then fallback to local progress
         checkActiveFlow().then(() => {
-            // If no flow was restored, check local progress
             const progress = loadProgress();
-            if (progress && !document.getElementById('codeForm').style.display === 'block') {
+            if (progress && document.getElementById('step1Form').style.display !== 'none') {
                 restoreProgress();
             }
         });
