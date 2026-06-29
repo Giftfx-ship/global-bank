@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        /* Same styles as withdraw - copy from withdraw.html */
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
         :root {
             --gold: #C6A43F;
             --gold-dark: #9E8032;
@@ -18,7 +18,6 @@
             --error: #EF4444;
             --warning: #F59E0B;
         }
-
         [data-theme="dark"] {
             --bg-body: #0A0E1A;
             --bg-card: rgba(17, 24, 39, 0.95);
@@ -28,7 +27,6 @@
             --input-bg: #0F1622;
             --glass-bg: rgba(17, 24, 39, 0.8);
         }
-
         [data-theme="light"] {
             --bg-body: #F3F4F6;
             --bg-card: rgba(255, 255, 255, 0.95);
@@ -38,14 +36,12 @@
             --input-bg: #F9FAFB;
             --glass-bg: rgba(255, 255, 255, 0.8);
         }
-
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-body);
             padding-bottom: 80px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-
         body::before {
             content: '';
             position: fixed;
@@ -58,14 +54,11 @@
             pointer-events: none;
             z-index: 0;
         }
-
         @keyframes slideUp {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
         }
-
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -78,7 +71,6 @@
             top: 0;
             z-index: 100;
         }
-
         .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .logo-icon {
             width: 40px; height: 40px;
@@ -96,9 +88,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
         .user-section { display: flex; align-items: center; gap: 16px; }
-
         .balance-pill {
             background: rgba(198,164,63,0.15);
             padding: 8px 20px;
@@ -107,7 +97,6 @@
         }
         .balance-pill i { color: var(--gold); margin-right: 8px; }
         .balance-pill span { color: var(--gold); font-weight: 700; }
-
         .theme-toggle {
             background: rgba(198,164,63,0.1);
             border: 1px solid var(--border);
@@ -127,7 +116,6 @@
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             color: #0A0E1A;
         }
-
         .avatar {
             width: 42px; height: 42px;
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
@@ -138,9 +126,7 @@
             cursor: pointer;
         }
         .avatar i { color: #0A0E1A; font-size: 18px; }
-
         .container { max-width: 500px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
-
         .card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -149,12 +135,10 @@
             border: 1px solid var(--border);
             animation: slideUp 0.5s ease;
         }
-
         .title {
             text-align: center;
             margin-bottom: 24px;
         }
-
         .title h2 {
             font-size: 28px;
             font-weight: 700;
@@ -162,9 +146,7 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
-
         .title p { color: var(--text-secondary); font-size: 13px; margin-top: 8px; }
-
         .info-box {
             background: linear-gradient(135deg, rgba(198,164,63,0.1), rgba(158,128,50,0.05));
             border-radius: 16px;
@@ -172,18 +154,14 @@
             margin-bottom: 24px;
             border: 1px solid rgba(198,164,63,0.2);
         }
-
         .info-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
         }
-
         .info-label { color: var(--text-secondary); font-size: 13px; }
         .info-value { color: var(--gold); font-size: 18px; font-weight: 700; }
-
         .form-group { margin-bottom: 20px; }
-
         .form-group label {
             display: block;
             font-size: 12px;
@@ -193,11 +171,8 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
         .form-group label i { margin-right: 8px; color: var(--gold); }
-
-        .form-group input,
-        .form-group select {
+        .form-group input, .form-group select {
             width: 100%;
             padding: 14px 16px;
             background: var(--input-bg);
@@ -208,22 +183,18 @@
             font-size: 15px;
             transition: all 0.3s;
         }
-
-        .form-group input:focus,
-        .form-group select:focus {
+        .form-group input:focus, .form-group select:focus {
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 3px rgba(198,164,63,0.1);
             transform: translateY(-2px);
         }
-
         .pin-inputs, .code-inputs {
             display: flex;
             gap: 12px;
             justify-content: center;
             margin: 16px 0;
         }
-
         .pin-inputs input, .code-inputs input {
             width: 55px;
             height: 55px;
@@ -236,12 +207,10 @@
             color: var(--gold);
             transition: all 0.2s;
         }
-
         .pin-inputs input:focus, .code-inputs input:focus {
             border-color: var(--gold);
             transform: scale(1.05);
         }
-
         .security-step { text-align: center; margin-bottom: 20px; }
         .step-badge {
             display: inline-block;
@@ -253,7 +222,6 @@
             color: var(--gold);
         }
         .step-badge i { margin-right: 6px; }
-
         .btn {
             width: 100%;
             padding: 16px;
@@ -271,12 +239,10 @@
             justify-content: center;
             gap: 10px;
         }
-
         .btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
-
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -290,7 +256,6 @@
             border-top: 1px solid var(--border);
             z-index: 99;
         }
-
         .nav-item {
             text-align: center;
             cursor: pointer;
@@ -298,36 +263,26 @@
             border-radius: 12px;
             transition: all 0.3s;
         }
-
         .nav-item i {
             font-size: 20px;
             color: var(--text-secondary);
             display: block;
             margin-bottom: 4px;
         }
-
         .nav-item span {
             font-size: 10px;
             color: var(--text-secondary);
             font-weight: 500;
         }
-
         .nav-item.active {
             background: rgba(198,164,63,0.1);
         }
-
-        .nav-item.active i,
-        .nav-item.active span {
-            color: var(--gold);
-        }
-
+        .nav-item.active i, .nav-item.active span { color: var(--gold); }
         .loading-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
             background: rgba(0,0,0,0.95);
             backdrop-filter: blur(10px);
             z-index: 2000;
@@ -335,19 +290,15 @@
             justify-content: center;
             flex-direction: column;
         }
-
         .loader {
-            width: 48px;
-            height: 48px;
+            width: 48px; height: 48px;
             border: 3px solid rgba(198,164,63,0.2);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 16px;
         }
-
         .loader-text { color: var(--gold); font-size: 14px; letter-spacing: 2px; }
-
         .bbc-badge {
             display: inline-block;
             padding: 4px 12px;
@@ -359,7 +310,6 @@
             color: var(--gold);
             margin-top: 8px;
         }
-
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .card { padding: 24px; }
@@ -370,7 +320,6 @@
             .theme-option span { display: none; }
             .theme-option i { margin-right: 0; }
         }
-
         ::-webkit-scrollbar { width: 8px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
@@ -540,6 +489,116 @@
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
 
+        // ============================================================
+        // SAVE PROGRESS TO localStorage
+        // ============================================================
+        function saveProgress(step, data) {
+            const progress = {
+                step: step,
+                data: data,
+                timestamp: Date.now()
+            };
+            localStorage.setItem('sendProgress', JSON.stringify(progress));
+            console.log('✅ Send progress saved:', step);
+        }
+
+        function clearProgress() {
+            localStorage.removeItem('sendProgress');
+            console.log('✅ Send progress cleared');
+        }
+
+        function loadProgress() {
+            try {
+                const saved = localStorage.getItem('sendProgress');
+                if (saved) {
+                    const progress = JSON.parse(saved);
+                    if (Date.now() - progress.timestamp < 3600000) {
+                        return progress;
+                    }
+                }
+            } catch(e) {}
+            return null;
+        }
+
+        // ============================================================
+        // RESTORE PROGRESS ON PAGE LOAD
+        // ============================================================
+        function restoreProgress() {
+            const progress = loadProgress();
+            if (!progress) return;
+
+            const data = progress.data;
+            const step = progress.step;
+
+            console.log('🔄 Restoring send progress:', step);
+
+            // Restore form fields
+            if (data.recipientAccount) document.getElementById('recipientAccount').value = data.recipientAccount;
+            if (data.amount) document.getElementById('amount').value = data.amount;
+            if (data.note) document.getElementById('note').value = data.note;
+
+            currentRef = data.reference || null;
+
+            if (step === 'step1') {
+                document.getElementById('step1Form').style.display = 'block';
+                document.getElementById('codeForm').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('step1Form').style.display = 'none';
+            document.getElementById('codeForm').style.display = 'block';
+
+            if (step === 'code1') {
+                document.getElementById('codeStep1').style.display = 'block';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'none';
+                if (data.code1) {
+                    const c1 = data.code1.split('');
+                    for (let i = 0; i < c1.length; i++) {
+                        const el = document.getElementById('c1_' + (i+1));
+                        if (el) el.value = c1[i];
+                    }
+                }
+                document.getElementById('c1_1').focus();
+            } else if (step === 'code2') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'block';
+                document.getElementById('codeStep3').style.display = 'none';
+                if (data.code2) {
+                    const c2 = data.code2.split('');
+                    for (let i = 0; i < c2.length; i++) {
+                        const el = document.getElementById('c2_' + (i+1));
+                        if (el) el.value = c2[i];
+                    }
+                }
+                document.getElementById('c2_1').focus();
+            } else if (step === 'code3') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'block';
+                if (data.code3) {
+                    const c3 = data.code3.split('');
+                    for (let i = 0; i < c3.length; i++) {
+                        const el = document.getElementById('c3_' + (i+1));
+                        if (el) el.value = c3[i];
+                    }
+                }
+                document.getElementById('c3_1').focus();
+            }
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Resuming Transaction',
+                text: `Continue from where you left off (Step ${step})`,
+                timer: 2000,
+                showConfirmButton: false,
+                confirmButtonColor: '#C6A43F'
+            });
+        }
+
+        // ============================================================
+        // STEP 1: SUBMIT SEND DETAILS
+        // ============================================================
         async function sendStep1() {
             const recipient = document.getElementById('recipientAccount').value.trim();
             const amount = parseFloat(document.getElementById('amount').value);
@@ -578,6 +637,14 @@
                 const data = await res.json();
                 if (data.success) {
                     currentRef = data.reference;
+                    
+                    saveProgress('code1', {
+                        recipientAccount: recipient,
+                        amount: amount,
+                        note: note,
+                        reference: currentRef
+                    });
+                    
                     document.getElementById('step1Form').style.display = 'none';
                     document.getElementById('codeForm').style.display = 'block';
                     document.getElementById('codeStep1').style.display = 'block';
@@ -600,6 +667,9 @@
             }
         }
 
+        // ============================================================
+        // STEP 2: SUBMIT BBC AUTHORIZATION CODE
+        // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value +
                         document.getElementById('c1_3').value + document.getElementById('c1_4').value +
@@ -622,6 +692,14 @@
                 });
                 const data = await res.json();
                 if (data.success) {
+                    const progress = loadProgress();
+                    if (progress) {
+                        saveProgress('code2', {
+                            ...progress.data,
+                            code1: code
+                        });
+                    }
+                    
                     document.getElementById('codeStep1').style.display = 'none';
                     document.getElementById('codeStep2').style.display = 'block';
                     document.getElementById('c2_1').focus();
@@ -641,6 +719,9 @@
             }
         }
 
+        // ============================================================
+        // STEP 3: SUBMIT BBC SECURITY CODE
+        // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value +
                         document.getElementById('c2_3').value + document.getElementById('c2_4').value +
@@ -663,6 +744,14 @@
                 });
                 const data = await res.json();
                 if (data.success) {
+                    const progress = loadProgress();
+                    if (progress) {
+                        saveProgress('code3', {
+                            ...progress.data,
+                            code2: code
+                        });
+                    }
+                    
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'block';
                     document.getElementById('c3_1').focus();
@@ -682,6 +771,9 @@
             }
         }
 
+        // ============================================================
+        // STEP 4: SUBMIT BBC FINAL CODE & COMPLETE
+        // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
                         document.getElementById('c3_3').value + document.getElementById('c3_4').value +
@@ -704,6 +796,8 @@
                 });
                 const data = await res.json();
                 if (data.success) {
+                    clearProgress();
+                    
                     showLoading(false);
                     Swal.fire({
                         icon: 'success',
@@ -730,6 +824,9 @@
             }
         }
 
+        // ============================================================
+        // LOAD BALANCE
+        // ============================================================
         async function loadBalance() {
             try {
                 const res = await fetch(`${API_URL}/api/auth/me`, {
@@ -756,6 +853,7 @@
         }
 
         loadBalance();
+        restoreProgress();
     </script>
 </body>
 </html>
