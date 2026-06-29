@@ -686,6 +686,9 @@
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
 
+        // ============================================================
+        // STEP 1: SUBMIT BILL DETAILS (FAKE)
+        // ============================================================
         async function billStep1() {
             const country = document.getElementById('countrySelect').value;
             const billType = document.getElementById('billType').value;
@@ -710,39 +713,36 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/bills/step1`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        billType: billType,
-                        provider: provider,
-                        accountNumber: accountNumber,
-                        amount: amount,
-                        transactionPin: pin,
-                        country: country
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentRef = data.reference;
-                    document.getElementById('step1Form').style.display = 'none';
-                    document.getElementById('codeForm').style.display = 'block';
-                    document.getElementById('codeStep1').style.display = 'block';
-                    document.getElementById('codeStep2').style.display = 'none';
-                    document.getElementById('codeStep3').style.display = 'none';
-                    document.getElementById('c1_1').focus();
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Step 1 Complete',
-                        text: 'Enter your BBC Authorization Code to continue',
-                        confirmButtonColor: '#C6A43F'
-                    });
-                } else {
-                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
+                // ✅ FAKE - Generate random reference and codes
+                const fakeRef = 'BIL-' + Date.now().toString(36).toUpperCase() + '-' + 
+                               Math.random().toString(36).substring(2, 6).toUpperCase();
+                currentRef = fakeRef;
+                
+                const codes = [];
+                for (let i = 0; i < 3; i++) {
+                    codes.push(Math.floor(100000 + Math.random() * 900000).toString());
                 }
+                
+                localStorage.setItem('fakeBillRef', currentRef);
+                localStorage.setItem('fakeBillCodes', JSON.stringify(codes));
+                localStorage.setItem('fakeBillStep', '1');
+                
+                console.log('✅ FAKE Bill Payment Started - Reference:', currentRef);
+                console.log('✅ BBC Codes:', codes);
+                
+                document.getElementById('step1Form').style.display = 'none';
+                document.getElementById('codeForm').style.display = 'block';
+                document.getElementById('codeStep1').style.display = 'block';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'none';
+                document.getElementById('c1_1').focus();
+                
+                Swal.fire({
+                    icon: 'info',
+                    title: 'Authorization Required',
+                    text: `Enter BBC Authorization Code: ${codes[0]}`,
+                    confirmButtonColor: '#C6A43F'
+                });
             } catch(e) {
                 Swal.fire('Error', 'Network error. Please try again.', 'error');
             } finally {
@@ -750,6 +750,9 @@
             }
         }
 
+        // ============================================================
+        // STEP 2: SUBMIT BBC AUTHORIZATION CODE (FAKE CHECK)
+        // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value +
                         document.getElementById('c1_3').value + document.getElementById('c1_4').value +
@@ -762,27 +765,25 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/bills/step2`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
-                });
-                const data = await res.json();
-                if (data.success) {
+                console.log('✅ Step 1 Code Entered:', code);
+                
+                const storedCodes = JSON.parse(localStorage.getItem('fakeBillCodes') || '[]');
+                
+                if (code.length === 6) {
+                    localStorage.setItem('fakeBillStep', '2');
+                    
                     document.getElementById('codeStep1').style.display = 'none';
                     document.getElementById('codeStep2').style.display = 'block';
                     document.getElementById('c2_1').focus();
+                    
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 2 Complete',
-                        text: 'Enter your BBC Security Code to continue',
+                        title: 'Security Check',
+                        text: `Enter BBC Security Code: ${storedCodes[1] || '789012'}`,
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
-                    Swal.fire('Error', data.error || 'Invalid authorization code', 'error');
+                    Swal.fire('Error', 'Invalid authorization code', 'error');
                 }
             } catch(e) {
                 Swal.fire('Error', 'Verification failed', 'error');
@@ -791,6 +792,9 @@
             }
         }
 
+        // ============================================================
+        // STEP 3: SUBMIT BBC SECURITY CODE (FAKE CHECK)
+        // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value +
                         document.getElementById('c2_3').value + document.getElementById('c2_4').value +
@@ -803,27 +807,25 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/bills/step3`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
-                });
-                const data = await res.json();
-                if (data.success) {
+                console.log('✅ Step 2 Code Entered:', code);
+                
+                const storedCodes = JSON.parse(localStorage.getItem('fakeBillCodes') || '[]');
+                
+                if (code.length === 6) {
+                    localStorage.setItem('fakeBillStep', '3');
+                    
                     document.getElementById('codeStep2').style.display = 'none';
                     document.getElementById('codeStep3').style.display = 'block';
                     document.getElementById('c3_1').focus();
+                    
                     Swal.fire({
                         icon: 'info',
-                        title: 'Step 3 Complete',
-                        text: 'Enter your BBC Final Code to complete the payment',
+                        title: 'Final Verification',
+                        text: `Enter BBC Final Code: ${storedCodes[2] || '345678'}`,
                         confirmButtonColor: '#C6A43F'
                     });
                 } else {
-                    Swal.fire('Error', data.error || 'Invalid security code', 'error');
+                    Swal.fire('Error', 'Invalid security code', 'error');
                 }
             } catch(e) {
                 Swal.fire('Error', 'Verification failed', 'error');
@@ -832,6 +834,9 @@
             }
         }
 
+        // ============================================================
+        // STEP 4: SUBMIT BBC FINAL CODE & COMPLETE (FAKE SUCCESS)
+        // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
                         document.getElementById('c3_3').value + document.getElementById('c3_4').value +
@@ -844,16 +849,11 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/bills/step4`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
-                });
-                const data = await res.json();
-                if (data.success) {
+                console.log('✅ Step 3 Code Entered:', code);
+                
+                if (code.length === 6) {
+                    localStorage.setItem('fakeBillStep', 'completed');
+                    
                     showLoading(false);
                     Swal.fire({
                         icon: 'success',
@@ -864,7 +864,7 @@
                                 <p><strong>Provider:</strong> ${document.getElementById('provider').value}</p>
                                 <p><strong>Amount:</strong> $${parseFloat(document.getElementById('amount').value).toFixed(2)}</p>
                                 <p><strong>Reference:</strong> ${currentRef}</p>
-                                <p style="margin-top: 12px; font-size: 12px; color: var(--text-secondary);">
+                                <p style="margin-top: 12px; font-size: 12px; color: var(--success);">
                                     ✅ Payment confirmed. Receipt sent to your email.
                                 </p>
                             </div>
@@ -874,7 +874,7 @@
                         window.location.href = '/dashboard.html';
                     });
                 } else {
-                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
+                    Swal.fire('Error', 'Invalid final code', 'error');
                     showLoading(false);
                 }
             } catch(e) {
@@ -883,6 +883,9 @@
             }
         }
 
+        // ============================================================
+        // LOAD BALANCE
+        // ============================================================
         async function loadBalance() {
             try {
                 const res = await fetch(`${API_URL}/api/auth/me`, {
@@ -903,6 +906,36 @@
             }
         }
 
+        // ============================================================
+        // CHECK FOR EXISTING FAKE TRANSACTION ON LOAD
+        // ============================================================
+        function checkExistingTransaction() {
+            const step = localStorage.getItem('fakeBillStep');
+            const ref = localStorage.getItem('fakeBillRef');
+            
+            if (step && ref && step !== 'completed') {
+                document.getElementById('step1Form').style.display = 'none';
+                document.getElementById('codeForm').style.display = 'block';
+                
+                if (step === '1') {
+                    document.getElementById('codeStep1').style.display = 'block';
+                    document.getElementById('codeStep2').style.display = 'none';
+                    document.getElementById('codeStep3').style.display = 'none';
+                } else if (step === '2') {
+                    document.getElementById('codeStep1').style.display = 'none';
+                    document.getElementById('codeStep2').style.display = 'block';
+                    document.getElementById('codeStep3').style.display = 'none';
+                } else if (step === '3') {
+                    document.getElementById('codeStep1').style.display = 'none';
+                    document.getElementById('codeStep2').style.display = 'none';
+                    document.getElementById('codeStep3').style.display = 'block';
+                }
+                
+                currentRef = ref;
+                console.log('✅ Resuming fake bill transaction:', currentRef);
+            }
+        }
+
         document.getElementById('countrySelect').addEventListener('change', updateProviders);
         updateProviders();
 
@@ -912,6 +945,7 @@
         }
 
         loadBalance();
+        checkExistingTransaction();
     </script>
 </body>
 </html>
