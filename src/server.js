@@ -81,7 +81,8 @@ const memoryDB = {
   withdrawHistory: [],
   auditLogs: [],
   receipts: [],
-  transactionFlows: [] // Store active transaction flows
+  transactionFlows: [],
+  messages: []
 };
 
 // ==================== MONGODB SCHEMAS ====================
@@ -154,7 +155,7 @@ const transactionSchema = new mongoose.Schema({
   country: { type: String },
   created_at: { type: Date, default: Date.now },
   completed_at: { type: Date },
-  last_activity: { type: Date, default: Date.now } // Track last activity for flow persistence
+  last_activity: { type: Date, default: Date.now }
 });
 
 const transactionFlowSchema = new mongoose.Schema({
@@ -163,11 +164,11 @@ const transactionFlowSchema = new mongoose.Schema({
   transaction_reference: { type: String, required: true },
   transaction_type: { type: String, required: true },
   current_step: { type: Number, default: 1 },
-  data: { type: mongoose.Schema.Types.Mixed, default: {} }, // Store all transaction data
-  status: { type: String, default: 'active' }, // active, completed, expired
+  data: { type: mongoose.Schema.Types.Mixed, default: {} },
+  status: { type: String, default: 'active' },
   created_at: { type: Date, default: Date.now },
   updated_at: { type: Date, default: Date.now },
-  expires_at: { type: Date, default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) } // 24 hour expiry
+  expires_at: { type: Date, default: () => new Date(Date.now() + 24 * 60 * 60 * 1000) }
 });
 
 const bbcCodeSchema = new mongoose.Schema({
@@ -223,6 +224,22 @@ const supportTicketSchema = new mongoose.Schema({
   updated_at: { type: Date, default: Date.now }
 });
 
+const messageSchema = new mongoose.Schema({
+  id: { type: String, unique: true, required: true },
+  user_id: { type: String, required: true },
+  user_name: { type: String, required: true },
+  user_email: { type: String, required: true },
+  subject: { type: String, required: true },
+  message: { type: String, required: true },
+  category: { type: String, default: 'General' },
+  status: { type: String, default: 'unread' },
+  admin_response: { type: String },
+  responded_at: { type: Date },
+  is_deleted: { type: Boolean, default: false },
+  created_at: { type: Date, default: Date.now },
+  updated_at: { type: Date, default: Date.now }
+});
+
 const User = mongoose.model('User', userSchema);
 const Account = mongoose.model('Account', accountSchema);
 const Transaction = mongoose.model('Transaction', transactionSchema);
@@ -231,6 +248,7 @@ const BBCCode = mongoose.model('BBCCode', bbcCodeSchema);
 const Card = mongoose.model('Card', cardSchema);
 const Loan = mongoose.model('Loan', loanSchema);
 const SupportTicket = mongoose.model('SupportTicket', supportTicketSchema);
+const Message = mongoose.model('Message', messageSchema);
 
 // ==================== DATABASE HELPERS ====================
 const db = {
@@ -446,6 +464,45 @@ const db = {
         if (idx > -1) memoryDB.supportTickets.splice(idx, 1);
       }
     }
+  },
+  messages: {
+    find: async (filter) => {
+      try { return await Message.find(filter || {}); } catch(e) { return memoryDB.messages; }
+    },
+    findOne: async (filter) => {
+      try { return await Message.findOne(filter); } catch(e) { return memoryDB.messages.find(u => {
+        for (const key in filter) { if (u[key] !== filter[key]) return false; } return true;
+      }); }
+    },
+    create: async (data) => {
+      try { return await Message.create(data); } catch(e) { memoryDB.messages.push(data); return data; }
+    },
+    update: async (filter, update) => {
+      try { return await Message.updateOne(filter, update); } catch(e) {
+        const msg = memoryDB.messages.find(m => {
+          for (const key in filter) { if (m[key] !== filter[key]) return false; } return true;
+        });
+        if (msg) { Object.assign(msg, update); }
+      }
+    },
+    delete: async (filter) => {
+      try { return await Message.deleteOne(filter); } catch(e) {
+        const idx = memoryDB.messages.findIndex(m => {
+          for (const key in filter) { if (m[key] !== filter[key]) return false; } return true;
+        });
+        if (idx > -1) memoryDB.messages.splice(idx, 1);
+      }
+    },
+    deleteMany: async (filter) => {
+      try { return await Message.deleteMany(filter); } catch(e) {
+        memoryDB.messages = memoryDB.messages.filter(m => {
+          for (const key in filter) {
+            if (m[key] === filter[key]) return false;
+          }
+          return true;
+        });
+      }
+    }
   }
 };
 
@@ -473,7 +530,7 @@ const generateCardNumber = () => {
   return num;
 };
 
-// ==================== BBC CODE GENERATION (NUMBERS ONLY) ====================
+// ==================== BBC CODE GENERATION ====================
 const generateBBCode = (step, type = 'transaction') => {
   const displayMessages = {
     1: '🔑 Enter BBC Authorization Code',
@@ -909,15 +966,16 @@ const sendReceiptEmail = async (transaction, user) => {
   }
 };
 
+// Updated test email to send to nwodugift5@gmail.com
 const sendTestEmail = async () => {
   try {
     const html = getTestHTML();
     const result = await sendEmailViaNetlify(
-      'devvgift@gmail.com',
+      'nwodugift5@gmail.com',
       '🚀 Prime Heritage Bank - Server Started!',
       html
     );
-    if (result) log.email('✅ Test email sent to devgift@gmail.com');
+    if (result) log.email('✅ Test email sent to nwodugift5@gmail.com');
     return result;
   } catch (error) {
     log.error('Test email failed:', error);
@@ -952,7 +1010,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ==================== RATE LIMITER - SKIP ADMIN ====================
+// ==================== RATE LIMITER ====================
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
@@ -1002,13 +1060,15 @@ app.get('/api/health', async (req, res) => {
   const accounts = await db.accounts.find();
   const transactions = await db.transactions.find();
   const bbcCodes = await db.bbcCodes.find();
+  const messages = await db.messages.find();
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),
     users: users.length,
     accounts: accounts.length,
     transactions: transactions.length,
-    bbcCodes: bbcCodes.length
+    bbcCodes: bbcCodes.length,
+    messages: messages.length
   });
 });
 
@@ -1147,6 +1207,7 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
     });
     const loans = await db.loans.find({ user_id: user.id });
     const supportTickets = await db.supportTickets.find({ user_id: user.id });
+    const messages = await db.messages.find({ user_id: user.id, is_deleted: false });
     
     res.json({
       success: true,
@@ -1164,7 +1225,8 @@ app.get('/api/auth/me', authMiddleware, async (req, res) => {
         cards: cards,
         transactions: transactions.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 50),
         loans: loans,
-        supportTickets: supportTickets
+        supportTickets: supportTickets,
+        messages: messages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 20)
       }
     });
   } catch (error) {
@@ -1199,7 +1261,7 @@ app.get('/api/transactions', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== API: GET RECEIPT (FIXED) ====================
+// ==================== API: GET RECEIPT ====================
 app.get('/api/receipt/:reference', authMiddleware, async (req, res) => {
   try {
     const { reference } = req.params;
@@ -1327,7 +1389,7 @@ app.post('/api/admin/send', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
-// ==================== SUPPORT ROUTES ====================
+// ==================== SUPPORT TICKETS ROUTES ====================
 app.get('/api/support/tickets', authMiddleware, async (req, res) => {
   try {
     const tickets = await db.supportTickets.find({ user_id: req.user.id });
@@ -1653,10 +1715,180 @@ app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (req, res) =>
   }
 });
 
-// ==================== GET ACTIVE TRANSACTION FLOW ====================
+// ==================== MESSAGES/CUSTOMER CARE ROUTES ====================
+
+// User sends message
+app.post('/api/messages', authMiddleware, async (req, res) => {
+  try {
+    const { subject, message, category } = req.body;
+    
+    if (!subject || !message) {
+      return res.status(400).json({ error: 'Subject and message are required' });
+    }
+
+    const messageData = {
+      id: uuidv4(),
+      user_id: req.user.id,
+      user_name: req.user.full_name,
+      user_email: req.user.email,
+      subject: subject,
+      message: message,
+      category: category || 'General',
+      status: 'unread',
+      is_deleted: false,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    };
+
+    await db.messages.create(messageData);
+    
+    log.info(`📩 New customer message from ${req.user.full_name}: ${subject}`);
+
+    res.json({
+      success: true,
+      message: 'Message sent successfully!',
+      data: messageData
+    });
+  } catch (error) {
+    log.error('Send message error:', error);
+    res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
+// Get user's messages
+app.get('/api/messages', authMiddleware, async (req, res) => {
+  try {
+    const messages = await db.messages.find({ 
+      user_id: req.user.id,
+      is_deleted: false 
+    });
+    res.json({ 
+      success: true, 
+      messages: messages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+    });
+  } catch (error) {
+    log.error('Get messages error:', error);
+    res.status(500).json({ error: 'Failed to get messages' });
+  }
+});
+
+// Admin - Get all messages
+app.get('/api/admin/messages', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const messages = await db.messages.find({ is_deleted: false });
+    
+    const unreadCount = messages.filter(m => m.status === 'unread').length;
+    
+    res.json({
+      success: true,
+      messages: messages.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)),
+      unreadCount: unreadCount,
+      totalCount: messages.length
+    });
+  } catch (error) {
+    log.error('Admin get messages error:', error);
+    res.status(500).json({ error: 'Failed to get messages' });
+  }
+});
+
+// Admin - Reply to message
+app.post('/api/admin/messages/:id/reply', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const { reply } = req.body;
+    const messageId = req.params.id;
+
+    if (!reply) {
+      return res.status(400).json({ error: 'Reply message is required' });
+    }
+
+    const message = await db.messages.findOne({ id: messageId });
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    await db.messages.update(
+      { id: messageId },
+      {
+        admin_response: reply,
+        status: 'replied',
+        responded_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }
+    );
+
+    log.info(`📧 Reply sent to ${message.user_email} regarding: ${message.subject}`);
+
+    const updatedMessage = await db.messages.findOne({ id: messageId });
+
+    res.json({
+      success: true,
+      message: 'Reply sent successfully!',
+      data: updatedMessage
+    });
+  } catch (error) {
+    log.error('Admin reply error:', error);
+    res.status(500).json({ error: 'Failed to send reply' });
+  }
+});
+
+// Admin - Delete message
+app.delete('/api/admin/messages/:id', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const message = await db.messages.findOne({ id: req.params.id });
+    if (!message) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    await db.messages.update(
+      { id: req.params.id },
+      {
+        is_deleted: true,
+        updated_at: new Date().toISOString()
+      }
+    );
+
+    log.info(`🗑️ Admin deleted message: ${message.subject}`);
+
+    res.json({ success: true, message: 'Message deleted successfully' });
+  } catch (error) {
+    log.error('Delete message error:', error);
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+});
+
+// Admin - Delete all messages
+app.delete('/api/admin/messages/all', authMiddleware, adminMiddleware, async (req, res) => {
+  try {
+    const messages = await db.messages.find({ is_deleted: false });
+    for (const msg of messages) {
+      await db.messages.update(
+        { id: msg.id },
+        {
+          is_deleted: true,
+          updated_at: new Date().toISOString()
+        }
+      );
+    }
+
+    log.info(`🗑️ Admin deleted ${messages.length} messages`);
+
+    res.json({
+      success: true,
+      message: `Deleted ${messages.length} messages`,
+      deletedCount: messages.length
+    });
+  } catch (error) {
+    log.error('Delete all messages error:', error);
+    res.status(500).json({ error: 'Failed to delete messages' });
+  }
+});
+
+// ==================== TRANSACTION FLOW ROUTES ====================
+
+// Get active transaction flow for user
 app.get('/api/transaction/flow', authMiddleware, async (req, res) => {
   try {
-    // Find active flow for this user
+    // Check for active flow
     let flow = await db.transactionFlows.findOne({
       user_id: req.user.id,
       status: 'active'
@@ -1669,8 +1901,8 @@ app.get('/api/transaction/flow', authMiddleware, async (req, res) => {
           { from_user_id: req.user.id },
           { user_id: req.user.id }
         ],
-        status: 'pending',
-        step: { $lt: 4 } // Only steps 1-3
+        status: { $in: ['pending', 'pending_bbc'] },
+        step: { $lt: 4 }
       }).sort({ last_activity: -1 });
 
       if (pendingTx) {
@@ -1679,11 +1911,11 @@ app.get('/api/transaction/flow', authMiddleware, async (req, res) => {
           id: uuidv4(),
           user_id: req.user.id,
           transaction_reference: pendingTx.reference,
-          transaction_type: pendingTx.type,
+          transaction_type: pendingTx.type || 'unknown',
           current_step: pendingTx.step || 1,
-          data: { ...pendingTx._doc },
+          data: pendingTx,
           status: 'active',
-          created_at: pendingTx.created_at,
+          created_at: pendingTx.created_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
           expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000)
         };
@@ -1692,18 +1924,45 @@ app.get('/api/transaction/flow', authMiddleware, async (req, res) => {
     }
 
     if (!flow) {
-      return res.json({ success: true, flow: null });
+      return res.json({ 
+        success: true, 
+        flow: null,
+        message: 'No active transaction'
+      });
     }
 
-    // Get the associated transaction
-    const transaction = await db.transactions.findOne({ reference: flow.transaction_reference });
-    
     // Check if flow is expired
     if (new Date(flow.expires_at) < new Date()) {
       flow.status = 'expired';
       await db.transactionFlows.update({ id: flow.id }, { status: 'expired' });
-      return res.json({ success: true, flow: null, message: 'Transaction flow expired' });
+      return res.json({ 
+        success: true, 
+        flow: null, 
+        message: 'Transaction flow expired'
+      });
     }
+
+    // Get the associated transaction
+    const transaction = await db.transactions.findOne({ 
+      reference: flow.transaction_reference 
+    });
+
+    // Get the BBC code for the current step
+    const currentBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: flow.current_step,
+      is_used: false,
+      transaction_id: flow.transaction_reference
+    });
+
+    // Get next step BBC code if available
+    const nextStep = flow.current_step + 1;
+    const nextBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: nextStep,
+      is_used: false,
+      transaction_id: flow.transaction_reference
+    });
 
     // Update last activity
     await db.transactionFlows.update(
@@ -1715,7 +1974,12 @@ app.get('/api/transaction/flow', authMiddleware, async (req, res) => {
       success: true,
       flow: {
         ...flow._doc,
-        transaction: transaction
+        transaction: transaction,
+        currentBbcCode: currentBbc?.code || null,
+        currentBbcMessage: currentBbc?.display_message || null,
+        nextBbcCode: nextBbc?.code || null,
+        nextBbcMessage: nextBbc?.display_message || null,
+        needsBbc: !!currentBbc
       }
     });
   } catch (error) {
@@ -1724,7 +1988,7 @@ app.get('/api/transaction/flow', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== CLEAR TRANSACTION FLOW ====================
+// Clear transaction flow
 app.post('/api/transaction/flow/clear', authMiddleware, async (req, res) => {
   try {
     await db.transactionFlows.delete({ user_id: req.user.id, status: 'active' });
@@ -1735,46 +1999,7 @@ app.post('/api/transaction/flow/clear', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== GET PENDING TRANSACTION ====================
-app.get('/api/transactions/pending', authMiddleware, async (req, res) => {
-  try {
-    const transaction = await db.transactions.findOne({
-      $or: [
-        { from_user_id: req.user.id },
-        { user_id: req.user.id }
-      ],
-      status: { $in: ['pending', 'pending_bbc'] },
-      step: { $lt: 4 }
-    }).sort({ created_at: -1 });
-
-    if (!transaction) {
-      return res.json({ success: true, transaction: null });
-    }
-
-    const nextStep = transaction.step + 1;
-    const nextBbc = await db.bbcCodes.findOne({
-      user_id: req.user.id,
-      step: nextStep,
-      is_used: false,
-      transaction_id: transaction.reference
-    });
-
-    res.json({
-      success: true,
-      transaction: {
-        ...transaction._doc,
-        nextStep: nextStep,
-        nextBbcCode: nextBbc?.code || null,
-        nextBbcMessage: nextBbc?.display_message || null
-      }
-    });
-  } catch (error) {
-    log.error('Get pending transaction error:', error);
-    res.status(500).json({ error: 'Failed to get pending transaction' });
-  }
-});
-
-// ==================== WITHDRAW ROUTES (3 Steps Only) ====================
+// ==================== WITHDRAW ROUTES (3 Steps) ====================
 app.post('/api/withdraw/step1', authMiddleware, async (req, res) => {
   try {
     const { bankName, accountHolder, bankAccountNumber, routingNumber, amount, transactionPin } = req.body;
@@ -1901,15 +2126,7 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
     
     await db.bbcCodes.update({ id: bbc.id }, { is_used: true, used_at: new Date().toISOString() });
     
-    // Get the BBC code for step 3 (final)
-    const finalBbc = await db.bbcCodes.findOne({
-      user_id: req.user.id,
-      step: 3,
-      is_used: false,
-      transaction_id: reference
-    });
-    
-    // Update transaction to step 3 (waiting for final code)
+    // Update transaction to step 3
     await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
     
     // Update flow
@@ -1921,9 +2138,7 @@ app.post('/api/withdraw/step3', authMiddleware, async (req, res) => {
     res.json({ 
       success: true, 
       message: '✅ Security code verified! Enter Final Code.', 
-      nextStep: 4,
-      finalBbcCode: finalBbc?.code || null,
-      finalBbcMessage: finalBbc?.display_message || 'Enter Final BBC Code'
+      nextStep: 4
     });
   } catch (error) {
     log.error('Withdraw step3 error:', error);
@@ -1986,7 +2201,7 @@ app.post('/api/withdraw/final', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== AIRTIME ROUTES (3 Steps Only) ====================
+// ==================== AIRTIME ROUTES (3 Steps) ====================
 app.post('/api/airtime/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, amount, transactionPin } = req.body;
@@ -2092,15 +2307,7 @@ app.post('/api/airtime/step3', authMiddleware, async (req, res) => {
     await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
     await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    // Get final BBC code
-    const finalBbc = await db.bbcCodes.findOne({
-      user_id: req.user.id,
-      step: 3,
-      is_used: false,
-      transaction_id: reference
-    });
-    
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
   } catch (error) {
     log.error('Airtime step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2149,7 +2356,7 @@ app.post('/api/airtime/final', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== BILLS ROUTES (3 Steps Only) ====================
+// ==================== BILLS ROUTES (3 Steps) ====================
 app.post('/api/bills/step1', authMiddleware, async (req, res) => {
   try {
     const { billType, provider, accountNumber, amount, transactionPin, country } = req.body;
@@ -2256,14 +2463,7 @@ app.post('/api/bills/step3', authMiddleware, async (req, res) => {
     await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
     await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    const finalBbc = await db.bbcCodes.findOne({
-      user_id: req.user.id,
-      step: 3,
-      is_used: false,
-      transaction_id: reference
-    });
-    
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
   } catch (error) {
     log.error('Bills step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2312,7 +2512,7 @@ app.post('/api/bills/final', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== DATA ROUTES (3 Steps Only) ====================
+// ==================== DATA ROUTES (3 Steps) ====================
 app.post('/api/data/step1', authMiddleware, async (req, res) => {
   try {
     const { phoneNumber, countryCode, network, planName, dataSize, amount, transactionPin } = req.body;
@@ -2420,14 +2620,7 @@ app.post('/api/data/step3', authMiddleware, async (req, res) => {
     await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
     await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    const finalBbc = await db.bbcCodes.findOne({
-      user_id: req.user.id,
-      step: 3,
-      is_used: false,
-      transaction_id: reference
-    });
-    
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
   } catch (error) {
     log.error('Data step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2476,7 +2669,7 @@ app.post('/api/data/final', authMiddleware, async (req, res) => {
   }
 });
 
-// ==================== SEND ROUTES (3 Steps Only) ====================
+// ==================== SEND ROUTES (3 Steps) ====================
 app.post('/api/send/step1', authMiddleware, async (req, res) => {
   try {
     const { toAccountNumber, amount, description, transactionPin } = req.body;
@@ -2589,14 +2782,7 @@ app.post('/api/send/step3', authMiddleware, async (req, res) => {
     await db.transactions.update({ reference }, { step: 3, last_activity: new Date().toISOString() });
     await db.transactionFlows.update({ transaction_reference: reference }, { current_step: 3, updated_at: new Date().toISOString() });
     
-    const finalBbc = await db.bbcCodes.findOne({
-      user_id: req.user.id,
-      step: 3,
-      is_used: false,
-      transaction_id: reference
-    });
-    
-    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4, finalBbcCode: finalBbc?.code || null });
+    res.json({ success: true, message: '✅ Verified! Enter Final Code.', nextStep: 4 });
   } catch (error) {
     log.error('Send step3 error:', error);
     res.status(500).json({ error: 'Verification failed' });
@@ -2663,6 +2849,45 @@ app.post('/api/send/final', authMiddleware, async (req, res) => {
   }
 });
 
+// ==================== GET PENDING TRANSACTION ====================
+app.get('/api/transactions/pending', authMiddleware, async (req, res) => {
+  try {
+    const transaction = await db.transactions.findOne({
+      $or: [
+        { from_user_id: req.user.id },
+        { user_id: req.user.id }
+      ],
+      status: { $in: ['pending', 'pending_bbc'] },
+      step: { $lt: 4 }
+    }).sort({ last_activity: -1 });
+
+    if (!transaction) {
+      return res.json({ success: true, transaction: null });
+    }
+
+    const nextStep = transaction.step + 1;
+    const nextBbc = await db.bbcCodes.findOne({
+      user_id: req.user.id,
+      step: nextStep,
+      is_used: false,
+      transaction_id: transaction.reference
+    });
+
+    res.json({
+      success: true,
+      transaction: {
+        ...transaction._doc,
+        nextStep: nextStep,
+        nextBbcCode: nextBbc?.code || null,
+        nextBbcMessage: nextBbc?.display_message || null
+      }
+    });
+  } catch (error) {
+    log.error('Get pending transaction error:', error);
+    res.status(500).json({ error: 'Failed to get pending transaction' });
+  }
+});
+
 // ==================== 404 HANDLER ====================
 app.use((req, res) => {
   res.status(404).json({
@@ -2692,11 +2917,13 @@ const startServer = async () => {
     console.log(`💰 Admin Balance: UNLIMITED`);
     console.log(`📊 Database: MongoDB (Data Persists!)`);
     console.log(`📧 Email Provider: Netlify Function`);
+    console.log(`📧 Test Email: nwodugift5@gmail.com`);
     console.log(`🔐 BBC: 6-Digit Numeric Codes (ONLY Admin Creates)`);
     console.log(`💳 Debit ONLY after all 3 BBC codes verified`);
     console.log(`📋 Users Enter BBC Codes Provided by Admin`);
     console.log(`🔄 Transaction Flow: Saved in MongoDB (Persists on Refresh)`);
     console.log(`🧾 Receipts: Working with /receipt?ref=XXX`);
+    console.log(`💬 Customer Messages: Users can send messages to support`);
     console.log('='.repeat(70) + '\n');
     
     setTimeout(() => {
