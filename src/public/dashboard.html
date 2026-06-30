@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Dashboard | Prime Heritage Bank</title>
+    <title>Prime Heritage Bank | Dashboard</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -15,103 +14,125 @@
             --gold: #C6A43F;
             --gold-dark: #9E8032;
             --gold-light: #D4B85A;
-            --gold-glow: rgba(198,164,63,0.25);
+            --gold-glow: rgba(198,164,63,0.3);
+            --gold-gradient: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
             --success: #10B981;
             --success-bg: rgba(16,185,129,0.12);
             --error: #EF4444;
             --error-bg: rgba(239,68,68,0.12);
             --warning: #F59E0B;
             --info: #3B82F6;
-            --gradient-gold: linear-gradient(135deg, #C6A43F, #9E8032);
-            --gradient-dark: linear-gradient(145deg, #0a1628, #1a2a4a);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 8px 32px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+            --shadow-xl: 0 30px 80px rgba(0,0,0,0.2);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
+            --radius-xl: 32px;
         }
 
         [data-theme="dark"] {
-            --bg-body: #05080f;
-            --bg-card: rgba(13, 20, 35, 0.92);
-            --bg-card-hover: rgba(20, 30, 50, 0.95);
-            --border: rgba(198,164,63,0.12);
-            --border-hover: rgba(198,164,63,0.3);
+            --bg-primary: #070B14;
+            --bg-secondary: #0C1425;
+            --bg-card: rgba(16, 26, 45, 0.92);
+            --bg-card-hover: rgba(22, 34, 58, 0.95);
+            --bg-glass: rgba(16, 26, 45, 0.75);
+            --border: rgba(198,164,63,0.08);
+            --border-hover: rgba(198,164,63,0.25);
+            --border-light: rgba(255,255,255,0.04);
             --text-primary: #F0F2F8;
-            --text-secondary: #94A3B8;
-            --text-muted: #64748B;
+            --text-secondary: #8899B0;
+            --text-muted: #5A6B80;
+            --shadow-card: 0 20px 60px rgba(0,0,0,0.6);
             --input-bg: rgba(255,255,255,0.04);
-            --shadow: 0 25px 60px -15px rgba(0,0,0,0.8);
-            --glass-bg: rgba(13, 20, 35, 0.85);
-            --hover-bg: rgba(198,164,63,0.04);
-            --card-gradient: linear-gradient(145deg, #0d1a2b, #16213e);
-            --balance-card-bg: linear-gradient(145deg, #0a1628, #1a2a4a);
-            --modal-bg: rgba(13, 20, 35, 0.98);
-            --status-completed-color: #34D399;
-            --status-completed-bg: rgba(52, 211, 153, 0.15);
-            --status-completed-border: rgba(52, 211, 153, 0.3);
-            --status-pending-color: #FBBF24;
-            --status-pending-bg: rgba(251, 191, 36, 0.15);
-            --status-pending-border: rgba(251, 191, 36, 0.3);
+            --status-completed: #34D399;
+            --status-completed-bg: rgba(52, 211, 153, 0.12);
+            --status-pending: #FBBF24;
+            --status-pending-bg: rgba(251, 191, 36, 0.12);
+            --balance-gradient: linear-gradient(145deg, #0A1628, #1A2A4A);
         }
 
         [data-theme="light"] {
-            --bg-body: #F0F2F8;
+            --bg-primary: #F0F2F8;
+            --bg-secondary: #E8EBF2;
             --bg-card: rgba(255, 255, 255, 0.95);
             --bg-card-hover: rgba(255, 255, 255, 1);
-            --border: rgba(198,164,63,0.15);
-            --border-hover: rgba(198,164,63,0.4);
+            --bg-glass: rgba(255, 255, 255, 0.8);
+            --border: rgba(198,164,63,0.12);
+            --border-hover: rgba(198,164,63,0.35);
+            --border-light: rgba(0,0,0,0.06);
             --text-primary: #0A1628;
             --text-secondary: #5A6B7D;
             --text-muted: #8A9BAE;
+            --shadow-card: 0 20px 60px rgba(0,0,0,0.06);
             --input-bg: rgba(0,0,0,0.03);
-            --shadow: 0 25px 60px -15px rgba(0,0,0,0.1);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --hover-bg: rgba(198,164,63,0.06);
-            --card-gradient: linear-gradient(145deg, #f8fafc, #e2e8f0);
-            --balance-card-bg: linear-gradient(145deg, #0a1628, #1a2a4a);
-            --modal-bg: rgba(255, 255, 255, 0.98);
-            --status-completed-color: #059669;
-            --status-completed-bg: rgba(5, 150, 105, 0.1);
-            --status-completed-border: rgba(5, 150, 105, 0.25);
-            --status-pending-color: #D97706;
-            --status-pending-bg: rgba(217, 119, 6, 0.1);
-            --status-pending-border: rgba(217, 119, 6, 0.25);
+            --status-completed: #059669;
+            --status-completed-bg: rgba(5, 150, 105, 0.08);
+            --status-pending: #D97706;
+            --status-pending-bg: rgba(217, 119, 6, 0.08);
+            --balance-gradient: linear-gradient(145deg, #0A1628, #1A2A4A);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            background: var(--bg-body);
-            padding-bottom: 80px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding-bottom: 90px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        body::before {
-            content: '';
+        /* ===== GLOW ORB ===== */
+        .glow-orb {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: 
-                radial-gradient(ellipse at 20% 50%, rgba(198,164,63,0.05) 0%, transparent 60%),
-                radial-gradient(ellipse at 80% 80%, rgba(198,164,63,0.03) 0%, transparent 50%);
+            border-radius: 50%;
+            filter: blur(120px);
             pointer-events: none;
             z-index: 0;
         }
+        .glow-orb.orb-1 {
+            width: 400px;
+            height: 400px;
+            top: -200px;
+            right: -100px;
+            background: rgba(198,164,63,0.06);
+        }
+        .glow-orb.orb-2 {
+            width: 300px;
+            height: 300px;
+            bottom: -100px;
+            left: -100px;
+            background: rgba(198,164,63,0.04);
+        }
 
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @keyframes pulseRing {
+            0% { transform: scale(1); opacity: 0.6; }
+            100% { transform: scale(1.4); opacity: 0; }
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
 
         /* ===== TOP BAR ===== */
         .top-bar {
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
+            background: var(--bg-glass);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
             padding: 14px 24px;
             display: flex;
             justify-content: space-between;
@@ -126,24 +147,36 @@
         .logo {
             display: flex;
             align-items: center;
-            gap: 10px;
+            gap: 12px;
             cursor: pointer;
+            text-decoration: none;
         }
         .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: var(--gradient-gold);
-            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            background: var(--gold-gradient);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 20px rgba(198,164,63,0.35);
+            box-shadow: 0 4px 20px rgba(198,164,63,0.3);
+            position: relative;
+        }
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 16px;
+            background: var(--gold-gradient);
+            opacity: 0.3;
+            filter: blur(8px);
+            z-index: -1;
         }
         .logo-icon i { font-size: 18px; color: #0A0E1A; }
         .logo-text {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
-            background: var(--gradient-gold);
+            background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.5px;
@@ -154,20 +187,21 @@
             -webkit-text-fill-color: var(--text-secondary);
         }
 
-        .user-section {
+        .top-actions {
             display: flex;
             align-items: center;
             gap: 12px;
         }
 
         .theme-toggle {
-            background: rgba(198,164,63,0.08);
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 50px;
-            padding: 4px;
+            padding: 3px;
             display: flex;
             cursor: pointer;
             transition: all 0.3s;
+            box-shadow: var(--shadow-sm);
         }
         .theme-toggle:hover { border-color: var(--gold); }
         .theme-option {
@@ -182,39 +216,52 @@
             cursor: pointer;
         }
         .theme-option.active {
-            background: var(--gradient-gold);
+            background: var(--gold-gradient);
             color: #0A0E1A;
+            box-shadow: 0 2px 12px rgba(198,164,63,0.3);
         }
         .theme-option i { margin-right: 4px; }
 
         .avatar-top {
-            width: 40px;
-            height: 40px;
-            background: var(--gradient-gold);
+            width: 42px;
+            height: 42px;
+            background: var(--gold-gradient);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 20px rgba(198,164,63,0.35);
+            box-shadow: 0 4px 20px rgba(198,164,63,0.3);
             flex-shrink: 0;
+            position: relative;
+            border: 2px solid rgba(198,164,63,0.2);
         }
-        .avatar-top:hover { transform: scale(1.08); }
+        .avatar-top:hover { transform: scale(1.05); border-color: var(--gold); }
         .avatar-top i { color: #0A0E1A; font-size: 16px; }
+        .avatar-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background: var(--success);
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
 
         /* ===== CONTAINER ===== */
         .container {
             max-width: 600px;
             margin: 0 auto;
-            padding: 16px 16px 80px;
+            padding: 20px 20px 100px;
             position: relative;
             z-index: 1;
         }
 
         /* ===== GREETING ===== */
         .greeting-section {
-            padding: 4px 0 16px;
+            padding: 4px 0 20px;
             animation: slideUp 0.5s ease;
         }
         .greeting-text {
@@ -223,122 +270,170 @@
             font-weight: 500;
         }
         .greeting-name {
-            font-size: 24px;
+            font-size: 26px;
             font-weight: 800;
             color: var(--text-primary);
             margin-top: 2px;
             letter-spacing: -0.5px;
         }
         .greeting-name .highlight {
-            background: var(--gradient-gold);
+            background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
 
         /* ===== BALANCE CARD ===== */
         .balance-card {
-            background: var(--balance-card-bg);
-            border-radius: 24px;
-            padding: 28px 24px;
-            margin-bottom: 20px;
+            background: var(--balance-gradient);
+            border-radius: var(--radius-lg);
+            padding: 32px 28px;
+            margin-bottom: 24px;
             position: relative;
             overflow: hidden;
             animation: slideUp 0.5s ease 0.05s backwards;
-            box-shadow: 0 15px 50px rgba(0,0,0,0.4);
-            border: 1px solid rgba(198,164,63,0.12);
+            box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+            border: 1px solid rgba(198,164,63,0.1);
         }
         .balance-card::before {
             content: '';
             position: absolute;
-            top: -40%;
+            top: -50%;
             right: -20%;
-            width: 300px;
-            height: 300px;
+            width: 400px;
+            height: 400px;
             background: radial-gradient(circle, rgba(198,164,63,0.08) 0%, transparent 70%);
             border-radius: 50%;
         }
         .balance-card::after {
             content: '';
             position: absolute;
-            bottom: -30%;
+            bottom: -40%;
             left: -10%;
-            width: 200px;
-            height: 200px;
+            width: 300px;
+            height: 300px;
             background: radial-gradient(circle, rgba(198,164,63,0.05) 0%, transparent 70%);
             border-radius: 50%;
+        }
+        .balance-card .card-pattern {
+            position: absolute;
+            top: 0;
+            right: 0;
+            opacity: 0.05;
+            font-size: 80px;
+            font-family: 'Inter', monospace;
+            font-weight: 900;
+            color: #fff;
+            line-height: 1;
+            letter-spacing: -4px;
+            pointer-events: none;
+        }
+        .balance-card .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            z-index: 1;
         }
         .balance-card .label {
             font-size: 12px;
             color: rgba(255,255,255,0.5);
-            font-weight: 500;
+            font-weight: 600;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.5px;
+        }
+        .balance-card .hide-balance {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: rgba(255,255,255,0.4);
+            transition: all 0.3s;
             position: relative;
             z-index: 1;
+        }
+        .balance-card .hide-balance:hover {
+            background: rgba(255,255,255,0.12);
+            color: rgba(255,255,255,0.8);
         }
         .balance-card .amount {
-            font-size: 42px;
+            font-size: 44px;
             font-weight: 800;
             color: #FFFFFF;
-            margin-top: 4px;
+            margin-top: 6px;
             position: relative;
             z-index: 1;
-            letter-spacing: -0.5px;
+            letter-spacing: -1px;
         }
         .balance-card .amount .currency {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 600;
-            opacity: 0.6;
+            opacity: 0.5;
             margin-right: 4px;
+        }
+        .balance-card .amount .amount-value {
+            transition: all 0.3s;
+        }
+        .balance-card .amount .amount-value.hidden {
+            filter: blur(8px);
+            user-select: none;
         }
         .balance-card .balance-actions {
             display: flex;
-            gap: 10px;
-            margin-top: 18px;
+            gap: 12px;
+            margin-top: 22px;
             position: relative;
             z-index: 1;
         }
         .balance-card .balance-actions .btn-action {
-            padding: 10px 16px;
+            padding: 12px 20px;
             border-radius: 50px;
             border: none;
             font-weight: 600;
             font-size: 13px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             gap: 8px;
             flex: 1;
             justify-content: center;
         }
-        .balance-card .balance-actions .btn-action:hover {
-            transform: translateY(-2px);
+        .balance-card .balance-actions .btn-action:active {
+            transform: scale(0.96);
         }
         .btn-send {
             background: #FFFFFF;
             color: #0A0E1A;
+            box-shadow: 0 4px 20px rgba(255,255,255,0.15);
         }
         .btn-send:hover {
-            box-shadow: 0 8px 30px rgba(255,255,255,0.2);
+            box-shadow: 0 8px 30px rgba(255,255,255,0.25);
+            transform: translateY(-2px);
         }
         .btn-withdraw {
-            background: rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.06);
             color: #FFFFFF;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.08);
         }
         .btn-withdraw:hover {
-            background: rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-2px);
         }
-        .btn-topup {
-            background: rgba(255,255,255,0.08);
+        .btn-support {
+            background: rgba(255,255,255,0.06);
             color: #FFFFFF;
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255,255,255,0.08);
         }
-        .btn-topup:hover {
-            background: rgba(255,255,255,0.15);
+        .btn-support:hover {
+            background: rgba(255,255,255,0.12);
+            transform: translateY(-2px);
         }
 
         /* ===== QUICK ACTIONS ===== */
@@ -346,38 +441,53 @@
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 10px;
-            margin-bottom: 24px;
+            margin-bottom: 28px;
             animation: slideUp 0.5s ease 0.1s backwards;
         }
         .action-item {
-            background: var(--glass-bg);
+            background: var(--bg-glass);
             backdrop-filter: blur(12px);
             border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 14px 8px;
+            border-radius: var(--radius-md);
+            padding: 16px 8px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             text-decoration: none;
+            position: relative;
+            overflow: hidden;
+        }
+        .action-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gold-gradient);
+            opacity: 0;
+            transition: opacity 0.3s;
         }
         .action-item:hover {
             border-color: var(--gold);
             transform: translateY(-4px);
-            box-shadow: 0 8px 30px rgba(198,164,63,0.1);
+            box-shadow: 0 12px 40px rgba(198,164,63,0.08);
+        }
+        .action-item:hover::before {
+            opacity: 0.04;
         }
         .action-item .icon-wrap {
-            width: 40px;
-            height: 40px;
-            background: rgba(198,164,63,0.08);
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            background: rgba(198,164,63,0.06);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 8px;
             transition: all 0.3s;
+            position: relative;
+            z-index: 1;
         }
         .action-item:hover .icon-wrap {
-            background: rgba(198,164,63,0.18);
+            background: rgba(198,164,63,0.15);
             transform: scale(1.05);
         }
         .action-item .icon-wrap i {
@@ -389,6 +499,8 @@
             font-weight: 600;
             color: var(--text-secondary);
             display: block;
+            position: relative;
+            z-index: 1;
         }
 
         /* ===== SECTION ===== */
@@ -396,12 +508,13 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
         .section-header h3 {
-            font-size: 16px;
+            font-size: 17px;
             font-weight: 700;
             color: var(--text-primary);
+            letter-spacing: -0.3px;
         }
         .section-header a {
             font-size: 12px;
@@ -410,109 +523,144 @@
             font-weight: 600;
             text-decoration: none;
             transition: all 0.3s;
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
         }
-        .section-header a:hover { opacity: 0.7; }
+        .section-header a:hover { 
+            background: rgba(198,164,63,0.08);
+            border-color: var(--gold);
+        }
 
         /* ===== TRANSACTIONS ===== */
+        .transactions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
         .transaction-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 12px 14px;
-            background: var(--glass-bg);
-            border-radius: 14px;
-            margin-bottom: 8px;
+            padding: 14px 16px;
+            background: var(--bg-glass);
+            border-radius: var(--radius-md);
             border: 1px solid var(--border);
-            transition: all 0.3s;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             cursor: pointer;
+            backdrop-filter: blur(8px);
         }
         .transaction-item:hover {
             border-color: var(--border-hover);
             transform: translateX(4px);
+            box-shadow: var(--shadow-sm);
         }
         .transaction-left {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
             flex: 1;
             min-width: 0;
         }
         .transaction-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            font-size: 18px;
         }
-        .transaction-icon.incoming { background: var(--success-bg); color: var(--success); }
-        .transaction-icon.outgoing { background: var(--error-bg); color: var(--error); }
-        .transaction-icon i { font-size: 16px; }
+        .transaction-icon.incoming { 
+            background: var(--success-bg); 
+            color: var(--success); 
+        }
+        .transaction-icon.outgoing { 
+            background: var(--error-bg); 
+            color: var(--error); 
+        }
         .transaction-info {
             flex: 1;
             min-width: 0;
         }
         .transaction-info .tx-name {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 600;
             color: var(--text-primary);
+        }
+        .transaction-info .tx-meta {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 2px;
         }
         .transaction-info .tx-date {
             font-size: 11px;
             color: var(--text-secondary);
-            margin-top: 2px;
+        }
+        .transaction-info .tx-reference {
+            font-size: 10px;
+            color: var(--text-muted);
+            font-family: monospace;
         }
         .transaction-right {
             text-align: right;
             flex-shrink: 0;
-            margin-left: 10px;
+            margin-left: 12px;
         }
         .transaction-amount {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
+            letter-spacing: -0.3px;
         }
         .transaction-amount.incoming { color: var(--success); }
         .transaction-amount.outgoing { color: var(--error); }
 
-        /* ===== STATUS BADGE - WORKS IN BOTH THEMES ===== */
         .tx-status {
             font-size: 10px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 3px 12px;
+            padding: 3px 14px;
             border-radius: 30px;
-            margin-top: 2px;
+            margin-top: 3px;
             letter-spacing: 0.3px;
             transition: all 0.3s;
         }
-        .tx-status i {
-            font-size: 9px;
-        }
+        .tx-status i { font-size: 9px; }
         .tx-status.completed {
-            color: var(--status-completed-color);
+            color: var(--status-completed);
             background: var(--status-completed-bg);
-            border: 1px solid var(--status-completed-border);
+            border: 1px solid rgba(52, 211, 153, 0.2);
         }
         .tx-status.pending {
-            color: var(--status-pending-color);
+            color: var(--status-pending);
             background: var(--status-pending-bg);
-            border: 1px solid var(--status-pending-border);
+            border: 1px solid rgba(251, 191, 36, 0.2);
         }
 
         /* ===== EMPTY STATE ===== */
         .empty-state {
             text-align: center;
-            padding: 30px 20px;
+            padding: 40px 20px;
             color: var(--text-secondary);
         }
-        .empty-state i {
-            font-size: 32px;
-            margin-bottom: 10px;
+        .empty-state .empty-icon {
+            font-size: 48px;
+            opacity: 0.2;
+            margin-bottom: 16px;
             display: block;
-            opacity: 0.3;
+        }
+        .empty-state p {
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .empty-state .empty-sub {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 4px;
         }
 
         /* ===== MODAL ===== */
@@ -522,15 +670,16 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
             z-index: 1500;
             align-items: center;
             justify-content: center;
+            animation: fadeIn 0.2s ease;
         }
         .transactions-modal .modal-content {
-            background: var(--modal-bg);
-            border-radius: 28px;
-            padding: 24px;
+            background: var(--bg-card);
+            border-radius: var(--radius-xl);
+            padding: 28px;
             max-width: 600px;
             width: 92%;
             border: 1px solid var(--border);
@@ -538,32 +687,33 @@
             overflow: hidden;
             display: flex;
             flex-direction: column;
-            box-shadow: var(--shadow);
+            box-shadow: var(--shadow-xl);
+            animation: slideUp 0.3s ease;
         }
         .transactions-modal .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 12px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--border);
+            margin-bottom: 16px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
         .transactions-modal .modal-header h3 {
-            color: var(--gold);
             font-size: 20px;
             font-weight: 700;
+            color: var(--gold);
         }
         .transactions-modal .modal-header h3 i { margin-right: 10px; }
         .transactions-modal .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            font-size: 20px;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.3s;
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -572,35 +722,39 @@
         .transactions-modal .close-modal:hover { 
             color: var(--error); 
             background: var(--error-bg);
+            border-color: var(--error);
             transform: rotate(90deg);
         }
         .transactions-modal .modal-body {
             overflow-y: auto;
             flex: 1;
-            padding-right: 5px;
+            padding-right: 4px;
+        }
+        .transactions-modal .modal-body::-webkit-scrollbar {
+            width: 4px;
         }
 
-        /* ===== MODAL TRANSACTION ITEMS ===== */
         .modal-tx-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 10px;
-            border-bottom: 1px solid var(--border);
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border-light);
             transition: all 0.3s;
-            border-radius: 8px;
+            border-radius: 10px;
             gap: 10px;
         }
-        .modal-tx-item:hover { background: var(--hover-bg); }
+        .modal-tx-item:hover { background: var(--bg-card-hover); }
         .modal-tx-item .tx-info { flex: 1; min-width: 0; }
         .modal-tx-item .tx-type { 
             font-weight: 600; 
             color: var(--text-primary); 
-            font-size: 13px; 
+            font-size: 14px; 
         }
         .modal-tx-item .tx-date { 
             color: var(--text-secondary); 
             font-size: 11px; 
+            display: block;
         }
         .modal-tx-item .tx-ref { 
             font-size: 10px; 
@@ -615,41 +769,38 @@
         }
         .modal-tx-item .tx-amount { 
             font-weight: 700; 
-            font-size: 14px; 
+            font-size: 15px; 
         }
         .modal-tx-item .tx-amount.incoming { color: var(--success); }
         .modal-tx-item .tx-amount.outgoing { color: var(--error); }
 
-        /* ===== MODAL STATUS BADGE - WORKS IN BOTH THEMES ===== */
         .modal-tx-item .tx-status-badge {
             font-size: 9px;
             font-weight: 600;
             display: inline-flex;
             align-items: center;
             gap: 4px;
-            padding: 2px 12px;
+            padding: 2px 14px;
             border-radius: 30px;
             margin-top: 2px;
             letter-spacing: 0.3px;
         }
-        .modal-tx-item .tx-status-badge i {
-            font-size: 8px;
-        }
+        .modal-tx-item .tx-status-badge i { font-size: 8px; }
         .modal-tx-item .tx-status-badge.completed {
-            color: var(--status-completed-color);
+            color: var(--status-completed);
             background: var(--status-completed-bg);
-            border: 1px solid var(--status-completed-border);
+            border: 1px solid rgba(52, 211, 153, 0.2);
         }
         .modal-tx-item .tx-status-badge.pending {
-            color: var(--status-pending-color);
+            color: var(--status-pending);
             background: var(--status-pending-bg);
-            border: 1px solid var(--status-pending-border);
+            border: 1px solid rgba(251, 191, 36, 0.2);
         }
 
         .modal-tx-item .view-receipt-btn {
-            background: rgba(198,164,63,0.1);
-            border: 1px solid var(--gold);
-            padding: 4px 12px;
+            background: rgba(198,164,63,0.08);
+            border: 1px solid rgba(198,164,63,0.2);
+            padding: 4px 14px;
             border-radius: 30px;
             color: var(--gold);
             cursor: pointer;
@@ -660,8 +811,14 @@
             white-space: nowrap;
         }
         .modal-tx-item .view-receipt-btn:hover {
-            background: var(--gradient-gold);
+            background: var(--gold-gradient);
             color: #0A0E1A;
+            border-color: transparent;
+        }
+
+        .modal-tx-item .tx-emoji {
+            font-size: 18px;
+            margin-right: 6px;
         }
 
         /* ===== LOADING ===== */
@@ -671,26 +828,37 @@
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(20px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             flex-direction: column;
         }
-        .loader {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(198,164,63,0.15);
+        .loader-ring {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(198,164,63,0.1);
             border-top: 3px solid var(--gold);
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 12px;
+            margin-bottom: 16px;
+        }
+        .loader-ring::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 3px solid rgba(198,164,63,0.05);
+            border-top: 3px solid var(--gold-light);
+            animation: spin 1.2s linear infinite reverse;
         }
         .loader-text {
             color: var(--gold);
             font-size: 13px;
-            letter-spacing: 2px;
+            letter-spacing: 3px;
+            font-weight: 500;
         }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== BOTTOM NAV ===== */
         .bottom-nav {
@@ -698,25 +866,28 @@
             bottom: 0;
             left: 0;
             right: 0;
-            background: var(--glass-bg);
-            backdrop-filter: blur(24px);
+            background: var(--bg-glass);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
             display: flex;
             justify-content: space-around;
-            padding: 8px 16px 10px;
+            padding: 8px 12px 12px;
             border-top: 1px solid var(--border);
             z-index: 99;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.08);
         }
         .nav-item {
             text-align: center;
             cursor: pointer;
             padding: 6px 12px;
-            border-radius: 12px;
+            border-radius: 14px;
             transition: all 0.3s;
             text-decoration: none;
             position: relative;
+            min-width: 48px;
         }
         .nav-item i {
-            font-size: 18px;
+            font-size: 20px;
             color: var(--text-secondary);
             display: block;
             margin-bottom: 2px;
@@ -726,57 +897,122 @@
             font-size: 9px;
             color: var(--text-secondary);
             font-weight: 500;
+            transition: all 0.3s;
         }
         .nav-item.active i,
-        .nav-item.active span { color: var(--gold); }
-        .nav-item.active::after {
+        .nav-item.active span { 
+            color: var(--gold); 
+        }
+        .nav-item.active::before {
             content: '';
             position: absolute;
             top: -8px;
             left: 50%;
             transform: translateX(-50%);
-            width: 20px;
+            width: 24px;
             height: 3px;
-            background: var(--gradient-gold);
-            border-radius: 0 0 3px 3px;
+            background: var(--gold-gradient);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 12px rgba(198,164,63,0.3);
         }
         .nav-item:hover { transform: translateY(-2px); }
+        .nav-item:hover i { color: var(--gold); }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 500px) {
-            .container { padding: 10px 12px 80px; }
-            .balance-card { padding: 22px 18px; }
-            .balance-card .amount { font-size: 32px; }
-            .balance-card .balance-actions .btn-action { font-size: 12px; padding: 8px 12px; }
-            .quick-actions { grid-template-columns: repeat(4, 1fr); gap: 8px; }
-            .action-item { padding: 10px 6px; }
-            .action-item .icon-wrap { width: 32px; height: 32px; }
+            .container { padding: 12px 14px 100px; }
+            .top-bar { padding: 12px 16px; }
+            .logo-text { font-size: 17px; }
+            .logo-icon { width: 36px; height: 36px; }
+            .logo-icon i { font-size: 15px; }
+            
+            .balance-card { padding: 24px 20px; border-radius: var(--radius-md); }
+            .balance-card .amount { font-size: 34px; }
+            .balance-card .amount .currency { font-size: 18px; }
+            .balance-card .balance-actions .btn-action { 
+                font-size: 12px; 
+                padding: 10px 14px; 
+            }
+            .balance-card .balance-actions { gap: 8px; }
+            
+            .quick-actions { 
+                grid-template-columns: repeat(4, 1fr); 
+                gap: 8px; 
+            }
+            .action-item { 
+                padding: 12px 6px; 
+                border-radius: var(--radius-sm);
+            }
+            .action-item .icon-wrap { 
+                width: 36px; 
+                height: 36px; 
+                border-radius: 10px;
+            }
             .action-item .icon-wrap i { font-size: 14px; }
-            .bottom-nav { padding: 6px 12px; }
-            .nav-item { padding: 4px 8px; }
-            .nav-item i { font-size: 16px; }
+            .action-item span { font-size: 9px; }
+            
+            .transaction-item { 
+                padding: 12px 14px; 
+                border-radius: var(--radius-sm);
+            }
+            .transaction-icon { width: 36px; height: 36px; font-size: 14px; }
+            .transaction-info .tx-name { font-size: 13px; }
+            .transaction-amount { font-size: 14px; }
+            
+            .transactions-modal .modal-content { 
+                padding: 20px; 
+                border-radius: var(--radius-lg);
+                width: 95%;
+            }
+            .transactions-modal .modal-header h3 { font-size: 17px; }
+            
+            .bottom-nav { padding: 6px 8px 10px; }
+            .nav-item { padding: 4px 8px; min-width: 40px; }
+            .nav-item i { font-size: 17px; }
             .nav-item span { font-size: 8px; }
-            .transaction-item { flex-wrap: wrap; }
-            .transaction-right { margin-left: 52px; width: 100%; }
-            .modal-tx-item { flex-wrap: wrap; }
-            .modal-tx-item .tx-right { width: 100%; text-align: left; margin-top: 4px; }
+            
+            .greeting-name { font-size: 22px; }
+            
+            .modal-tx-item { flex-wrap: wrap; padding: 12px 10px; }
+            .modal-tx-item .tx-right { 
+                width: 100%; 
+                text-align: left; 
+                margin-top: 6px; 
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+            }
+            .modal-tx-item .view-receipt-btn { margin-left: 0; }
+        }
+
+        @media (max-width: 380px) {
+            .quick-actions { grid-template-columns: repeat(3, 1fr); }
+            .balance-card .balance-actions { flex-direction: column; }
+            .balance-card .balance-actions .btn-action { width: 100%; }
         }
     </style>
 </head>
 <body data-theme="dark">
 
+    <!-- ===== GLOW ORBS ===== -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
     <!-- ===== TOP BAR ===== -->
     <div class="top-bar">
-        <div class="logo" onclick="location.reload()">
+        <a class="logo" onclick="location.reload()">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span class="logo-text">Prime <span>Bank</span></span>
-        </div>
-        <div class="user-section">
+        </a>
+        <div class="top-actions">
             <div class="theme-toggle" onclick="toggleTheme()">
                 <button class="theme-option" id="darkOption"><i class="fas fa-moon"></i></button>
                 <button class="theme-option" id="lightOption"><i class="fas fa-sun"></i></button>
             </div>
             <div class="avatar-top" onclick="window.location.href='/profile.html'">
                 <i class="fas fa-user"></i>
+                <div class="avatar-badge"></div>
             </div>
         </div>
     </div>
@@ -792,19 +1028,25 @@
 
         <!-- BALANCE CARD -->
         <div class="balance-card">
-            <div class="label">Available Balance</div>
+            <div class="card-pattern">✦</div>
+            <div class="label-row">
+                <span class="label">Available Balance</span>
+                <button class="hide-balance" onclick="toggleBalanceVisibility()" title="Hide/Show Balance">
+                    <i class="fas fa-eye" id="balanceToggleIcon"></i>
+                </button>
+            </div>
             <div class="amount">
                 <span class="currency" id="balanceCurrency">$</span>
-                <span id="balanceAmount">0.00</span>
+                <span class="amount-value" id="balanceAmount">0.00</span>
             </div>
             <div class="balance-actions">
                 <button class="btn-action btn-send" onclick="window.location.href='/send.html'">
-                    <i class="fas fa-arrow-up"></i> Send
+                    <i class="fas fa-paper-plane"></i> Send
                 </button>
                 <button class="btn-action btn-withdraw" onclick="window.location.href='/withdraw.html'">
                     <i class="fas fa-arrow-down"></i> Withdraw
                 </button>
-                <button class="btn-action btn-topup" onclick="window.location.href='/support.html'">
+                <button class="btn-action btn-support" onclick="window.location.href='/support.html'">
                     <i class="fas fa-headset"></i> Support
                 </button>
             </div>
@@ -843,9 +1085,9 @@
             <h3>Recent Transactions</h3>
             <a onclick="openAllTransactions()">View All →</a>
         </div>
-        <div id="recentTransactions">
+        <div id="recentTransactions" class="transactions-list">
             <div class="empty-state">
-                <i class="fas fa-spinner fa-pulse"></i>
+                <span class="empty-icon"><i class="fas fa-spinner fa-pulse"></i></span>
                 <p>Loading transactions...</p>
             </div>
         </div>
@@ -865,12 +1107,12 @@
     <div id="transactionsModal" class="transactions-modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-list"></i> All Transactions</h3>
-                <button class="close-modal" onclick="closeAllTransactions()">&times;</button>
+                <h3><i class="fas fa-list-ul"></i> All Transactions</h3>
+                <button class="close-modal" onclick="closeAllTransactions()"><i class="fas fa-times"></i></button>
             </div>
             <div class="modal-body" id="allTransactionsList">
                 <div class="empty-state">
-                    <i class="fas fa-spinner fa-pulse"></i>
+                    <span class="empty-icon"><i class="fas fa-spinner fa-pulse"></i></span>
                     <p>Loading transactions...</p>
                 </div>
             </div>
@@ -879,8 +1121,8 @@
 
     <!-- ===== LOADING ===== -->
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="loader"></div>
-        <div class="loader-text">Loading...</div>
+        <div class="loader-ring"></div>
+        <div class="loader-text">Loading</div>
     </div>
 
     <script>
@@ -889,6 +1131,7 @@
         // ============================================================
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
         let currentUser = null;
+        let balanceVisible = true;
 
         // ============================================================
         // THEME
@@ -907,6 +1150,23 @@
 
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
+
+        // ============================================================
+        // BALANCE VISIBILITY TOGGLE
+        // ============================================================
+        function toggleBalanceVisibility() {
+            balanceVisible = !balanceVisible;
+            const amountEl = document.getElementById('balanceAmount');
+            const iconEl = document.getElementById('balanceToggleIcon');
+            
+            if (balanceVisible) {
+                amountEl.classList.remove('hidden');
+                iconEl.className = 'fas fa-eye';
+            } else {
+                amountEl.classList.add('hidden');
+                iconEl.className = 'fas fa-eye-slash';
+            }
+        }
 
         // ============================================================
         // VIEW RECEIPT
@@ -928,6 +1188,11 @@
             document.getElementById('transactionsModal').style.display = 'none';
         }
 
+        // Close modal on backdrop click
+        document.getElementById('transactionsModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAllTransactions();
+        });
+
         async function loadAllTransactions() {
             try {
                 const token = localStorage.getItem('token');
@@ -947,8 +1212,9 @@
                 if (transactions.length === 0) {
                     list.innerHTML = `
                         <div class="empty-state">
-                            <i class="fas fa-inbox" style="font-size:40px;opacity:0.3;"></i>
+                            <span class="empty-icon"><i class="fas fa-inbox"></i></span>
                             <p>No transactions found</p>
+                            <div class="empty-sub">Your transactions will appear here</div>
                         </div>
                     `;
                     return;
@@ -967,18 +1233,19 @@
                         hour: '2-digit',
                         minute: '2-digit'
                     }) : '';
-                    const ref = tx.reference || tx.id;
+                    const ref = tx.reference || tx.id || 'N/A';
                     const status = tx.status || 'completed';
                     const isCompleted = status === 'completed';
                     const txType = tx.type || 'transfer';
                     
                     let typeLabel = 'Transfer';
-                    if (txType === 'withdrawal') typeLabel = 'Withdrawal';
-                    else if (txType === 'airtime') typeLabel = 'Airtime';
-                    else if (txType === 'bill_payment') typeLabel = 'Bill Payment';
-                    else if (txType === 'data_bundle') typeLabel = 'Data Bundle';
-                    else if (txType === 'credit_transfer') typeLabel = 'Credit Transfer';
-                    else if (isIncoming) typeLabel = 'Received';
+                    let emoji = '💳';
+                    if (txType === 'withdrawal') { typeLabel = 'Withdrawal'; emoji = '🏦'; }
+                    else if (txType === 'airtime') { typeLabel = 'Airtime'; emoji = '📱'; }
+                    else if (txType === 'bill_payment') { typeLabel = 'Bill Payment'; emoji = '⚡'; }
+                    else if (txType === 'data_bundle') { typeLabel = 'Data Bundle'; emoji = '📶'; }
+                    else if (txType === 'credit_transfer') { typeLabel = 'Credit Transfer'; emoji = '✨'; }
+                    else if (isIncoming) { typeLabel = 'Received'; emoji = '📥'; }
 
                     const statusIcon = isCompleted ? 'fa-check-circle' : 'fa-clock';
                     const statusLabel = isCompleted ? 'Completed' : 'Pending';
@@ -986,13 +1253,13 @@
                     return `
                         <div class="modal-tx-item">
                             <div class="tx-info">
-                                <div class="tx-type">${isIncoming ? '📥' : '📤'} ${typeLabel}</div>
-                                <div class="tx-date">${date} ${time}</div>
-                                <div class="tx-ref">${ref}</div>
+                                <div class="tx-type"><span class="tx-emoji">${emoji}</span> ${typeLabel}</div>
+                                <span class="tx-date">${date} ${time}</span>
+                                <span class="tx-ref">Ref: ${ref}</span>
                             </div>
                             <div class="tx-right">
                                 <div class="tx-amount ${isIncoming ? 'incoming' : 'outgoing'}">
-                                    ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
+                                    ${isIncoming ? '+' : '-'} ${currency} ${amount.toFixed(2)}
                                 </div>
                                 <span class="tx-status-badge ${isCompleted ? 'completed' : 'pending'}">
                                     <i class="fas ${statusIcon}"></i> ${statusLabel}
@@ -1007,9 +1274,10 @@
                 console.error('Load all transactions error:', e);
                 document.getElementById('allTransactionsList').innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-exclamation-circle" style="color:var(--error);"></i>
-                        <p>Failed to load transactions.</p>
-                        <button onclick="loadAllTransactions()" style="margin-top:12px;padding:8px 20px;background:var(--gold);border:none;border-radius:10px;color:#0A0E1A;font-weight:600;cursor:pointer;">Retry</button>
+                        <span class="empty-icon"><i class="fas fa-exclamation-triangle" style="color:var(--error);"></i></span>
+                        <p>Failed to load transactions</p>
+                        <div class="empty-sub">Please try again</div>
+                        <button onclick="loadAllTransactions()" style="margin-top:16px;padding:10px 28px;background:var(--gold-gradient);border:none;border-radius:12px;color:#0A0E1A;font-weight:600;cursor:pointer;font-size:13px;box-shadow:0 4px 20px rgba(198,164,63,0.3);">Retry</button>
                     </div>
                 `;
             }
@@ -1054,10 +1322,9 @@
             const totalBalance = currentUser.totalBalance || 0;
             const currency = currentUser.currency || 'USD';
             document.getElementById('balanceCurrency').textContent = currency;
-            document.getElementById('balanceAmount').textContent = totalBalance.toLocaleString('en-US', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
-            });
+            const amountEl = document.getElementById('balanceAmount');
+            amountEl.textContent = totalBalance.toFixed(2);
+            if (!balanceVisible) amountEl.classList.add('hidden');
 
             // Recent Transactions
             const transactions = currentUser.transactions || [];
@@ -1066,8 +1333,9 @@
             if (transactions.length === 0) {
                 txDiv.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-inbox"></i>
+                        <span class="empty-icon"><i class="fas fa-inbox"></i></span>
                         <p>No transactions yet</p>
+                        <div class="empty-sub">Your recent transactions will appear here</div>
                     </div>
                 `;
             } else {
@@ -1075,14 +1343,18 @@
                     const isIncoming = tx.to_user_id === currentUser.id;
                     const amount = tx.amount || 0;
                     const currency = tx.currency || 'USD';
-                    const reference = tx.reference || tx.id;
+                    const reference = tx.reference || tx.id || 'N/A';
                     const status = tx.status || 'completed';
                     const isCompleted = status === 'completed';
-                    const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Recent';
+                    const date = tx.created_at ? new Date(tx.created_at).toLocaleDateString('en-US', { 
+                        month: 'short', 
+                        day: 'numeric' 
+                    }) : 'Recent';
+                    
                     const txType = tx.type || 'transfer';
-
                     let icon = 'fa-arrow-right';
                     let name = 'Transfer';
+                    
                     if (isIncoming) { 
                         icon = 'fa-arrow-down'; 
                         name = 'Received'; 
@@ -1114,12 +1386,15 @@
                                 </div>
                                 <div class="transaction-info">
                                     <div class="tx-name">${name}</div>
-                                    <div class="tx-date">${date}</div>
+                                    <div class="tx-meta">
+                                        <span class="tx-date">${date}</span>
+                                        <span class="tx-reference">• ${reference.slice(0, 8)}</span>
+                                    </div>
                                 </div>
                             </div>
                             <div class="transaction-right">
                                 <div class="transaction-amount ${isIncoming ? 'incoming' : 'outgoing'}">
-                                    ${isIncoming ? '+' : '-'} ${currency} ${amount.toLocaleString()}
+                                    ${isIncoming ? '+' : '-'} ${currency} ${amount.toFixed(2)}
                                 </div>
                                 <span class="tx-status ${isCompleted ? 'completed' : 'pending'}">
                                     <i class="fas ${statusIcon}"></i> ${statusLabel}
@@ -1161,13 +1436,18 @@
                         Swal.fire({
                             icon: 'info',
                             title: '⏳ Pending Transaction',
-                            html: `<p style="color:var(--text-secondary);">You have a pending <strong>${tx.type || 'transaction'}</strong> (Step ${step}/3).</p><p style="margin-top:4px;font-size:12px;color:var(--text-muted);">Continue from where you stopped.</p>`,
+                            html: `
+                                <p style="color:var(--text-secondary);">You have a pending <strong>${tx.type || 'transaction'}</strong></p>
+                                <p style="margin-top:4px;font-size:12px;color:var(--text-muted);">Step ${step}/3 • Continue where you left off</p>
+                            `,
                             confirmButtonColor: '#C6A43F',
                             confirmButtonText: 'Continue →',
                             showCancelButton: true,
                             cancelButtonText: 'Later',
-                            background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                            color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                            background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                            color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                            borderRadius: '16px',
+                            iconColor: '#C6A43F'
                         }).then((result) => {
                             if (result.isConfirmed) {
                                 if (tx.type === 'withdrawal') window.location.href = '/withdraw.html';
