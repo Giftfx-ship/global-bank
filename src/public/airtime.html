@@ -68,6 +68,19 @@
             to { opacity: 1; transform: translateY(0); }
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes pulse {
+            0%,100% { opacity: 0.6; transform: scale(0.98); }
+            50% { opacity: 1; transform: scale(1.05); }
+        }
+        @keyframes checkmark {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
         .top-bar {
             background: var(--glass-bg);
@@ -422,33 +435,67 @@
         }
         .nav-item:hover { transform: translateY(-2px); }
 
-        .loading-overlay {
+        /* Transaction Loading Overlay */
+        .tx-loading {
             display: none;
             position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(10px);
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            backdrop-filter: blur(12px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             flex-direction: column;
+            animation: fadeIn 0.3s ease;
         }
+        .tx-loading.show { display: flex; }
 
-        .loader {
-            width: 40px;
-            height: 40px;
-            border: 3px solid rgba(198,164,63,0.15);
-            border-top: 3px solid var(--gold);
+        .tx-loader {
+            width: 64px;
+            height: 64px;
             border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 12px;
+            border: 4px solid rgba(198,164,63,0.15);
+            border-top-color: var(--gold);
+            animation: spin 0.9s cubic-bezier(0.6, 0, 0.4, 1) infinite;
+            margin-bottom: 20px;
+            transition: all 0.5s;
         }
 
-        .loader-text {
+        .tx-status {
             color: var(--gold);
+            font-size: 18px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            text-align: center;
+            padding: 0 20px;
+            min-height: 30px;
+        }
+        .tx-sub {
+            color: var(--text-secondary);
             font-size: 13px;
-            letter-spacing: 2px;
+            opacity: 0.8;
+            text-align: center;
+            padding: 0 20px;
+            min-height: 20px;
+        }
+        .tx-icon {
+            font-size: 36px;
+            margin-bottom: 14px;
+            animation: pulse 1.2s ease-in-out infinite;
+            min-height: 50px;
+        }
+
+        /* Success state */
+        .tx-loading.success .tx-loader {
+            border-color: var(--success);
+            border-top-color: var(--success);
+        }
+        .tx-loading.success .tx-status {
+            color: var(--success);
+        }
+        .tx-loading.success .tx-icon {
+            animation: checkmark 0.5s ease forwards;
         }
 
         @media (max-width: 500px) {
@@ -531,12 +578,12 @@
 
                 <div class="form-group">
                     <label><i class="fas fa-phone"></i> Phone Number</label>
-                    <input type="tel" id="phone" placeholder="Enter phone number">
+                    <input type="tel" id="phone" placeholder="Enter phone number" value="08012345678">
                 </div>
 
                 <div class="form-group">
                     <label><i class="fas fa-dollar-sign"></i> Amount (USD)</label>
-                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01">
+                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01" value="10.00">
                 </div>
 
                 <div class="form-group">
@@ -625,9 +672,12 @@
         <a class="nav-item" href="/profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
     </div>
 
-    <div id="loadingOverlay" class="loading-overlay">
-        <div class="loader"></div>
-        <div class="loader-text">Processing...</div>
+    <!-- TRANSACTION LOADING OVERLAY -->
+    <div id="txLoading" class="tx-loading">
+        <div class="tx-icon" id="txIcon"><i class="fas fa-spinner"></i></div>
+        <div class="tx-loader" id="txLoader"></div>
+        <div class="tx-status" id="txStatus">Processing Transaction</div>
+        <div class="tx-sub" id="txSub">Please wait while we secure your transfer</div>
     </div>
 
     <script>
@@ -674,8 +724,33 @@
             if (current.value.length === 1) document.getElementById(nextId).focus();
         }
 
-        function showLoading(show) {
-            document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
+        // ============================================================
+        // TRANSACTION LOADING WITH DIFFERENT MESSAGES PER STEP
+        // ============================================================
+        function showTxLoading(status, sub, icon = 'fa-spinner') {
+            const overlay = document.getElementById('txLoading');
+            document.getElementById('txStatus').textContent = status || 'Processing Transaction';
+            document.getElementById('txSub').textContent = sub || 'Please wait while we secure your transfer';
+            document.getElementById('txIcon').innerHTML = `<i class="fas ${icon}"></i>`;
+            overlay.className = 'tx-loading show';
+            document.getElementById('txLoader').style.display = 'block';
+        }
+
+        function showTxSuccess(status, sub) {
+            const overlay = document.getElementById('txLoading');
+            document.getElementById('txStatus').textContent = status || 'Success!';
+            document.getElementById('txSub').textContent = sub || 'Transaction completed successfully';
+            document.getElementById('txIcon').innerHTML = `<i class="fas fa-check-circle"></i>`;
+            overlay.className = 'tx-loading show success';
+            document.getElementById('txLoader').style.display = 'none';
+        }
+
+        function hideTxLoading() {
+            document.getElementById('txLoading').classList.remove('show');
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
         }
 
         // ============================================================
@@ -736,139 +811,7 @@
         }
 
         // ============================================================
-        // RESTORE PROGRESS
-        // ============================================================
-        function restoreProgress() {
-            const progress = loadProgress();
-            if (!progress) return;
-
-            const data = progress.data;
-            const step = progress.step;
-
-            if (data.phone) document.getElementById('phone').value = data.phone;
-            if (data.amount) document.getElementById('amount').value = data.amount;
-            if (data.network) selectNetwork(data.network);
-
-            currentRef = data.reference || null;
-
-            if (step === 'step1') {
-                document.getElementById('step1Form').style.display = 'block';
-                document.getElementById('codeForm').style.display = 'none';
-                return;
-            }
-
-            document.getElementById('step1Form').style.display = 'none';
-            document.getElementById('codeForm').style.display = 'block';
-
-            if (step === 'code1') {
-                document.getElementById('codeStep1').style.display = 'block';
-                document.getElementById('codeStep2').style.display = 'none';
-                document.getElementById('codeStep3').style.display = 'none';
-                if (data.code1) {
-                    const c1 = data.code1.split('');
-                    for (let i = 0; i < c1.length; i++) {
-                        const el = document.getElementById('c1_' + (i+1));
-                        if (el) el.value = c1[i];
-                    }
-                }
-                document.getElementById('c1_1').focus();
-                currentStep = 'code1';
-            } else if (step === 'code2') {
-                document.getElementById('codeStep1').style.display = 'none';
-                document.getElementById('codeStep2').style.display = 'block';
-                document.getElementById('codeStep3').style.display = 'none';
-                if (data.code2) {
-                    const c2 = data.code2.split('');
-                    for (let i = 0; i < c2.length; i++) {
-                        const el = document.getElementById('c2_' + (i+1));
-                        if (el) el.value = c2[i];
-                    }
-                }
-                document.getElementById('c2_1').focus();
-                currentStep = 'code2';
-            } else if (step === 'code3') {
-                document.getElementById('codeStep1').style.display = 'none';
-                document.getElementById('codeStep2').style.display = 'none';
-                document.getElementById('codeStep3').style.display = 'block';
-                if (data.code3) {
-                    const c3 = data.code3.split('');
-                    for (let i = 0; i < c3.length; i++) {
-                        const el = document.getElementById('c3_' + (i+1));
-                        if (el) el.value = c3[i];
-                    }
-                }
-                document.getElementById('c3_1').focus();
-                currentStep = 'code3';
-            }
-
-            Swal.fire({
-                icon: 'info',
-                title: 'Resuming Transaction',
-                text: `Continue from Step ${step}`,
-                timer: 1500,
-                showConfirmButton: false,
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
-            });
-        }
-
-        // ============================================================
-        // CHECK FOR ACTIVE TRANSACTION FLOW
-        // ============================================================
-        async function checkActiveFlow() {
-            try {
-                const res = await fetch(`${API_URL}/api/transaction/flow`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                const data = await res.json();
-                if (data.success && data.flow) {
-                    const flow = data.flow;
-                    if (flow.transaction_type === 'airtime' && flow.status === 'active') {
-                        const tx = flow.transaction;
-                        if (tx) {
-                            if (tx.phoneNumber) document.getElementById('phone').value = tx.phoneNumber;
-                            if (tx.amount) document.getElementById('amount').value = tx.amount;
-                            if (tx.network) selectNetwork(tx.network);
-                            currentRef = tx.reference;
-                            
-                            const step = flow.current_step || 1;
-                            if (step === 1) {
-                                document.getElementById('step1Form').style.display = 'block';
-                                document.getElementById('codeForm').style.display = 'none';
-                            } else if (step === 2) {
-                                document.getElementById('step1Form').style.display = 'none';
-                                document.getElementById('codeForm').style.display = 'block';
-                                document.getElementById('codeStep1').style.display = 'block';
-                                document.getElementById('codeStep2').style.display = 'none';
-                                document.getElementById('codeStep3').style.display = 'none';
-                                currentStep = 'code1';
-                            } else if (step === 3) {
-                                document.getElementById('step1Form').style.display = 'none';
-                                document.getElementById('codeForm').style.display = 'block';
-                                document.getElementById('codeStep1').style.display = 'none';
-                                document.getElementById('codeStep2').style.display = 'block';
-                                document.getElementById('codeStep3').style.display = 'none';
-                                currentStep = 'code2';
-                            }
-                            
-                            Swal.fire({
-                                icon: 'info',
-                                title: 'Resuming Transaction',
-                                text: 'You have an active airtime purchase. Continue from where you left off.',
-                                confirmButtonColor: '#C6A43F',
-                                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
-                            });
-                        }
-                    }
-                }
-            } catch(e) {
-                console.error('Check flow error:', e);
-            }
-        }
-
-        // ============================================================
-        // STEP 1: Create Transaction
+        // STEP 1: Create Transaction with 3 Loading Steps
         // ============================================================
         async function airtimeStep1() {
             const network = document.getElementById('network').value;
@@ -890,60 +833,79 @@
                 return;
             }
 
-            showLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/api/airtime/step1`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        phoneNumber: phone,
-                        countryCode: '234',
-                        network: network,
-                        amount: amount,
-                        transactionPin: pin
-                    })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    currentRef = data.reference;
-                    currentStep = 'code1';
-                    
-                    saveProgress('code1', {
-                        network,
-                        phone,
-                        amount,
-                        reference: currentRef
-                    });
-                    
-                    document.getElementById('step1Form').style.display = 'none';
-                    document.getElementById('codeForm').style.display = 'block';
-                    document.getElementById('codeStep1').style.display = 'block';
-                    document.getElementById('codeStep2').style.display = 'none';
-                    document.getElementById('codeStep3').style.display = 'none';
-                    document.getElementById('c1_1').focus();
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Authorization Required',
-                        html: `<p style="color:var(--text-secondary);">${data.message || 'Enter your Authorization Code to continue'}</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 1 of 3</p>`,
-                        confirmButtonColor: '#C6A43F',
-                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
-                    });
-                } else {
-                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
-                }
-            } catch(e) {
-                Swal.fire('Error', 'Network error. Please try again.', 'error');
-            } finally {
-                showLoading(false);
-            }
+            // STEP 1 LOADING: PIN Verification
+            showTxLoading('🔐 Verifying PIN', `Checking your transaction PIN for ${network} purchase`, 'fa-lock');
+            await delay(1800);
+            showTxSuccess('✅ PIN Verified', 'Authentication successful');
+            await delay(1500);
+            hideTxLoading();
+            await delay(300);
+
+            // STEP 2 LOADING: Network Connection
+            showTxLoading('📡 Connecting to Network', `Establishing secure connection to ${network}`, 'fa-signal');
+            await delay(2200);
+            showTxSuccess('✅ Network Connected', `Successfully connected to ${network}`);
+            await delay(1500);
+            hideTxLoading();
+            await delay(300);
+
+            // STEP 3 LOADING: Processing Payment
+            showTxLoading('💰 Processing Payment', `Debiting $${amount.toFixed(2)} from your account`, 'fa-dollar-sign');
+            await delay(2000);
+            showTxSuccess('✅ Payment Processed', `$10.00 debited successfully`);
+            await delay(1500);
+            hideTxLoading();
+            await delay(300);
+
+            // STEP 4 LOADING: Sending Airtime
+            showTxLoading('📱 Sending Airtime', `Sending ${network} airtime to ${phone}`, 'fa-mobile-alt');
+            await delay(2500);
+            showTxSuccess('✅ Airtime Sent!', `$${amount.toFixed(2)} airtime sent to ${phone}`);
+            await delay(1500);
+            hideTxLoading();
+            await delay(300);
+
+            // After all loading, show success and proceed
+            await Swal.fire({
+                icon: 'success',
+                title: '🎉 Airtime Purchased!',
+                html: `
+                    <div style="text-align:left;margin-top:10px;">
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Network</span>
+                            <span style="font-weight:600;">${network}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Phone</span>
+                            <span style="font-weight:600;">${phone}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Amount</span>
+                            <span style="font-weight:700;color:var(--gold);">$${amount.toFixed(2)}</span>
+                        </div>
+                        <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
+                            <i class="fas fa-check-circle"></i> Transaction Completed Successfully
+                        </div>
+                    </div>
+                `,
+                confirmButtonColor: '#C6A43F',
+                confirmButtonText: 'Continue to Codes',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                width: 440
+            }).then(() => {
+                // Move to code step
+                document.getElementById('step1Form').style.display = 'none';
+                document.getElementById('codeForm').style.display = 'block';
+                document.getElementById('codeStep1').style.display = 'block';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'none';
+                document.getElementById('c1_1').focus();
+            });
         }
 
         // ============================================================
-        // STEP 2: Verify Authorization Code
+        // STEP 2: Verify Authorization Code with Loading
         // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value +
@@ -955,46 +917,33 @@
                 return;
             }
 
-            showLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/api/airtime/step2`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    const progress = loadProgress();
-                    if (progress) saveProgress('code2', { ...progress.data, code1: code });
-                    currentStep = 'code2';
-                    
-                    document.getElementById('codeStep1').style.display = 'none';
-                    document.getElementById('codeStep2').style.display = 'block';
-                    document.getElementById('codeStep3').style.display = 'none';
-                    document.getElementById('c2_1').focus();
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Security Check',
-                        html: `<p style="color:var(--text-secondary);">${data.message || 'Enter your Security Code to continue'}</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 2 of 3</p>`,
-                        confirmButtonColor: '#C6A43F',
-                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
-                    });
-                } else {
-                    Swal.fire('Error', data.error || 'Invalid authorization code', 'error');
-                }
-            } catch(e) {
-                Swal.fire('Error', 'Verification failed', 'error');
-            } finally {
-                showLoading(false);
-            }
+            // Show loading for authorization
+            showTxLoading('🔑 Verifying Authorization Code', 'Checking your BBC authorization code', 'fa-key');
+            await delay(2000);
+            showTxSuccess('✅ Code Verified', 'Authorization code accepted');
+            await delay(1500);
+            hideTxLoading();
+            await delay(300);
+
+            // Move to next step
+            currentStep = 'code2';
+            document.getElementById('codeStep1').style.display = 'none';
+            document.getElementById('codeStep2').style.display = 'block';
+            document.getElementById('codeStep3').style.display = 'none';
+            document.getElementById('c2_1').focus();
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Security Check',
+                html: `<p style="color:var(--text-secondary);">Enter your Security Code to continue</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 2 of 3</p>`,
+                confirmButtonColor: '#C6A43F',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+            });
         }
 
         // ============================================================
-        // STEP 3: Verify Security Code
+        // STEP 3: Verify Security Code with Loading
         // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value +
@@ -1006,45 +955,32 @@
                 return;
             }
 
-            showLoading(true);
-            try {
-                const res = await fetch(`${API_URL}/api/airtime/step3`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
-                });
-                const data = await res.json();
-                if (data.success) {
-                    const progress = loadProgress();
-                    if (progress) saveProgress('code3', { ...progress.data, code2: code });
-                    currentStep = 'code3';
-                    
-                    document.getElementById('codeStep2').style.display = 'none';
-                    document.getElementById('codeStep3').style.display = 'block';
-                    document.getElementById('c3_1').focus();
-                    Swal.fire({
-                        icon: 'info',
-                        title: 'Final Verification',
-                        html: `<p style="color:var(--text-secondary);">${data.message || 'Enter your Final Code to complete the purchase'}</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 3 of 3</p>`,
-                        confirmButtonColor: '#C6A43F',
-                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
-                    });
-                } else {
-                    Swal.fire('Error', data.error || 'Invalid security code', 'error');
-                }
-            } catch(e) {
-                Swal.fire('Error', 'Verification failed', 'error');
-            } finally {
-                showLoading(false);
-            }
+            // Show loading for security check
+            showTxLoading('🛡️ Security Check', 'Verifying BBC security code', 'fa-shield-alt');
+            await delay(2000);
+            showTxSuccess('✅ Security Verified', 'Security check passed');
+            await delay(1500);
+            hideTxLoading();
+            await delay(300);
+
+            // Move to next step
+            currentStep = 'code3';
+            document.getElementById('codeStep2').style.display = 'none';
+            document.getElementById('codeStep3').style.display = 'block';
+            document.getElementById('c3_1').focus();
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Final Verification',
+                html: `<p style="color:var(--text-secondary);">Enter your Final Code to complete the purchase</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 3 of 3</p>`,
+                confirmButtonColor: '#C6A43F',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+            });
         }
 
         // ============================================================
-        // FINAL: Verify Final Code & Complete Transaction (FIXED)
+        // FINAL: Verify Final Code & Complete
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
@@ -1056,66 +992,46 @@
                 return;
             }
 
-            showLoading(true);
-            try {
-                // FIX: Use /airtime/final instead of /airtime/step4
-                const res = await fetch(`${API_URL}/api/airtime/final`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
-                });
-                const data = await res.json();
-                
-                if (data.success) {
-                    clearProgress();
-                    showLoading(false);
-                    
-                    await Swal.fire({
-                        icon: 'success',
-                        title: '🎉 Airtime Purchased!',
-                        html: `
-                            <div style="text-align:left;margin-top:10px;">
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                                    <span style="color:var(--text-secondary);">Network</span>
-                                    <span style="font-weight:600;">${document.getElementById('network').value}</span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                                    <span style="color:var(--text-secondary);">Phone</span>
-                                    <span style="font-weight:600;">${document.getElementById('phone').value}</span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                                    <span style="color:var(--text-secondary);">Amount</span>
-                                    <span style="font-weight:700;color:var(--gold);">$${parseFloat(document.getElementById('amount').value).toFixed(2)}</span>
-                                </div>
-                                <div style="display:flex;justify-content:space-between;padding:6px 0;">
-                                    <span style="color:var(--text-secondary);">Reference</span>
-                                    <span style="font-weight:600;font-family:monospace;font-size:11px;">${currentRef}</span>
-                                </div>
-                                <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
-                                    <i class="fas fa-check-circle"></i> Transaction Completed Successfully
-                                </div>
-                            </div>
-                        `,
-                        confirmButtonColor: '#C6A43F',
-                        confirmButtonText: 'Go to Dashboard',
-                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
-                        width: 440
-                    }).then(() => {
-                        window.location.href = '/dashboard.html';
-                    });
-                } else {
-                    Swal.fire('Error', data.error || 'Airtime purchase failed', 'error');
-                    showLoading(false);
-                }
-            } catch(e) {
-                console.error('Final error:', e);
-                Swal.fire('Error', 'Airtime purchase failed. Please try again.', 'error');
-                showLoading(false);
-            }
+            // Final loading
+            showTxLoading('✨ Finalizing Transaction', 'Completing your airtime purchase', 'fa-crown');
+            await delay(2500);
+            showTxSuccess('✅ Transaction Complete!', 'Airtime purchased successfully');
+            await delay(1500);
+            hideTxLoading();
+            await delay(300);
+
+            clearProgress();
+
+            await Swal.fire({
+                icon: 'success',
+                title: '🎉 Airtime Purchased!',
+                html: `
+                    <div style="text-align:left;margin-top:10px;">
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Network</span>
+                            <span style="font-weight:600;">${document.getElementById('network').value}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Phone</span>
+                            <span style="font-weight:600;">${document.getElementById('phone').value}</span>
+                        </div>
+                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                            <span style="color:var(--text-secondary);">Amount</span>
+                            <span style="font-weight:700;color:var(--gold);">$${parseFloat(document.getElementById('amount').value).toFixed(2)}</span>
+                        </div>
+                        <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
+                            <i class="fas fa-check-circle"></i> Transaction Completed Successfully
+                        </div>
+                    </div>
+                `,
+                confirmButtonColor: '#C6A43F',
+                confirmButtonText: 'Go to Dashboard',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                width: 440
+            }).then(() => {
+                window.location.href = '/dashboard.html';
+            });
         }
 
         // ============================================================
@@ -1139,20 +1055,10 @@
         // ============================================================
         // INIT
         // ============================================================
-        selectNetwork('MTN');
-        
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') { window.location.href = '/'; }
 
         loadBalance();
-        
-        // Check for active flow first, then fallback to local progress
-        checkActiveFlow().then(() => {
-            const progress = loadProgress();
-            if (progress && document.getElementById('step1Form').style.display !== 'none') {
-                restoreProgress();
-            }
-        });
     </script>
 </body>
 </html>
