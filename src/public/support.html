@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Support | Prime Heritage Bank</title>
+    <title>Customer Care | Prime Heritage Bank</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -28,6 +28,9 @@
             --text-secondary: #9CA3AF;
             --input-bg: #0F1622;
             --glass-bg: rgba(17, 24, 39, 0.8);
+            --message-bg: rgba(198, 164, 63, 0.05);
+            --message-border: rgba(198, 164, 63, 0.1);
+            --reply-bg: rgba(16, 185, 129, 0.05);
         }
 
         [data-theme="light"] {
@@ -38,6 +41,9 @@
             --text-secondary: #6B7280;
             --input-bg: #F9FAFB;
             --glass-bg: rgba(255, 255, 255, 0.8);
+            --message-bg: rgba(198, 164, 63, 0.05);
+            --message-border: rgba(198, 164, 63, 0.1);
+            --reply-bg: rgba(16, 185, 129, 0.05);
         }
 
         body {
@@ -117,6 +123,7 @@
             font-size: 13px;
             font-weight: 600;
             color: var(--text-secondary);
+            cursor: pointer;
         }
         .theme-option.active {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
@@ -137,7 +144,7 @@
         .avatar:hover { transform: scale(1.1) rotate(5deg); }
         .avatar i { color: #0A0E1A; font-size: 20px; }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
+        .container { max-width: 800px; margin: 0 auto; padding: 24px; position: relative; z-index: 1; }
 
         .support-card {
             background: var(--glass-bg);
@@ -256,49 +263,110 @@
             box-shadow: 0 10px 25px rgba(198,164,63,0.3);
         }
 
-        .ticket-item {
-            background: var(--input-bg);
+        /* Message Items */
+        .message-item {
+            background: var(--message-bg);
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 16px;
-            border: 1px solid var(--border);
+            border: 1px solid var(--message-border);
             transition: all 0.3s;
+            cursor: pointer;
         }
-        .ticket-item:hover { transform: translateX(5px); border-color: var(--gold); }
+        .message-item:hover { 
+            transform: translateX(5px); 
+            border-color: var(--gold);
+        }
+        .message-item.unread {
+            border-left: 4px solid var(--gold);
+        }
+        .message-item.replied {
+            border-left: 4px solid var(--success);
+        }
 
-        .ticket-subject {
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .message-subject {
             font-size: 16px;
             font-weight: 700;
             color: var(--gold);
-            margin-bottom: 10px;
             display: flex;
             align-items: center;
             gap: 10px;
         }
-        .ticket-message {
+        .message-subject .badge {
+            font-size: 9px;
+            padding: 2px 10px;
+            border-radius: 30px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .badge-unread { background: rgba(198,164,63,0.15); color: var(--gold); }
+        .badge-read { background: rgba(59,130,246,0.15); color: var(--info); }
+        .badge-replied { background: rgba(16,185,129,0.15); color: var(--success); }
+
+        .message-body {
             color: var(--text-secondary);
             font-size: 13px;
-            line-height: 1.5;
+            line-height: 1.6;
             margin-bottom: 12px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
         }
-        .ticket-status {
-            display: inline-block;
-            padding: 5px 12px;
-            border-radius: 30px;
-            font-size: 11px;
-            font-weight: 600;
+        .message-body.expanded {
+            -webkit-line-clamp: unset;
         }
-        .status-open { background: rgba(16,185,129,0.15); color: var(--success); }
-        .status-pending { background: rgba(245,158,11,0.15); color: var(--warning); }
-        .status-resolved { background: rgba(59,130,246,0.15); color: var(--info); }
 
-        .ticket-date {
+        .message-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .message-date {
             font-size: 10px;
             color: var(--text-secondary);
-            margin-top: 10px;
             display: flex;
             align-items: center;
             gap: 6px;
+        }
+
+        /* Reply Section */
+        .reply-section {
+            display: none;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        .reply-section.show { display: block; }
+        .reply-section .support-reply {
+            background: var(--reply-bg);
+            padding: 14px 18px;
+            border-radius: 12px;
+            border-left: 3px solid var(--success);
+            margin-bottom: 12px;
+        }
+        .reply-section .support-reply .reply-label {
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--success);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .reply-section .support-reply .reply-text {
+            color: var(--text-primary);
+            font-size: 13px;
+            margin-top: 4px;
+            line-height: 1.6;
         }
 
         .empty-state {
@@ -378,6 +446,41 @@
             margin-top: 8px;
         }
 
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .tab {
+            padding: 8px 20px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .tab:hover { color: var(--text-primary); }
+        .tab.active {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+            border-color: var(--gold);
+        }
+        .tab .count {
+            background: rgba(198,164,63,0.15);
+            padding: 1px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            margin-left: 6px;
+        }
+        .tab.active .count {
+            background: rgba(0,0,0,0.15);
+        }
+
         @media (max-width: 500px) {
             .container { padding: 16px; }
             .support-card { padding: 24px; }
@@ -387,6 +490,10 @@
             .theme-option i { margin-right: 0; }
             .help-chip { padding: 6px 12px; font-size: 10px; }
             .quick-help { gap: 8px; }
+            .message-header { flex-direction: column; }
+            .message-footer { flex-direction: column; align-items: flex-start; }
+            .tabs { overflow-x: auto; flex-wrap: nowrap; }
+            .tab { white-space: nowrap; font-size: 12px; padding: 6px 14px; }
         }
 
         ::-webkit-scrollbar { width: 8px; }
@@ -413,56 +520,84 @@
     </div>
 
     <div class="container">
+        <!-- Send Message Card -->
         <div class="support-card">
             <div class="support-header">
                 <div class="support-icon"><i class="fas fa-headset"></i></div>
-                <h2>Concierge Support</h2>
-                <p>Elite assistance, 24/7. We're just a message away.</p>
+                <h2>Customer Care</h2>
+                <p>We're here to help. Send us a message and our team will respond shortly.</p>
             </div>
 
             <div class="quick-help">
-                <div class="help-chip" onclick="fillQuickIssue('Card Issue', 'My card was declined even though I have sufficient funds. Please investigate.')">
-                    <i class="fas fa-credit-card"></i> Card Decline
+                <div class="help-chip" onclick="fillQuickIssue('Account Issue', 'I need help with my account.')">
+                    <i class="fas fa-user"></i> Account
                 </div>
-                <div class="help-chip" onclick="fillQuickIssue('Transaction Error', 'A transaction failed but money was deducted from my account. Need reversal.')">
-                    <i class="fas fa-exchange-alt"></i> Failed Transfer
+                <div class="help-chip" onclick="fillQuickIssue('Transaction Issue', 'I have a problem with a transaction.')">
+                    <i class="fas fa-exchange-alt"></i> Transaction
                 </div>
-                <div class="help-chip" onclick="fillQuickIssue('Account Access', 'I cannot log into my account. Need password reset assistance.')">
-                    <i class="fas fa-lock"></i> Login Issue
+                <div class="help-chip" onclick="fillQuickIssue('Card Issue', 'My card is not working properly.')">
+                    <i class="fas fa-credit-card"></i> Card
                 </div>
-                <div class="help-chip" onclick="fillQuickIssue('Dispute', 'I need to report an unauthorized transaction on my account.')">
-                    <i class="fas fa-gavel"></i> Dispute
+                <div class="help-chip" onclick="fillQuickIssue('Loan Inquiry', 'I have questions about my loan.')">
+                    <i class="fas fa-hand-holding-usd"></i> Loan
                 </div>
-                <div class="help-chip" onclick="fillQuickIssue('Loan Inquiry', 'I have questions about my loan application status.')">
-                    <i class="fas fa-hand-holding-usd"></i> Loan Inquiry
+                <div class="help-chip" onclick="fillQuickIssue('Security Concern', 'I have a security concern about my account.')">
+                    <i class="fas fa-lock"></i> Security
                 </div>
-                <div class="help-chip" onclick="fillQuickIssue('Card Request', 'I want to request a new virtual or physical card.')">
-                    <i class="fas fa-credit-card"></i> Card Request
+                <div class="help-chip" onclick="fillQuickIssue('General Question', 'I have a general question or concern.')">
+                    <i class="fas fa-question-circle"></i> General
                 </div>
             </div>
 
             <div class="form-group">
                 <label><i class="fas fa-tag"></i> Subject</label>
-                <input type="text" id="ticketSubject" placeholder="Brief description of your issue">
+                <input type="text" id="messageSubject" placeholder="Brief description of your issue">
+            </div>
+            <div class="form-group">
+                <label><i class="fas fa-folder"></i> Category</label>
+                <select id="messageCategory">
+                    <option value="General">General</option>
+                    <option value="Account">Account</option>
+                    <option value="Transaction">Transaction</option>
+                    <option value="Card">Card</option>
+                    <option value="Loan">Loan</option>
+                    <option value="Security">Security</option>
+                    <option value="Technical">Technical</option>
+                    <option value="Feedback">Feedback</option>
+                </select>
             </div>
             <div class="form-group">
                 <label><i class="fas fa-pen-alt"></i> Message</label>
-                <textarea id="ticketMessage" rows="5" placeholder="Describe your issue in detail... Our priority support team will respond within 2 hours."></textarea>
+                <textarea id="messageText" rows="5" placeholder="Describe your issue in detail... Our customer care team will respond within 24 hours."></textarea>
             </div>
-            <button class="btn" onclick="submitTicket()">
-                <i class="fas fa-paper-plane"></i> Submit Priority Ticket
+            <button class="btn" onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i> Send Message
             </button>
         </div>
 
+        <!-- Messages List -->
         <div class="support-card">
             <div class="support-header">
-                <h2 style="font-size: 20px;"><i class="fas fa-history"></i> Your Support History</h2>
-                <p style="font-size: 12px;">Track all your support requests</p>
+                <h2 style="font-size: 20px;"><i class="fas fa-comments"></i> Your Conversations</h2>
+                <p style="font-size: 12px;">Track all your messages and responses from our team</p>
             </div>
-            <div id="ticketsList">
+
+            <div class="tabs">
+                <div class="tab active" data-filter="all" onclick="filterMessages('all')">
+                    All <span class="count" id="countAll">0</span>
+                </div>
+                <div class="tab" data-filter="unread" onclick="filterMessages('unread')">
+                    Unread <span class="count" id="countUnread">0</span>
+                </div>
+                <div class="tab" data-filter="replied" onclick="filterMessages('replied')">
+                    Replied <span class="count" id="countReplied">0</span>
+                </div>
+            </div>
+
+            <div id="messagesList">
                 <div class="empty-state">
                     <i class="fas fa-spinner fa-pulse"></i>
-                    <p>Loading your tickets...</p>
+                    <p>Loading your conversations...</p>
                 </div>
             </div>
         </div>
@@ -483,6 +618,8 @@
 
     <script>
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
+        let allMessages = [];
+        let currentFilter = 'all';
 
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
@@ -506,8 +643,21 @@
         }
 
         function fillQuickIssue(subject, message) {
-            document.getElementById('ticketSubject').value = subject;
-            document.getElementById('ticketMessage').value = message;
+            document.getElementById('messageSubject').value = subject;
+            document.getElementById('messageText').value = message;
+            // Auto-select category
+            const categoryMap = {
+                'Account Issue': 'Account',
+                'Transaction Issue': 'Transaction',
+                'Card Issue': 'Card',
+                'Loan Inquiry': 'Loan',
+                'Security Concern': 'Security',
+                'General Question': 'General'
+            };
+            const select = document.getElementById('messageCategory');
+            if (categoryMap[subject]) {
+                select.value = categoryMap[subject];
+            }
             Swal.fire({
                 title: 'Quick Fill Applied',
                 html: `Subject: <strong>${subject}</strong><br><br>You can now edit the message before sending.`,
@@ -519,9 +669,10 @@
             });
         }
 
-        async function submitTicket() {
-            const subject = document.getElementById('ticketSubject').value.trim();
-            const message = document.getElementById('ticketMessage').value.trim();
+        async function sendMessage() {
+            const subject = document.getElementById('messageSubject').value.trim();
+            const message = document.getElementById('messageText').value.trim();
+            const category = document.getElementById('messageCategory').value;
 
             if (!subject || !message) {
                 Swal.fire('Error', 'Please fill in both subject and message', 'error');
@@ -530,27 +681,27 @@
 
             showLoading(true);
             try {
-                const res = await fetch(`${API_URL}/api/support/tickets`, {
+                const res = await fetch(`${API_URL}/api/messages`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
-                    body: JSON.stringify({ subject, message })
+                    body: JSON.stringify({ subject, message, category })
                 });
                 const data = await res.json();
                 if (data.success) {
                     Swal.fire({
                         icon: 'success',
-                        title: 'Ticket Submitted! 🎫',
-                        html: 'Your support request has been received.<br><strong>Response time: Within 2 hours</strong>',
+                        title: 'Message Sent! 💬',
+                        html: 'Your message has been sent to our customer care team.<br><strong>Response time: Within 24 hours</strong>',
                         confirmButtonColor: '#C6A43F'
                     });
-                    document.getElementById('ticketSubject').value = '';
-                    document.getElementById('ticketMessage').value = '';
-                    loadTickets();
+                    document.getElementById('messageSubject').value = '';
+                    document.getElementById('messageText').value = '';
+                    loadMessages();
                 } else {
-                    Swal.fire('Error', data.error || 'Unable to submit ticket', 'error');
+                    Swal.fire('Error', data.error || 'Unable to send message', 'error');
                 }
             } catch(e) {
                 Swal.fire('Error', 'Network error. Please try again.', 'error');
@@ -559,79 +710,110 @@
             }
         }
 
-        async function loadTickets() {
-            try {
-                const res = await fetch(`${API_URL}/api/support/tickets`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-                if (res.status === 401) {
-                    window.location.href = '/';
-                    return;
-                }
-                const tickets = await res.json();
-                const container = document.getElementById('ticketsList');
+        function filterMessages(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab[data-filter="${filter}"]`).classList.add('active');
+            renderMessages(allMessages);
+        }
 
-                if (!tickets || tickets.length === 0) {
-                    container.innerHTML = `
-                        <div class="empty-state">
-                            <i class="fas fa-ticket-alt"></i>
-                            <p>No support tickets yet</p>
-                            <small>Create your first ticket above</small>
-                        </div>
-                    `;
-                    return;
-                }
+        function renderMessages(messages) {
+            const container = document.getElementById('messagesList');
+            
+            let filtered = messages;
+            if (currentFilter === 'unread') {
+                filtered = messages.filter(m => m.status === 'unread');
+            } else if (currentFilter === 'replied') {
+                filtered = messages.filter(m => m.status === 'replied');
+            }
 
-                container.innerHTML = '';
-                for (let ticket of tickets.reverse()) {
-                    let statusClass = '';
-                    let statusText = '';
-
-                    if (ticket.status === 'open') {
-                        statusClass = 'status-open';
-                        statusText = '🟢 Open';
-                    } else if (ticket.status === 'pending') {
-                        statusClass = 'status-pending';
-                        statusText = '🟡 In Progress';
-                    } else {
-                        statusClass = 'status-resolved';
-                        statusText = '✅ Resolved';
-                    }
-
-                    container.innerHTML += `
-                        <div class="ticket-item">
-                            <div class="ticket-subject">
-                                <i class="fas fa-envelope"></i>
-                                ${escapeHtml(ticket.subject)}
-                            </div>
-                            <div class="ticket-message">
-                                ${escapeHtml(ticket.message.length > 150 ? ticket.message.substring(0, 150) + '...' : ticket.message)}
-                            </div>
-                            <div>
-                                <span class="ticket-status ${statusClass}">${statusText}</span>
-                            </div>
-                            <div class="ticket-date">
-                                <i class="far fa-calendar-alt"></i>
-                                ${new Date(ticket.created_at).toLocaleDateString('en-US', {
-                                    year: 'numeric',
-                                    month: 'long',
-                                    day: 'numeric',
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                })}
-                            </div>
-                        </div>
-                    `;
-                }
-            } catch(e) {
-                console.error(e);
-                document.getElementById('ticketsList').innerHTML = `
+            if (!filtered || filtered.length === 0) {
+                container.innerHTML = `
                     <div class="empty-state">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <p>Could not load tickets</p>
-                        <small>Please refresh the page</small>
+                        <i class="fas fa-comment-dots"></i>
+                        <p>${currentFilter === 'all' ? 'No conversations yet' : 
+                             currentFilter === 'unread' ? 'No unread messages' : 
+                             'No replied messages'}</p>
+                        <small>${currentFilter === 'all' ? 'Send a message above to get started' : 'Check back later'}</small>
                     </div>
                 `;
+                return;
+            }
+
+            container.innerHTML = '';
+            filtered.forEach(msg => {
+                const statusClass = msg.status === 'unread' ? 'unread' : 
+                                  msg.status === 'replied' ? 'replied' : '';
+                const badgeClass = msg.status === 'unread' ? 'badge-unread' : 
+                                  msg.status === 'replied' ? 'badge-replied' : 'badge-read';
+                const statusText = msg.status === 'unread' ? 'Unread' : 
+                                  msg.status === 'replied' ? 'Replied ✓' : 'Read';
+
+                const replyHtml = msg.admin_response ? `
+                    <div class="reply-section show">
+                        <div class="support-reply">
+                            <div class="reply-label">
+                                <i class="fas fa-reply"></i> Response from Customer Care
+                            </div>
+                            <div class="reply-text">${escapeHtml(msg.admin_response)}</div>
+                        </div>
+                    </div>
+                ` : '';
+
+                container.innerHTML += `
+                    <div class="message-item ${statusClass}" onclick="toggleMessage(this)">
+                        <div class="message-header">
+                            <div class="message-subject">
+                                <i class="fas fa-envelope"></i>
+                                ${escapeHtml(msg.subject)}
+                                <span class="badge ${badgeClass}">${statusText}</span>
+                            </div>
+                            <span style="font-size:10px;color:var(--text-secondary);background:var(--input-bg);padding:2px 10px;border-radius:30px;">
+                                ${escapeHtml(msg.category || 'General')}
+                            </span>
+                        </div>
+                        <div class="message-body">
+                            ${escapeHtml(msg.message)}
+                        </div>
+                        <div class="message-footer">
+                            <div class="message-date">
+                                <i class="far fa-calendar-alt"></i>
+                                ${formatDate(msg.created_at)}
+                            </div>
+                        </div>
+                        ${replyHtml}
+                    </div>
+                `;
+            });
+
+            // Update counts
+            document.getElementById('countAll').textContent = messages.length;
+            document.getElementById('countUnread').textContent = messages.filter(m => m.status === 'unread').length;
+            document.getElementById('countReplied').textContent = messages.filter(m => m.status === 'replied').length;
+        }
+
+        function toggleMessage(element) {
+            const body = element.querySelector('.message-body');
+            body.classList.toggle('expanded');
+            
+            const reply = element.querySelector('.reply-section');
+            if (reply) {
+                reply.classList.toggle('show');
+            }
+        }
+
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return dateString || 'Recent';
             }
         }
 
@@ -645,12 +827,38 @@
             });
         }
 
+        async function loadMessages() {
+            try {
+                const res = await fetch(`${API_URL}/api/messages`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                if (res.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
+                const data = await res.json();
+                if (data.success) {
+                    allMessages = data.messages || [];
+                    renderMessages(allMessages);
+                }
+            } catch(e) {
+                console.error('Load messages error:', e);
+                document.getElementById('messagesList').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <p>Could not load conversations</p>
+                        <small>Please refresh the page</small>
+                    </div>
+                `;
+            }
+        }
+
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') {
             window.location.href = '/';
         }
 
-        loadTickets();
+        loadMessages();
     </script>
 </body>
 </html>
