@@ -14,32 +14,46 @@
             --gold: #C6A43F;
             --gold-dark: #9E8032;
             --gold-light: #D4B85A;
+            --gold-glow: rgba(198, 164, 63, 0.3);
             --success: #10B981;
+            --success-dark: #059669;
             --error: #EF4444;
+            --error-dark: #DC2626;
             --warning: #F59E0B;
+            --info: #3B82F6;
             --gradient-gold: linear-gradient(135deg, #C6A43F, #9E8032);
+            --gradient-gold-hover: linear-gradient(135deg, #D4B85A, #AE8C38);
+            --shadow-gold: 0 8px 32px rgba(198, 164, 63, 0.25);
         }
 
         [data-theme="dark"] {
             --bg-body: #0A0E1A;
             --bg-card: rgba(17, 24, 39, 0.95);
             --border: rgba(31, 41, 55, 0.5);
+            --border-light: rgba(55, 65, 81, 0.3);
             --text-primary: #FFFFFF;
             --text-secondary: #94A3B8;
             --text-muted: #64748B;
+            --text-gold: #C6A43F;
             --input-bg: #0F1622;
             --glass-bg: rgba(17, 24, 39, 0.8);
+            --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.4);
+            --overlay-bg: rgba(0, 0, 0, 0.92);
         }
 
         [data-theme="light"] {
             --bg-body: #F0F2F8;
             --bg-card: rgba(255, 255, 255, 0.95);
             --border: rgba(229, 231, 235, 0.5);
+            --border-light: rgba(209, 213, 219, 0.3);
             --text-primary: #111827;
             --text-secondary: #6B7280;
             --text-muted: #9CA3AF;
+            --text-gold: #9E8032;
             --input-bg: #F9FAFB;
             --glass-bg: rgba(255, 255, 255, 0.8);
+            --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.08);
+            --overlay-bg: rgba(0, 0, 0, 0.85);
         }
 
         body {
@@ -48,6 +62,7 @@
             padding-bottom: 80px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             min-height: 100vh;
+            position: relative;
         }
 
         body::before {
@@ -57,34 +72,48 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.06) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.04) 0%, transparent 60%);
+            background: 
+                radial-gradient(ellipse at 20% 50%, rgba(198, 164, 63, 0.06) 0%, transparent 60%),
+                radial-gradient(ellipse at 80% 80%, rgba(198, 164, 63, 0.04) 0%, transparent 50%),
+                radial-gradient(ellipse at 50% 20%, rgba(198, 164, 63, 0.03) 0%, transparent 40%);
             pointer-events: none;
             z-index: 0;
         }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
-        }
-        @keyframes pulse {
-            0%,100% { opacity: 0.6; transform: scale(0.98); }
-            50% { opacity: 1; transform: scale(1.05); }
-        }
-        @keyframes checkmark {
-            0% { transform: scale(0); opacity: 0; }
-            50% { transform: scale(1.3); }
-            100% { transform: scale(1); opacity: 1; }
+            from { opacity: 0; transform: translateY(30px) scale(0.98); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
         }
 
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        /* ===== TOP BAR ===== */
         .top-bar {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             padding: 14px 24px;
             display: flex;
             justify-content: space-between;
@@ -93,51 +122,101 @@
             position: sticky;
             top: 0;
             z-index: 100;
+            transition: all 0.3s;
         }
 
-        .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
         .logo-icon {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             background: var(--gradient-gold);
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+            box-shadow: 0 4px 15px rgba(198, 164, 63, 0.3);
+            transition: transform 0.3s;
         }
-        .logo-icon i { font-size: 18px; color: #0A0E1A; }
+
+        .logo-icon:hover {
+            transform: scale(1.05);
+        }
+
+        .logo-icon i {
+            font-size: 18px;
+            color: #0A0E1A;
+        }
+
         .logo-text {
             font-size: 18px;
             font-weight: 800;
             background: var(--gradient-gold);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
         }
-        .logo-text span { font-weight: 300; opacity: 0.5; }
 
-        .user-section { display: flex; align-items: center; gap: 12px; }
+        .logo-text span {
+            font-weight: 300;
+            opacity: 0.5;
+            -webkit-text-fill-color: var(--text-muted);
+        }
+
+        .user-section {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
 
         .balance-pill {
-            background: rgba(198,164,63,0.12);
+            background: rgba(198, 164, 63, 0.12);
             padding: 6px 16px;
             border-radius: 50px;
-            border: 1px solid rgba(198,164,63,0.2);
+            border: 1px solid rgba(198, 164, 63, 0.2);
             display: flex;
             align-items: center;
             gap: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
         }
-        .balance-pill i { color: var(--gold); font-size: 12px; }
-        .balance-pill span { color: var(--gold); font-weight: 700; font-size: 14px; }
+
+        .balance-pill:hover {
+            border-color: var(--gold);
+            background: rgba(198, 164, 63, 0.18);
+        }
+
+        .balance-pill i {
+            color: var(--gold);
+            font-size: 12px;
+        }
+
+        .balance-pill span {
+            color: var(--gold);
+            font-weight: 700;
+            font-size: 14px;
+        }
 
         .theme-toggle {
-            background: rgba(198,164,63,0.08);
+            background: rgba(198, 164, 63, 0.08);
             border: 1px solid var(--border);
             border-radius: 50px;
             padding: 4px;
             display: flex;
             cursor: pointer;
+            transition: all 0.3s;
         }
-        .theme-toggle:hover { border-color: var(--gold); }
+
+        .theme-toggle:hover {
+            border-color: var(--gold);
+        }
+
         .theme-option {
             padding: 6px 12px;
             border-radius: 40px;
@@ -149,14 +228,19 @@
             cursor: pointer;
             transition: all 0.3s;
         }
+
         .theme-option.active {
             background: var(--gradient-gold);
             color: #0A0E1A;
         }
-        .theme-option i { margin-right: 4px; }
+
+        .theme-option i {
+            margin-right: 4px;
+        }
 
         .avatar {
-            width: 40px; height: 40px;
+            width: 40px;
+            height: 40px;
             background: var(--gradient-gold);
             border-radius: 50%;
             display: flex;
@@ -164,25 +248,49 @@
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+            box-shadow: 0 4px 15px rgba(198, 164, 63, 0.3);
+            text-decoration: none;
         }
-        .avatar:hover { transform: scale(1.08); }
-        .avatar i { color: #0A0E1A; font-size: 16px; }
 
-        .container { max-width: 500px; margin: 0 auto; padding: 20px 16px; position: relative; z-index: 1; }
+        .avatar:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 25px rgba(198, 164, 63, 0.4);
+        }
+
+        .avatar i {
+            color: #0A0E1A;
+            font-size: 16px;
+        }
+
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 20px 16px;
+            position: relative;
+            z-index: 1;
+        }
 
         .card {
             background: var(--bg-card);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 24px;
             padding: 28px 24px;
             border: 1px solid var(--border);
+            box-shadow: var(--shadow-card);
             animation: slideUp 0.5s ease;
+            transition: all 0.3s;
         }
 
+        .card:hover {
+            border-color: rgba(198, 164, 63, 0.2);
+        }
+
+        /* ===== TITLE ===== */
         .title {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
 
         .title h2 {
@@ -191,30 +299,46 @@
             color: var(--text-primary);
             letter-spacing: -0.5px;
         }
-        .title h2 .gold { color: var(--gold); }
+
+        .title h2 .gold {
+            color: var(--gold);
+        }
+
         .title p {
             color: var(--text-secondary);
             font-size: 13px;
             margin-top: 4px;
         }
+
         .title .badge {
             display: inline-block;
             margin-top: 8px;
             padding: 4px 14px;
-            background: rgba(198,164,63,0.1);
+            background: rgba(198, 164, 63, 0.1);
             border: 1px solid var(--gold);
             border-radius: 50px;
             font-size: 10px;
             font-weight: 600;
             color: var(--gold);
+            letter-spacing: 0.5px;
         }
 
+        .title .badge i {
+            margin-right: 4px;
+        }
+
+        /* ===== INFO BOX ===== */
         .info-box {
             background: var(--input-bg);
             border-radius: 14px;
             padding: 16px 18px;
             margin-bottom: 20px;
             border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .info-box:hover {
+            border-color: rgba(198, 164, 63, 0.3);
         }
 
         .info-row {
@@ -228,13 +352,22 @@
             font-size: 12px;
             font-weight: 500;
         }
+
+        .info-label i {
+            margin-right: 6px;
+            color: var(--gold);
+        }
+
         .info-value {
             color: var(--gold);
             font-size: 18px;
             font-weight: 700;
         }
 
-        .form-group { margin-bottom: 18px; }
+        /* ===== FORM ===== */
+        .form-group {
+            margin-bottom: 18px;
+        }
 
         .form-group label {
             display: block;
@@ -245,9 +378,14 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .form-group label i { margin-right: 6px; color: var(--gold); }
 
-        .form-group input, .form-group select {
+        .form-group label i {
+            margin-right: 6px;
+            color: var(--gold);
+        }
+
+        .form-group input,
+        .form-group select {
             width: 100%;
             padding: 12px 14px;
             background: var(--input-bg);
@@ -259,12 +397,18 @@
             transition: all 0.3s;
         }
 
-        .form-group input:focus, .form-group select:focus {
+        .form-group input:focus,
+        .form-group select:focus {
             outline: none;
             border-color: var(--gold);
-            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
+            box-shadow: 0 0 0 4px rgba(198, 164, 63, 0.08);
         }
 
+        .form-group input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* ===== NETWORK GRID ===== */
         .network-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -289,7 +433,8 @@
 
         .network-option.selected {
             border-color: var(--gold);
-            background: rgba(198,164,63,0.08);
+            background: rgba(198, 164, 63, 0.08);
+            box-shadow: 0 0 20px rgba(198, 164, 63, 0.05);
         }
 
         .network-option i {
@@ -305,14 +450,17 @@
             color: var(--text-secondary);
         }
 
-        .pin-inputs, .code-inputs {
+        /* ===== PIN & CODE INPUTS ===== */
+        .pin-inputs,
+        .code-inputs {
             display: flex;
             gap: 10px;
             justify-content: center;
             margin: 12px 0;
         }
 
-        .pin-inputs input, .code-inputs input {
+        .pin-inputs input,
+        .code-inputs input {
             width: 50px;
             height: 50px;
             text-align: center;
@@ -325,27 +473,41 @@
             transition: all 0.2s;
         }
 
-        .pin-inputs input:focus, .code-inputs input:focus {
+        .pin-inputs input:focus,
+        .code-inputs input:focus {
             border-color: var(--gold);
             transform: scale(1.05);
-            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
+            box-shadow: 0 0 0 4px rgba(198, 164, 63, 0.08);
         }
 
+        .pin-inputs input::placeholder,
+        .code-inputs input::placeholder {
+            color: var(--text-muted);
+            font-weight: 300;
+        }
+
+        /* ===== SECURITY STEP ===== */
         .security-step {
             text-align: center;
             margin-bottom: 16px;
         }
+
         .step-badge {
             display: inline-block;
             padding: 4px 14px;
-            background: rgba(198,164,63,0.1);
+            background: rgba(198, 164, 63, 0.1);
             border-radius: 50px;
             font-size: 11px;
             font-weight: 600;
             color: var(--gold);
+            border: 1px solid rgba(198, 164, 63, 0.15);
         }
-        .step-badge i { margin-right: 6px; }
 
+        .step-badge i {
+            margin-right: 6px;
+        }
+
+        /* ===== BUTTONS ===== */
         .btn {
             width: 100%;
             padding: 14px;
@@ -362,12 +524,35 @@
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.2);
+            box-shadow: var(--shadow-gold);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+            transform: rotate(45deg) translateX(-100%);
+            transition: transform 0.6s;
+        }
+
+        .btn:hover::after {
+            transform: rotate(45deg) translateX(100%);
         }
 
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(198,164,63,0.3);
+            box-shadow: 0 8px 32px rgba(198, 164, 63, 0.35);
+            background: var(--gradient-gold-hover);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
         }
 
         .btn-secondary {
@@ -376,12 +561,18 @@
             color: var(--text-secondary);
             box-shadow: none;
         }
+
         .btn-secondary:hover {
             background: var(--input-bg);
             transform: none;
             box-shadow: none;
         }
 
+        .btn-secondary::after {
+            display: none;
+        }
+
+        /* ===== BOTTOM NAV ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -389,6 +580,7 @@
             right: 0;
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             display: flex;
             justify-content: space-around;
             padding: 8px 16px 10px;
@@ -418,10 +610,14 @@
             font-size: 9px;
             color: var(--text-secondary);
             font-weight: 500;
+            transition: all 0.3s;
         }
 
         .nav-item.active i,
-        .nav-item.active span { color: var(--gold); }
+        .nav-item.active span {
+            color: var(--gold);
+        }
+
         .nav-item.active::after {
             content: '';
             position: absolute;
@@ -433,76 +629,249 @@
             background: var(--gradient-gold);
             border-radius: 0 0 3px 3px;
         }
-        .nav-item:hover { transform: translateY(-2px); }
 
-        /* Transaction Loading Overlay */
-        .tx-loading {
+        .nav-item:hover {
+            transform: translateY(-2px);
+        }
+
+        .nav-item:hover i {
+            color: var(--gold);
+        }
+
+        /* ===== LOADING OVERLAY - PROFESSIONAL ===== */
+        .loading-overlay {
             display: none;
             position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.92);
-            backdrop-filter: blur(12px);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--overlay-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             z-index: 2000;
             align-items: center;
             justify-content: center;
             flex-direction: column;
-            animation: fadeIn 0.3s ease;
+            padding: 30px;
         }
-        .tx-loading.show { display: flex; }
 
-        .tx-loader {
-            width: 64px;
-            height: 64px;
+        .loading-overlay.active {
+            display: flex;
+            animation: fadeInScale 0.3s ease;
+        }
+
+        .loading-box {
+            background: var(--bg-card);
+            border-radius: 28px;
+            padding: 44px 36px;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            border: 1px solid var(--border);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.5);
+            animation: slideUp 0.4s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .loading-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--gradient-gold);
+        }
+
+        /* Loading Icon */
+        .loading-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            position: relative;
+        }
+
+        .loader-ring {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(198, 164, 63, 0.1);
+            border-top: 4px solid var(--gold);
             border-radius: 50%;
-            border: 4px solid rgba(198,164,63,0.15);
-            border-top-color: var(--gold);
-            animation: spin 0.9s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-            margin-bottom: 20px;
-            transition: all 0.5s;
+            animation: spin 0.8s cubic-bezier(0.65, 0, 0.35, 1) infinite;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
 
-        .tx-status {
-            color: var(--gold);
-            font-size: 18px;
+        .loader-ring-pulse {
+            width: 80px;
+            height: 80px;
+            border: 4px solid rgba(198, 164, 63, 0.05);
+            border-radius: 50%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .check-mark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 32px;
+            color: var(--success);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .check-mark.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .error-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 32px;
+            color: var(--error);
+            opacity: 0;
+            transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .error-icon.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Loading Text */
+        .loading-title {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+            min-height: 30px;
+            letter-spacing: -0.3px;
+        }
+
+        .loading-subtitle {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            line-height: 1.6;
+            min-height: 44px;
+            transition: all 0.4s ease;
+        }
+
+        /* Progress Bar */
+        .loading-progress-container {
+            margin-bottom: 10px;
+        }
+
+        .loading-progress {
+            width: 100%;
+            height: 4px;
+            background: var(--input-bg);
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .loading-progress-bar {
+            height: 100%;
+            width: 0%;
+            background: var(--gradient-gold);
+            border-radius: 4px;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .loading-progress-bar::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 20px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3));
+            border-radius: 4px;
+        }
+
+        .loading-progress-text {
+            font-size: 12px;
+            color: var(--text-muted);
             font-weight: 600;
             letter-spacing: 0.5px;
-            margin-bottom: 6px;
-            text-align: center;
-            padding: 0 20px;
-            min-height: 30px;
         }
-        .tx-sub {
-            color: var(--text-secondary);
+
+        /* Step Dots */
+        .loading-steps {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 14px;
+        }
+
+        .loading-step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--border);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+
+        .loading-step-dot.active {
+            background: var(--gold);
+            box-shadow: 0 0 20px rgba(198, 164, 63, 0.4);
+            transform: scale(1.2);
+        }
+
+        .loading-step-dot.completed {
+            background: var(--success);
+            box-shadow: 0 0 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .loading-step-dot.failed {
+            background: var(--error);
+            box-shadow: 0 0 16px rgba(239, 68, 68, 0.3);
+        }
+
+        /* Loading message animation */
+        .loading-message-container {
+            min-height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .loading-message {
             font-size: 13px;
-            opacity: 0.8;
-            text-align: center;
-            padding: 0 20px;
-            min-height: 20px;
-        }
-        .tx-icon {
-            font-size: 36px;
-            margin-bottom: 14px;
-            animation: pulse 1.2s ease-in-out infinite;
-            min-height: 50px;
+            color: var(--text-secondary);
+            animation: slideDown 0.3s ease;
         }
 
-        /* Success state */
-        .tx-loading.success .tx-loader {
-            border-color: var(--success);
-            border-top-color: var(--success);
-        }
-        .tx-loading.success .tx-status {
-            color: var(--success);
-        }
-        .tx-loading.success .tx-icon {
-            animation: checkmark 0.5s ease forwards;
+        .loading-message i {
+            color: var(--gold);
+            margin-right: 8px;
+            font-size: 12px;
         }
 
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 500px) {
             .container { padding: 12px; }
             .card { padding: 20px 16px; }
             .title h2 { font-size: 20px; }
-            .pin-inputs input, .code-inputs input { width: 44px; height: 44px; font-size: 18px; }
+            .pin-inputs input,
+            .code-inputs input {
+                width: 44px;
+                height: 44px;
+                font-size: 18px;
+            }
             .top-bar { padding: 12px 16px; }
             .logo-text { font-size: 15px; }
             .balance-pill { display: none; }
@@ -513,35 +882,52 @@
             .nav-item { padding: 4px 8px; }
             .nav-item i { font-size: 16px; }
             .nav-item span { font-size: 8px; }
+            .loading-box { padding: 32px 20px; }
+            .loading-icon { width: 64px; height: 64px; }
+            .loader-ring { width: 64px; height: 64px; }
+            .loading-title { font-size: 17px; }
         }
 
+        /* ===== SCROLLBAR ===== */
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: var(--bg-body); }
-        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb {
+            background: var(--gold);
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
     </style>
 </head>
 <body data-theme="dark">
+
+    <!-- ===== TOP BAR ===== -->
     <div class="top-bar">
-        <div class="logo" onclick="location.href='/dashboard.html'">
+        <a class="logo" href="/dashboard.html">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span class="logo-text">Prime <span>Bank</span></span>
-        </div>
+        </a>
         <div class="user-section">
             <div class="theme-toggle" onclick="toggleTheme()">
                 <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i></div>
                 <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div>
             </div>
-            <div class="balance-pill"><i class="fas fa-wallet"></i><span id="headerBalance">$0.00</span></div>
-            <div class="avatar" onclick="location.href='/profile.html'"><i class="fas fa-user"></i></div>
+            <div class="balance-pill" onclick="location.href='/dashboard.html'">
+                <i class="fas fa-wallet"></i>
+                <span id="headerBalance">$0.00</span>
+            </div>
+            <a class="avatar" href="/profile.html">
+                <i class="fas fa-user"></i>
+            </a>
         </div>
     </div>
 
+    <!-- ===== MAIN CONTENT ===== -->
     <div class="container">
         <div class="card">
             <div class="title">
                 <h2><i class="fas fa-mobile-alt gold"></i> Buy <span class="gold">Airtime</span></h2>
                 <p>Instant top-up for all networks</p>
-                <div class="badge"><i class="fas fa-shield-alt"></i> EASY TRANSACTION</div>
+                <div class="badge"><i class="fas fa-shield-alt"></i> SECURE TRANSACTION</div>
             </div>
 
             <div class="info-box">
@@ -578,28 +964,30 @@
 
                 <div class="form-group">
                     <label><i class="fas fa-phone"></i> Phone Number</label>
-                    <input type="tel" id="phone" placeholder="Enter phone number" value="08012345678">
+                    <input type="tel" id="phone" placeholder="Enter phone number" maxlength="15">
                 </div>
 
                 <div class="form-group">
                     <label><i class="fas fa-dollar-sign"></i> Amount (USD)</label>
-                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01" value="10.00">
+                    <input type="number" id="amount" placeholder="0.00" step="0.01" min="0.01">
                 </div>
 
                 <div class="form-group">
                     <label><i class="fas fa-key"></i> Transaction PIN</label>
                     <div class="pin-inputs">
-                        <input type="password" maxlength="1" id="pin1" onkeyup="movePin(this,'pin2')">
-                        <input type="password" maxlength="1" id="pin2" onkeyup="movePin(this,'pin3')">
-                        <input type="password" maxlength="1" id="pin3" onkeyup="movePin(this,'pin4')">
-                        <input type="password" maxlength="1" id="pin4">
+                        <input type="password" maxlength="1" id="pin1" onkeyup="movePin(this,'pin2')" inputmode="numeric" pattern="[0-9]">
+                        <input type="password" maxlength="1" id="pin2" onkeyup="movePin(this,'pin3')" inputmode="numeric" pattern="[0-9]">
+                        <input type="password" maxlength="1" id="pin3" onkeyup="movePin(this,'pin4')" inputmode="numeric" pattern="[0-9]">
+                        <input type="password" maxlength="1" id="pin4" inputmode="numeric" pattern="[0-9]">
                     </div>
                 </div>
 
-                <button class="btn" onclick="airtimeStep1()"><i class="fas fa-arrow-right"></i> Continue</button>
+                <button class="btn" onclick="airtimeStep1()">
+                    <i class="fas fa-arrow-right"></i> Continue
+                </button>
             </div>
 
-            <!-- CODE STEPS (3 Steps Only) -->
+            <!-- CODE STEPS -->
             <div id="codeForm" style="display: none;">
                 <!-- Step 1: Authorization Code -->
                 <div id="codeStep1">
@@ -607,14 +995,15 @@
                         <span class="step-badge"><i class="fas fa-shield-alt"></i> Step 1 of 3 • Authorization</span>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-key"></i> Enter BBC Authorization Code</label>
+                        <label><i class="fas fa-key"></i> Enter Authorization Code</label>
+                        <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Enter the 6-digit code sent to your registered email</p>
                         <div class="code-inputs">
-                            <input type="text" maxlength="1" id="c1_1" onkeyup="moveCode(this,'c1_2')">
-                            <input type="text" maxlength="1" id="c1_2" onkeyup="moveCode(this,'c1_3')">
-                            <input type="text" maxlength="1" id="c1_3" onkeyup="moveCode(this,'c1_4')">
-                            <input type="text" maxlength="1" id="c1_4" onkeyup="moveCode(this,'c1_5')">
-                            <input type="text" maxlength="1" id="c1_5" onkeyup="moveCode(this,'c1_6')">
-                            <input type="text" maxlength="1" id="c1_6">
+                            <input type="text" maxlength="1" id="c1_1" onkeyup="moveCode(this,'c1_2')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c1_2" onkeyup="moveCode(this,'c1_3')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c1_3" onkeyup="moveCode(this,'c1_4')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c1_4" onkeyup="moveCode(this,'c1_5')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c1_5" onkeyup="moveCode(this,'c1_6')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c1_6" inputmode="numeric" pattern="[0-9]">
                         </div>
                     </div>
                     <button class="btn" onclick="submitCode1()"><i class="fas fa-check"></i> Verify Code</button>
@@ -627,14 +1016,15 @@
                         <span class="step-badge"><i class="fas fa-lock"></i> Step 2 of 3 • Security Check</span>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-shield-virus"></i> Enter BBC Security Code</label>
+                        <label><i class="fas fa-shield-virus"></i> Enter Security Code</label>
+                        <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Enter the 6-digit security code for verification</p>
                         <div class="code-inputs">
-                            <input type="text" maxlength="1" id="c2_1" onkeyup="moveCode(this,'c2_2')">
-                            <input type="text" maxlength="1" id="c2_2" onkeyup="moveCode(this,'c2_3')">
-                            <input type="text" maxlength="1" id="c2_3" onkeyup="moveCode(this,'c2_4')">
-                            <input type="text" maxlength="1" id="c2_4" onkeyup="moveCode(this,'c2_5')">
-                            <input type="text" maxlength="1" id="c2_5" onkeyup="moveCode(this,'c2_6')">
-                            <input type="text" maxlength="1" id="c2_6">
+                            <input type="text" maxlength="1" id="c2_1" onkeyup="moveCode(this,'c2_2')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c2_2" onkeyup="moveCode(this,'c2_3')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c2_3" onkeyup="moveCode(this,'c2_4')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c2_4" onkeyup="moveCode(this,'c2_5')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c2_5" onkeyup="moveCode(this,'c2_6')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c2_6" inputmode="numeric" pattern="[0-9]">
                         </div>
                     </div>
                     <button class="btn" onclick="submitCode2()"><i class="fas fa-check-double"></i> Verify Code</button>
@@ -647,14 +1037,15 @@
                         <span class="step-badge"><i class="fas fa-crown"></i> Step 3 of 3 • Final Verification</span>
                     </div>
                     <div class="form-group">
-                        <label><i class="fas fa-gem"></i> Enter BBC Final Code</label>
+                        <label><i class="fas fa-gem"></i> Enter Final Code</label>
+                        <p style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Enter the 6-digit final code to complete your purchase</p>
                         <div class="code-inputs">
-                            <input type="text" maxlength="1" id="c3_1" onkeyup="moveCode(this,'c3_2')">
-                            <input type="text" maxlength="1" id="c3_2" onkeyup="moveCode(this,'c3_3')">
-                            <input type="text" maxlength="1" id="c3_3" onkeyup="moveCode(this,'c3_4')">
-                            <input type="text" maxlength="1" id="c3_4" onkeyup="moveCode(this,'c3_5')">
-                            <input type="text" maxlength="1" id="c3_5" onkeyup="moveCode(this,'c3_6')">
-                            <input type="text" maxlength="1" id="c3_6">
+                            <input type="text" maxlength="1" id="c3_1" onkeyup="moveCode(this,'c3_2')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c3_2" onkeyup="moveCode(this,'c3_3')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c3_3" onkeyup="moveCode(this,'c3_4')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c3_4" onkeyup="moveCode(this,'c3_5')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c3_5" onkeyup="moveCode(this,'c3_6')" inputmode="numeric" pattern="[0-9]">
+                            <input type="text" maxlength="1" id="c3_6" inputmode="numeric" pattern="[0-9]">
                         </div>
                     </div>
                     <button class="btn" onclick="submitCode3()"><i class="fas fa-check-circle"></i> Complete Purchase</button>
@@ -664,6 +1055,7 @@
         </div>
     </div>
 
+    <!-- ===== BOTTOM NAV ===== -->
     <div class="bottom-nav">
         <a class="nav-item" href="/dashboard.html"><i class="fas fa-home"></i><span>Home</span></a>
         <a class="nav-item" href="/cards.html"><i class="fas fa-credit-card"></i><span>Cards</span></a>
@@ -672,18 +1064,40 @@
         <a class="nav-item" href="/profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
     </div>
 
-    <!-- TRANSACTION LOADING OVERLAY -->
-    <div id="txLoading" class="tx-loading">
-        <div class="tx-icon" id="txIcon"><i class="fas fa-spinner"></i></div>
-        <div class="tx-loader" id="txLoader"></div>
-        <div class="tx-status" id="txStatus">Processing Transaction</div>
-        <div class="tx-sub" id="txSub">Please wait while we secure your transfer</div>
+    <!-- ===== LOADING OVERLAY ===== -->
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-box">
+            <div class="loading-icon">
+                <div class="loader-ring-pulse"></div>
+                <div class="loader-ring" id="loaderRing"></div>
+                <div class="check-mark" id="checkMark"><i class="fas fa-check-circle"></i></div>
+                <div class="error-icon" id="errorIcon"><i class="fas fa-times-circle"></i></div>
+            </div>
+            <div class="loading-title" id="loadingTitle">Processing Transaction</div>
+            <div class="loading-message-container">
+                <div class="loading-message" id="loadingMessage">
+                    <i class="fas fa-spinner fa-pulse"></i> Please wait...
+                </div>
+            </div>
+            <div class="loading-progress-container">
+                <div class="loading-progress">
+                    <div class="loading-progress-bar" id="progressBar"></div>
+                </div>
+                <div class="loading-progress-text" id="progressText">0%</div>
+            </div>
+            <div class="loading-steps">
+                <div class="loading-step-dot active" id="stepDot1"></div>
+                <div class="loading-step-dot" id="stepDot2"></div>
+                <div class="loading-step-dot" id="stepDot3"></div>
+            </div>
+        </div>
     </div>
 
     <script>
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
         let currentRef = null;
         let currentStep = 'step1';
+        let messageInterval = null;
 
         // ============================================================
         // THEME
@@ -704,6 +1118,48 @@
         setTheme(savedTheme);
 
         // ============================================================
+        // LOADING MESSAGES - Transaction Specific
+        // ============================================================
+        const LOADING_MESSAGES = {
+            step1: {
+                title: 'Processing Airtime Purchase',
+                messages: [
+                    'Checking account balance...',
+                    'Validating transaction PIN...',
+                    'Verifying network availability...',
+                    'Confirming airtime purchase...'
+                ]
+            },
+            step2: {
+                title: 'Verifying Authorization',
+                messages: [
+                    'Validating authorization code...',
+                    'Processing network request...',
+                    'Verifying phone number...',
+                    'Confirming transaction details...'
+                ]
+            },
+            step3: {
+                title: 'Security Verification',
+                messages: [
+                    'Performing security check...',
+                    'Connecting to network provider...',
+                    'Validating transaction...',
+                    'Finalizing purchase...'
+                ]
+            },
+            step4: {
+                title: 'Completing Purchase',
+                messages: [
+                    'Processing airtime purchase...',
+                    'Contacting network provider...',
+                    'Completing transaction...',
+                    'Updating account balance...'
+                ]
+            }
+        };
+
+        // ============================================================
         // UTILITY
         // ============================================================
         function selectNetwork(network) {
@@ -717,40 +1173,148 @@
         }
 
         function movePin(current, nextId) {
-            if (current.value.length === 1) document.getElementById(nextId).focus();
+            if (current.value.length === 1) {
+                const next = document.getElementById(nextId);
+                if (next) next.focus();
+            }
         }
 
         function moveCode(current, nextId) {
-            if (current.value.length === 1) document.getElementById(nextId).focus();
+            if (current.value.length === 1) {
+                const next = document.getElementById(nextId);
+                if (next) next.focus();
+            }
         }
 
         // ============================================================
-        // TRANSACTION LOADING WITH DIFFERENT MESSAGES PER STEP
+        // PROFESSIONAL LOADING OVERLAY
         // ============================================================
-        function showTxLoading(status, sub, icon = 'fa-spinner') {
-            const overlay = document.getElementById('txLoading');
-            document.getElementById('txStatus').textContent = status || 'Processing Transaction';
-            document.getElementById('txSub').textContent = sub || 'Please wait while we secure your transfer';
-            document.getElementById('txIcon').innerHTML = `<i class="fas ${icon}"></i>`;
-            overlay.className = 'tx-loading show';
-            document.getElementById('txLoader').style.display = 'block';
+        function showLoading(show, options = {}) {
+            const overlay = document.getElementById('loadingOverlay');
+            const title = document.getElementById('loadingTitle');
+            const messageEl = document.getElementById('loadingMessage');
+            const progressBar = document.getElementById('progressBar');
+            const progressText = document.getElementById('progressText');
+            const ring = document.getElementById('loaderRing');
+            const checkMark = document.getElementById('checkMark');
+            const errorIcon = document.getElementById('errorIcon');
+            const dots = [
+                document.getElementById('stepDot1'),
+                document.getElementById('stepDot2'),
+                document.getElementById('stepDot3')
+            ];
+
+            if (!show) {
+                overlay.classList.remove('active');
+                if (messageInterval) {
+                    clearInterval(messageInterval);
+                    messageInterval = null;
+                }
+                return;
+            }
+
+            overlay.classList.add('active');
+
+            // Reset
+            ring.style.display = 'block';
+            checkMark.classList.remove('show');
+            errorIcon.classList.remove('show');
+
+            // Update dots
+            if (options.step !== undefined) {
+                dots.forEach((d, i) => {
+                    d.className = 'loading-step-dot';
+                    if (i < options.step) d.classList.add('completed');
+                    else if (i === options.step) d.classList.add('active');
+                });
+            }
+
+            // Update title
+            if (options.title) title.textContent = options.title;
+
+            // Update progress
+            if (options.progress !== undefined) {
+                progressBar.style.width = options.progress + '%';
+                progressText.textContent = options.progress + '%';
+            }
+
+            // Success state
+            if (options.success) {
+                ring.style.display = 'none';
+                checkMark.classList.add('show');
+                dots.forEach(d => {
+                    d.className = 'loading-step-dot completed';
+                });
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                if (options.title) title.textContent = options.title;
+                if (options.message) {
+                    messageEl.innerHTML = `<i class="fas fa-check-circle" style="color:var(--success);"></i> ${options.message}`;
+                }
+                if (messageInterval) {
+                    clearInterval(messageInterval);
+                    messageInterval = null;
+                }
+                return;
+            }
+
+            // Error state
+            if (options.error) {
+                ring.style.display = 'none';
+                errorIcon.classList.add('show');
+                if (options.step !== undefined) {
+                    dots[options.step].className = 'loading-step-dot failed';
+                }
+                progressBar.style.width = '100%';
+                progressText.textContent = '100%';
+                if (options.title) title.textContent = options.title;
+                if (options.message) {
+                    messageEl.innerHTML = `<i class="fas fa-times-circle" style="color:var(--error);"></i> ${options.message}`;
+                }
+                if (messageInterval) {
+                    clearInterval(messageInterval);
+                    messageInterval = null;
+                }
+                return;
+            }
+
+            // Rotating messages
+            if (options.messages && options.messages.length > 0) {
+                let index = 0;
+                messageEl.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> ${options.messages[0]}`;
+
+                if (messageInterval) clearInterval(messageInterval);
+                messageInterval = setInterval(() => {
+                    index = (index + 1) % options.messages.length;
+                    messageEl.innerHTML = `<i class="fas fa-spinner fa-pulse"></i> ${options.messages[index]}`;
+                }, 1800);
+            }
         }
 
-        function showTxSuccess(status, sub) {
-            const overlay = document.getElementById('txLoading');
-            document.getElementById('txStatus').textContent = status || 'Success!';
-            document.getElementById('txSub').textContent = sub || 'Transaction completed successfully';
-            document.getElementById('txIcon').innerHTML = `<i class="fas fa-check-circle"></i>`;
-            overlay.className = 'tx-loading show success';
-            document.getElementById('txLoader').style.display = 'none';
-        }
+        function animateProgress(target, duration = 800) {
+            return new Promise((resolve) => {
+                const start = performance.now();
+                const startWidth = parseInt(document.getElementById('progressBar').style.width) || 0;
 
-        function hideTxLoading() {
-            document.getElementById('txLoading').classList.remove('show');
-        }
+                function update() {
+                    const elapsed = performance.now() - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const currentWidth = startWidth + (target - startWidth) * eased;
 
-        function delay(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
+                    document.getElementById('progressBar').style.width = Math.min(currentWidth, 100) + '%';
+                    document.getElementById('progressText').textContent = Math.round(Math.min(currentWidth, 100)) + '%';
+
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    } else {
+                        document.getElementById('progressBar').style.width = target + '%';
+                        document.getElementById('progressText').textContent = target + '%';
+                        resolve();
+                    }
+                }
+                update();
+            });
         }
 
         // ============================================================
@@ -797,7 +1361,9 @@
             localStorage.setItem('airtimeProgress', JSON.stringify({ step, data, timestamp: Date.now() }));
         }
 
-        function clearProgress() { localStorage.removeItem('airtimeProgress'); }
+        function clearProgress() {
+            localStorage.removeItem('airtimeProgress');
+        }
 
         function loadProgress() {
             try {
@@ -806,19 +1372,151 @@
                     const progress = JSON.parse(saved);
                     if (Date.now() - progress.timestamp < 3600000) return progress;
                 }
-            } catch(e) {}
+            } catch (e) {}
             return null;
         }
 
         // ============================================================
-        // STEP 1: Create Transaction with 3 Loading Steps
+        // RESTORE PROGRESS
+        // ============================================================
+        function restoreProgress() {
+            const progress = loadProgress();
+            if (!progress) return;
+
+            const data = progress.data;
+            const step = progress.step;
+
+            if (data.phone) document.getElementById('phone').value = data.phone;
+            if (data.amount) document.getElementById('amount').value = data.amount;
+            if (data.network) selectNetwork(data.network);
+
+            currentRef = data.reference || null;
+
+            if (step === 'step1') {
+                document.getElementById('step1Form').style.display = 'block';
+                document.getElementById('codeForm').style.display = 'none';
+                return;
+            }
+
+            document.getElementById('step1Form').style.display = 'none';
+            document.getElementById('codeForm').style.display = 'block';
+
+            if (step === 'code1') {
+                document.getElementById('codeStep1').style.display = 'block';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'none';
+                if (data.code1) {
+                    const c1 = data.code1.split('');
+                    for (let i = 0; i < c1.length; i++) {
+                        const el = document.getElementById('c1_' + (i + 1));
+                        if (el) el.value = c1[i];
+                    }
+                }
+                document.getElementById('c1_1').focus();
+                currentStep = 'code1';
+            } else if (step === 'code2') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'block';
+                document.getElementById('codeStep3').style.display = 'none';
+                if (data.code2) {
+                    const c2 = data.code2.split('');
+                    for (let i = 0; i < c2.length; i++) {
+                        const el = document.getElementById('c2_' + (i + 1));
+                        if (el) el.value = c2[i];
+                    }
+                }
+                document.getElementById('c2_1').focus();
+                currentStep = 'code2';
+            } else if (step === 'code3') {
+                document.getElementById('codeStep1').style.display = 'none';
+                document.getElementById('codeStep2').style.display = 'none';
+                document.getElementById('codeStep3').style.display = 'block';
+                if (data.code3) {
+                    const c3 = data.code3.split('');
+                    for (let i = 0; i < c3.length; i++) {
+                        const el = document.getElementById('c3_' + (i + 1));
+                        if (el) el.value = c3[i];
+                    }
+                }
+                document.getElementById('c3_1').focus();
+                currentStep = 'code3';
+            }
+
+            Swal.fire({
+                icon: 'info',
+                title: 'Resuming Transaction',
+                text: `Continue from Step ${step}`,
+                timer: 1500,
+                showConfirmButton: false,
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+            });
+        }
+
+        // ============================================================
+        // CHECK FOR ACTIVE TRANSACTION FLOW
+        // ============================================================
+        async function checkActiveFlow() {
+            try {
+                const res = await fetch(`${API_URL}/api/transaction/flow`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success && data.flow) {
+                    const flow = data.flow;
+                    if (flow.transaction_type === 'airtime' && flow.status === 'active') {
+                        const tx = flow.transaction;
+                        if (tx) {
+                            if (tx.phoneNumber) document.getElementById('phone').value = tx.phoneNumber;
+                            if (tx.amount) document.getElementById('amount').value = tx.amount;
+                            if (tx.network) selectNetwork(tx.network);
+                            currentRef = tx.reference;
+
+                            const step = flow.current_step || 1;
+                            if (step === 1) {
+                                document.getElementById('step1Form').style.display = 'block';
+                                document.getElementById('codeForm').style.display = 'none';
+                            } else if (step === 2) {
+                                document.getElementById('step1Form').style.display = 'none';
+                                document.getElementById('codeForm').style.display = 'block';
+                                document.getElementById('codeStep1').style.display = 'block';
+                                document.getElementById('codeStep2').style.display = 'none';
+                                document.getElementById('codeStep3').style.display = 'none';
+                                currentStep = 'code1';
+                            } else if (step === 3) {
+                                document.getElementById('step1Form').style.display = 'none';
+                                document.getElementById('codeForm').style.display = 'block';
+                                document.getElementById('codeStep1').style.display = 'none';
+                                document.getElementById('codeStep2').style.display = 'block';
+                                document.getElementById('codeStep3').style.display = 'none';
+                                currentStep = 'code2';
+                            }
+
+                            Swal.fire({
+                                icon: 'info',
+                                title: 'Resuming Transaction',
+                                text: 'You have an active airtime purchase. Continue from where you left off.',
+                                confirmButtonColor: '#C6A43F',
+                                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                            });
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error('Check flow error:', e);
+            }
+        }
+
+        // ============================================================
+        // STEP 1: Create Transaction
         // ============================================================
         async function airtimeStep1() {
             const network = document.getElementById('network').value;
             const phone = document.getElementById('phone').value.trim();
             const amount = parseFloat(document.getElementById('amount').value);
             const pin = document.getElementById('pin1').value + document.getElementById('pin2').value +
-                       document.getElementById('pin3').value + document.getElementById('pin4').value;
+                document.getElementById('pin3').value + document.getElementById('pin4').value;
 
             if (!phone || phone.length < 10) {
                 Swal.fire('Error', 'Please enter a valid phone number', 'error');
@@ -833,205 +1531,399 @@
                 return;
             }
 
-            // STEP 1 LOADING: PIN Verification
-            showTxLoading('🔐 Verifying PIN', `Checking your transaction PIN for ${network} purchase`, 'fa-lock');
-            await delay(1800);
-            showTxSuccess('✅ PIN Verified', 'Authentication successful');
-            await delay(1500);
-            hideTxLoading();
-            await delay(300);
-
-            // STEP 2 LOADING: Network Connection
-            showTxLoading('📡 Connecting to Network', `Establishing secure connection to ${network}`, 'fa-signal');
-            await delay(2200);
-            showTxSuccess('✅ Network Connected', `Successfully connected to ${network}`);
-            await delay(1500);
-            hideTxLoading();
-            await delay(300);
-
-            // STEP 3 LOADING: Processing Payment
-            showTxLoading('💰 Processing Payment', `Debiting $${amount.toFixed(2)} from your account`, 'fa-dollar-sign');
-            await delay(2000);
-            showTxSuccess('✅ Payment Processed', `$10.00 debited successfully`);
-            await delay(1500);
-            hideTxLoading();
-            await delay(300);
-
-            // STEP 4 LOADING: Sending Airtime
-            showTxLoading('📱 Sending Airtime', `Sending ${network} airtime to ${phone}`, 'fa-mobile-alt');
-            await delay(2500);
-            showTxSuccess('✅ Airtime Sent!', `$${amount.toFixed(2)} airtime sent to ${phone}`);
-            await delay(1500);
-            hideTxLoading();
-            await delay(300);
-
-            // After all loading, show success and proceed
-            await Swal.fire({
-                icon: 'success',
-                title: '🎉 Airtime Purchased!',
-                html: `
-                    <div style="text-align:left;margin-top:10px;">
-                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                            <span style="color:var(--text-secondary);">Network</span>
-                            <span style="font-weight:600;">${network}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                            <span style="color:var(--text-secondary);">Phone</span>
-                            <span style="font-weight:600;">${phone}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                            <span style="color:var(--text-secondary);">Amount</span>
-                            <span style="font-weight:700;color:var(--gold);">$${amount.toFixed(2)}</span>
-                        </div>
-                        <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
-                            <i class="fas fa-check-circle"></i> Transaction Completed Successfully
-                        </div>
-                    </div>
-                `,
-                confirmButtonColor: '#C6A43F',
-                confirmButtonText: 'Continue to Codes',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
-                width: 440
-            }).then(() => {
-                // Move to code step
-                document.getElementById('step1Form').style.display = 'none';
-                document.getElementById('codeForm').style.display = 'block';
-                document.getElementById('codeStep1').style.display = 'block';
-                document.getElementById('codeStep2').style.display = 'none';
-                document.getElementById('codeStep3').style.display = 'none';
-                document.getElementById('c1_1').focus();
+            const messages = LOADING_MESSAGES.step1;
+            showLoading(true, {
+                title: messages.title,
+                messages: messages.messages,
+                progress: 0,
+                step: 0
             });
+
+            try {
+                await animateProgress(30, 600);
+
+                const res = await fetch(`${API_URL}/api/airtime/step1`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        phoneNumber: phone,
+                        countryCode: '234',
+                        network: network,
+                        amount: amount,
+                        transactionPin: pin
+                    })
+                });
+
+                await animateProgress(70, 400);
+                const data = await res.json();
+
+                if (data.success) {
+                    await animateProgress(100, 300);
+
+                    showLoading(true, {
+                        success: true,
+                        title: 'Request Accepted',
+                        message: 'Please enter your authorization code to continue.',
+                        progress: 100,
+                        step: 1
+                    });
+
+                    await new Promise(resolve => setTimeout(resolve, 1200));
+                    showLoading(false);
+
+                    currentRef = data.reference;
+                    currentStep = 'code1';
+
+                    saveProgress('code1', {
+                        network,
+                        phone,
+                        amount,
+                        reference: currentRef
+                    });
+
+                    document.getElementById('step1Form').style.display = 'none';
+                    document.getElementById('codeForm').style.display = 'block';
+                    document.getElementById('codeStep1').style.display = 'block';
+                    document.getElementById('codeStep2').style.display = 'none';
+                    document.getElementById('codeStep3').style.display = 'none';
+                    document.getElementById('c1_1').focus();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Authorization Required',
+                        html: `<p style="color:var(--text-secondary);">Please enter your authorization code to continue</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 1 of 3</p>`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
+                } else {
+                    showLoading(true, {
+                        error: true,
+                        title: 'Transaction Failed',
+                        message: data.error || 'Unable to process your request',
+                        progress: 100,
+                        step: 1
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 1800));
+                    showLoading(false);
+                    Swal.fire('Error', data.error || 'Transaction failed', 'error');
+                }
+            } catch (e) {
+                showLoading(true, {
+                    error: true,
+                    title: 'Connection Error',
+                    message: 'Please check your internet connection and try again.',
+                    progress: 100,
+                    step: 1
+                });
+                await new Promise(resolve => setTimeout(resolve, 1800));
+                showLoading(false);
+                Swal.fire('Error', 'Network error. Please try again.', 'error');
+            }
         }
 
         // ============================================================
-        // STEP 2: Verify Authorization Code with Loading
+        // STEP 2: Verify Authorization Code
         // ============================================================
         async function submitCode1() {
             const code = document.getElementById('c1_1').value + document.getElementById('c1_2').value +
-                        document.getElementById('c1_3').value + document.getElementById('c1_4').value +
-                        document.getElementById('c1_5').value + document.getElementById('c1_6').value;
+                document.getElementById('c1_3').value + document.getElementById('c1_4').value +
+                document.getElementById('c1_5').value + document.getElementById('c1_6').value;
 
             if (code.length !== 6) {
                 Swal.fire('Error', 'Please enter the complete 6-digit authorization code', 'error');
                 return;
             }
 
-            // Show loading for authorization
-            showTxLoading('🔑 Verifying Authorization Code', 'Checking your BBC authorization code', 'fa-key');
-            await delay(2000);
-            showTxSuccess('✅ Code Verified', 'Authorization code accepted');
-            await delay(1500);
-            hideTxLoading();
-            await delay(300);
-
-            // Move to next step
-            currentStep = 'code2';
-            document.getElementById('codeStep1').style.display = 'none';
-            document.getElementById('codeStep2').style.display = 'block';
-            document.getElementById('codeStep3').style.display = 'none';
-            document.getElementById('c2_1').focus();
-
-            Swal.fire({
-                icon: 'info',
-                title: 'Security Check',
-                html: `<p style="color:var(--text-secondary);">Enter your Security Code to continue</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 2 of 3</p>`,
-                confirmButtonColor: '#C6A43F',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+            const messages = LOADING_MESSAGES.step2;
+            showLoading(true, {
+                title: messages.title,
+                messages: messages.messages,
+                progress: 0,
+                step: 1
             });
+
+            try {
+                await animateProgress(40, 500);
+
+                const res = await fetch(`${API_URL}/api/airtime/step2`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+
+                await animateProgress(75, 400);
+                const data = await res.json();
+
+                if (data.success) {
+                    await animateProgress(100, 300);
+
+                    showLoading(true, {
+                        success: true,
+                        title: 'Authorization Verified',
+                        message: 'Proceeding to security check...',
+                        progress: 100,
+                        step: 2
+                    });
+
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    showLoading(false);
+
+                    const progress = loadProgress();
+                    if (progress) saveProgress('code2', { ...progress.data, code1: code });
+                    currentStep = 'code2';
+
+                    document.getElementById('codeStep1').style.display = 'none';
+                    document.getElementById('codeStep2').style.display = 'block';
+                    document.getElementById('codeStep3').style.display = 'none';
+                    document.getElementById('c2_1').focus();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Security Check',
+                        html: `<p style="color:var(--text-secondary);">Please enter your security code to continue</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 2 of 3</p>`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
+                } else {
+                    showLoading(true, {
+                        error: true,
+                        title: 'Verification Failed',
+                        message: data.error || 'Invalid authorization code',
+                        progress: 100,
+                        step: 1
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 1800));
+                    showLoading(false);
+                    Swal.fire('Error', data.error || 'Invalid authorization code', 'error');
+                }
+            } catch (e) {
+                showLoading(true, {
+                    error: true,
+                    title: 'Verification Error',
+                    message: 'Could not verify your authorization code.',
+                    progress: 100,
+                    step: 1
+                });
+                await new Promise(resolve => setTimeout(resolve, 1800));
+                showLoading(false);
+                Swal.fire('Error', 'Verification failed', 'error');
+            }
         }
 
         // ============================================================
-        // STEP 3: Verify Security Code with Loading
+        // STEP 3: Verify Security Code
         // ============================================================
         async function submitCode2() {
             const code = document.getElementById('c2_1').value + document.getElementById('c2_2').value +
-                        document.getElementById('c2_3').value + document.getElementById('c2_4').value +
-                        document.getElementById('c2_5').value + document.getElementById('c2_6').value;
+                document.getElementById('c2_3').value + document.getElementById('c2_4').value +
+                document.getElementById('c2_5').value + document.getElementById('c2_6').value;
 
             if (code.length !== 6) {
                 Swal.fire('Error', 'Please enter the complete 6-digit security code', 'error');
                 return;
             }
 
-            // Show loading for security check
-            showTxLoading('🛡️ Security Check', 'Verifying BBC security code', 'fa-shield-alt');
-            await delay(2000);
-            showTxSuccess('✅ Security Verified', 'Security check passed');
-            await delay(1500);
-            hideTxLoading();
-            await delay(300);
-
-            // Move to next step
-            currentStep = 'code3';
-            document.getElementById('codeStep2').style.display = 'none';
-            document.getElementById('codeStep3').style.display = 'block';
-            document.getElementById('c3_1').focus();
-
-            Swal.fire({
-                icon: 'info',
-                title: 'Final Verification',
-                html: `<p style="color:var(--text-secondary);">Enter your Final Code to complete the purchase</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 3 of 3</p>`,
-                confirmButtonColor: '#C6A43F',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+            const messages = LOADING_MESSAGES.step3;
+            showLoading(true, {
+                title: messages.title,
+                messages: messages.messages,
+                progress: 0,
+                step: 2
             });
+
+            try {
+                await animateProgress(35, 500);
+
+                const res = await fetch(`${API_URL}/api/airtime/step3`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+
+                await animateProgress(70, 400);
+                const data = await res.json();
+
+                if (data.success) {
+                    await animateProgress(100, 300);
+
+                    showLoading(true, {
+                        success: true,
+                        title: 'Security Check Passed',
+                        message: 'Proceeding to final verification...',
+                        progress: 100,
+                        step: 3
+                    });
+
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    showLoading(false);
+
+                    const progress = loadProgress();
+                    if (progress) saveProgress('code3', { ...progress.data, code2: code });
+                    currentStep = 'code3';
+
+                    document.getElementById('codeStep2').style.display = 'none';
+                    document.getElementById('codeStep3').style.display = 'block';
+                    document.getElementById('c3_1').focus();
+
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Final Verification',
+                        html: `<p style="color:var(--text-secondary);">Please enter your final code to complete the purchase</p><p style="margin-top:8px;font-size:12px;color:var(--gold);"><i class="fas fa-info-circle"></i> Step 3 of 3</p>`,
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
+                } else {
+                    showLoading(true, {
+                        error: true,
+                        title: 'Security Check Failed',
+                        message: data.error || 'Invalid security code',
+                        progress: 100,
+                        step: 2
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 1800));
+                    showLoading(false);
+                    Swal.fire('Error', data.error || 'Invalid security code', 'error');
+                }
+            } catch (e) {
+                showLoading(true, {
+                    error: true,
+                    title: 'Verification Error',
+                    message: 'Could not verify your security code.',
+                    progress: 100,
+                    step: 2
+                });
+                await new Promise(resolve => setTimeout(resolve, 1800));
+                showLoading(false);
+                Swal.fire('Error', 'Verification failed', 'error');
+            }
         }
 
         // ============================================================
-        // FINAL: Verify Final Code & Complete
+        // FINAL: Verify Final Code & Complete Transaction
         // ============================================================
         async function submitCode3() {
             const code = document.getElementById('c3_1').value + document.getElementById('c3_2').value +
-                        document.getElementById('c3_3').value + document.getElementById('c3_4').value +
-                        document.getElementById('c3_5').value + document.getElementById('c3_6').value;
+                document.getElementById('c3_3').value + document.getElementById('c3_4').value +
+                document.getElementById('c3_5').value + document.getElementById('c3_6').value;
 
             if (code.length !== 6) {
                 Swal.fire('Error', 'Please enter the complete 6-digit final code', 'error');
                 return;
             }
 
-            // Final loading
-            showTxLoading('✨ Finalizing Transaction', 'Completing your airtime purchase', 'fa-crown');
-            await delay(2500);
-            showTxSuccess('✅ Transaction Complete!', 'Airtime purchased successfully');
-            await delay(1500);
-            hideTxLoading();
-            await delay(300);
-
-            clearProgress();
-
-            await Swal.fire({
-                icon: 'success',
-                title: '🎉 Airtime Purchased!',
-                html: `
-                    <div style="text-align:left;margin-top:10px;">
-                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                            <span style="color:var(--text-secondary);">Network</span>
-                            <span style="font-weight:600;">${document.getElementById('network').value}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                            <span style="color:var(--text-secondary);">Phone</span>
-                            <span style="font-weight:600;">${document.getElementById('phone').value}</span>
-                        </div>
-                        <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
-                            <span style="color:var(--text-secondary);">Amount</span>
-                            <span style="font-weight:700;color:var(--gold);">$${parseFloat(document.getElementById('amount').value).toFixed(2)}</span>
-                        </div>
-                        <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
-                            <i class="fas fa-check-circle"></i> Transaction Completed Successfully
-                        </div>
-                    </div>
-                `,
-                confirmButtonColor: '#C6A43F',
-                confirmButtonText: 'Go to Dashboard',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
-                width: 440
-            }).then(() => {
-                window.location.href = '/dashboard.html';
+            const messages = LOADING_MESSAGES.step4;
+            showLoading(true, {
+                title: messages.title,
+                messages: messages.messages,
+                progress: 0,
+                step: 3
             });
+
+            try {
+                await animateProgress(25, 400);
+
+                const res = await fetch(`${API_URL}/api/airtime/final`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reference: currentRef, bbcCode: code })
+                });
+
+                await animateProgress(60, 500);
+                const data = await res.json();
+
+                if (data.success) {
+                    await animateProgress(100, 400);
+
+                    showLoading(true, {
+                        success: true,
+                        title: '🎉 Airtime Purchased!',
+                        message: 'Your transaction has been completed successfully.',
+                        progress: 100,
+                        step: 3
+                    });
+
+                    await new Promise(resolve => setTimeout(resolve, 1500));
+                    showLoading(false);
+
+                    clearProgress();
+
+                    await Swal.fire({
+                        icon: 'success',
+                        title: '🎉 Airtime Purchased!',
+                        html: `
+                            <div style="text-align:left;margin-top:10px;">
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Network</span>
+                                    <span style="font-weight:600;">${document.getElementById('network').value}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Phone</span>
+                                    <span style="font-weight:600;">${document.getElementById('phone').value}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(198,164,63,0.1);">
+                                    <span style="color:var(--text-secondary);">Amount</span>
+                                    <span style="font-weight:700;color:var(--gold);">$${parseFloat(document.getElementById('amount').value).toFixed(2)}</span>
+                                </div>
+                                <div style="display:flex;justify-content:space-between;padding:6px 0;">
+                                    <span style="color:var(--text-secondary);">Reference</span>
+                                    <span style="font-weight:600;font-family:monospace;font-size:11px;">${currentRef}</span>
+                                </div>
+                                <div style="text-align:center;margin-top:12px;padding:8px;background:rgba(16,185,129,0.1);border-radius:8px;color:var(--success);font-size:12px;font-weight:600;">
+                                    <i class="fas fa-check-circle"></i> Transaction Completed Successfully
+                                </div>
+                            </div>
+                        `,
+                        confirmButtonColor: '#C6A43F',
+                        confirmButtonText: 'Go to Dashboard',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                        width: 440
+                    }).then(() => {
+                        window.location.href = '/dashboard.html';
+                    });
+                } else {
+                    showLoading(true, {
+                        error: true,
+                        title: 'Transaction Failed',
+                        message: data.error || 'Unable to complete purchase',
+                        progress: 100,
+                        step: 3
+                    });
+                    await new Promise(resolve => setTimeout(resolve, 1800));
+                    showLoading(false);
+                    Swal.fire('Error', data.error || 'Airtime purchase failed', 'error');
+                }
+            } catch (e) {
+                console.error('Final error:', e);
+                showLoading(true, {
+                    error: true,
+                    title: 'Transaction Error',
+                    message: 'An unexpected error occurred. Please try again.',
+                    progress: 100,
+                    step: 3
+                });
+                await new Promise(resolve => setTimeout(resolve, 1800));
+                showLoading(false);
+                Swal.fire('Error', 'Airtime purchase failed. Please try again.', 'error');
+            }
         }
 
         // ============================================================
@@ -1042,23 +1934,39 @@
                 const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-                if (res.status === 401) { window.location.href = '/'; return; }
+                if (res.status === 401) {
+                    window.location.href = '/';
+                    return;
+                }
                 const data = await res.json();
                 const user = data.user;
                 const totalBalance = user.totalBalance || 0;
                 const currency = user.currency || 'USD';
                 document.getElementById('userBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
                 document.getElementById('headerBalance').innerHTML = `${currency} ${totalBalance.toLocaleString()}`;
-            } catch(e) { console.error(e); }
+            } catch (e) {
+                console.error(e);
+            }
         }
 
         // ============================================================
         // INIT
         // ============================================================
+        selectNetwork('MTN');
+
         const token = localStorage.getItem('token');
-        if (!token && window.location.pathname !== '/') { window.location.href = '/'; }
+        if (!token && window.location.pathname !== '/') {
+            window.location.href = '/';
+        }
 
         loadBalance();
+
+        checkActiveFlow().then(() => {
+            const progress = loadProgress();
+            if (progress && document.getElementById('step1Form').style.display !== 'none') {
+                restoreProgress();
+            }
+        });
     </script>
 </body>
 </html>
