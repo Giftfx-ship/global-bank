@@ -34,6 +34,8 @@
             --table-hover: rgba(198,164,63,0.05);
             --modal-overlay: rgba(0,0,0,0.85);
             --user-card-bg: rgba(198,164,63,0.04);
+            --message-unread: rgba(198,164,63,0.1);
+            --message-replied: rgba(16,185,129,0.05);
         }
 
         [data-theme="light"] {
@@ -49,6 +51,8 @@
             --table-hover: rgba(198,164,63,0.08);
             --modal-overlay: rgba(0,0,0,0.5);
             --user-card-bg: rgba(198,164,63,0.06);
+            --message-unread: rgba(198,164,63,0.08);
+            --message-replied: rgba(16,185,129,0.05);
         }
 
         body {
@@ -84,7 +88,6 @@
         ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: var(--gold-dark); }
 
-        /* ===== HEADER ===== */
         .admin-header {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -197,10 +200,9 @@
             border-color: var(--gold);
         }
 
-        /* ===== CONTAINER ===== */
         .container { max-width: 1440px; margin: 0 auto; padding: 24px 32px; position: relative; z-index: 1; }
 
-        /* ===== STATS ===== */
+        /* Stats */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
@@ -265,7 +267,7 @@
             margin-top: 2px;
         }
 
-        /* ===== SECTION CARD ===== */
+        /* Section Card */
         .section-card {
             background: var(--bg-card);
             backdrop-filter: blur(16px);
@@ -315,6 +317,7 @@
             flex-wrap: wrap;
         }
 
+        /* Buttons */
         .btn-gold {
             background: linear-gradient(135deg, var(--gold), var(--gold-dark));
             border: none;
@@ -410,31 +413,40 @@
         }
         .btn-success:hover { background: var(--success); color: white; }
 
-        /* ===== SEARCH ===== */
-        .search-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-        }
-        .search-bar input {
-            flex: 1;
-            padding: 10px 18px;
-            background: var(--input-bg);
-            border: 1.5px solid var(--border);
-            border-radius: 50px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 13px;
+        .btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            border: none;
+            border-radius: 12px;
+            color: #0A0E1A;
+            font-weight: 700;
+            font-size: 15px;
+            cursor: pointer;
             transition: all 0.3s;
+            margin-top: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        .search-bar input:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(198,164,63,0.3);
         }
-        .search-bar input::placeholder { color: var(--text-muted); }
 
-        /* ===== TABLE ===== */
+        .btn-secondary {
+            background: var(--input-bg);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--border);
+            box-shadow: none;
+            transform: none;
+        }
+
+        /* Table */
         .table-wrapper {
             overflow-x: auto;
             border-radius: 12px;
@@ -526,7 +538,54 @@
             margin-left: 6px;
         }
 
-        /* ===== MODAL ===== */
+        /* Message Status Badges */
+        .msg-status {
+            padding: 3px 12px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .msg-status.unread { background: rgba(198,164,63,0.15); color: var(--gold); }
+        .msg-status.read { background: rgba(59,130,246,0.12); color: var(--info); }
+        .msg-status.replied { background: rgba(16,185,129,0.12); color: var(--success); }
+
+        .msg-category {
+            font-size: 9px;
+            background: rgba(198,164,63,0.08);
+            padding: 2px 10px;
+            border-radius: 30px;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+        }
+
+        /* Search Bar */
+        .search-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .search-bar input {
+            flex: 1;
+            padding: 10px 18px;
+            background: var(--input-bg);
+            border: 1.5px solid var(--border);
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            transition: all 0.3s;
+        }
+        .search-bar input:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
+        }
+        .search-bar input::placeholder { color: var(--text-muted); }
+
+        /* Modal */
         .modal {
             display: none;
             position: fixed;
@@ -544,7 +603,7 @@
             background: var(--bg-card);
             border-radius: 20px;
             padding: 28px;
-            max-width: 560px;
+            max-width: 600px;
             width: 92%;
             border: 1px solid var(--border);
             max-height: 90vh;
@@ -590,7 +649,6 @@
             transform: rotate(90deg);
         }
 
-        /* ===== IMPROVED FORM STYLES ===== */
         .form-group { margin-bottom: 18px; }
         .form-group label {
             display: block;
@@ -624,7 +682,33 @@
         }
         .form-group textarea { min-height: 70px; resize: vertical; }
 
-        /* User Select Dropdown with Avatar */
+        .message-preview {
+            background: var(--input-bg);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border-left: 3px solid var(--gold);
+        }
+        .message-preview .from {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+        .message-preview .subject {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin: 4px 0;
+        }
+        .message-preview .content {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            margin-top: 6px;
+            padding: 8px 12px;
+            background: var(--bg-body);
+            border-radius: 8px;
+        }
+
+        /* User Select Dropdown */
         .user-select-wrapper {
             position: relative;
         }
@@ -645,18 +729,47 @@
             pointer-events: none;
             font-size: 14px;
         }
-        
-        .user-select-wrapper select option {
-            padding: 12px;
-            background: var(--bg-card);
-            color: var(--text-primary);
+
+        /* Amount Input */
+        .amount-input-wrapper {
+            position: relative;
+        }
+        .amount-input-wrapper .currency-label {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-weight: 700;
+            color: var(--gold);
+            font-size: 16px;
+            pointer-events: none;
+        }
+        .amount-input-wrapper input {
+            padding-left: 44px !important;
+        }
+        .amount-input-wrapper .quick-amounts {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+        .amount-input-wrapper .quick-amounts button {
+            padding: 4px 14px;
+            border-radius: 50px;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .amount-input-wrapper .quick-amounts button:hover {
+            border-color: var(--gold);
+            color: var(--gold);
+            background: rgba(198,164,63,0.05);
         }
 
-        .user-select-wrapper select option:checked {
-            background: rgba(198,164,63,0.15);
-        }
-
-        /* Selected User Preview Card */
         .selected-user-preview {
             display: none;
             background: var(--user-card-bg);
@@ -723,80 +836,6 @@
             white-space: nowrap;
         }
 
-        /* Amount Input with Currency */
-        .amount-input-wrapper {
-            position: relative;
-        }
-        .amount-input-wrapper .currency-label {
-            position: absolute;
-            left: 16px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-weight: 700;
-            color: var(--gold);
-            font-size: 16px;
-            pointer-events: none;
-        }
-        .amount-input-wrapper input {
-            padding-left: 44px !important;
-        }
-        .amount-input-wrapper .quick-amounts {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
-            flex-wrap: wrap;
-        }
-        .amount-input-wrapper .quick-amounts button {
-            padding: 4px 14px;
-            border-radius: 50px;
-            border: 1px solid var(--border);
-            background: transparent;
-            color: var(--text-secondary);
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-        .amount-input-wrapper .quick-amounts button:hover {
-            border-color: var(--gold);
-            color: var(--gold);
-            background: rgba(198,164,63,0.05);
-        }
-
-        .btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
-            border: none;
-            border-radius: 12px;
-            color: #0A0E1A;
-            font-weight: 700;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(198,164,63,0.3);
-        }
-
-        .btn-secondary {
-            background: var(--input-bg);
-            color: var(--text-secondary);
-            border: 1px solid var(--border);
-        }
-        .btn-secondary:hover {
-            background: var(--border);
-            box-shadow: none;
-            transform: none;
-        }
-
-        /* ===== LOADING ===== */
         .loading-overlay {
             display: none;
             position: fixed;
@@ -827,7 +866,49 @@
             letter-spacing: 2px;
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* Tabs for Messages */
+        .msg-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+        .msg-tab {
+            padding: 6px 16px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            transition: all 0.3s;
+            border: 1px solid transparent;
+        }
+        .msg-tab:hover { color: var(--text-primary); }
+        .msg-tab.active {
+            background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+            color: #0A0E1A;
+            border-color: var(--gold);
+        }
+        .msg-tab .count {
+            background: rgba(198,164,63,0.15);
+            padding: 1px 8px;
+            border-radius: 20px;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+        .msg-tab.active .count {
+            background: rgba(0,0,0,0.15);
+        }
+
+        .reply-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+        .reply-meta strong {
+            color: var(--text-primary);
+        }
+
         @media (max-width: 1200px) {
             .stats-grid { grid-template-columns: repeat(2, 1fr); }
         }
@@ -868,6 +949,8 @@
             .selected-user-preview .info .details {
                 justify-content: center;
             }
+            .msg-tabs { overflow-x: auto; flex-wrap: nowrap; }
+            .msg-tab { white-space: nowrap; font-size: 11px; padding: 4px 12px; }
         }
     </style>
 </head>
@@ -900,7 +983,63 @@
             <div class="stat-card"><div class="stat-top"><div class="stat-icon"><i class="fas fa-user-check"></i></div><span class="stat-change up">+5%</span></div><div class="value" id="statActiveUsers">0</div><div class="label">Active Users</div></div>
         </div>
 
-        <!-- Users Table -->
+        <!-- ===== CUSTOMER MESSAGES SECTION ===== -->
+        <div class="section-card" id="messagesSection">
+            <div class="section-header">
+                <h3><i class="fas fa-comments"></i> Customer Messages <span class="badge-count" id="msgCount">0</span></h3>
+                <div class="section-actions">
+                    <button class="btn-gold-outline" onclick="refreshMessages()"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    <button class="btn-danger-outline" onclick="deleteAllMessages()"><i class="fas fa-trash-alt"></i> Delete All</button>
+                </div>
+            </div>
+
+            <!-- Message Tabs -->
+            <div class="msg-tabs">
+                <div class="msg-tab active" data-filter="all" onclick="filterMessages('all')">
+                    All <span class="count" id="msgCountAll">0</span>
+                </div>
+                <div class="msg-tab" data-filter="unread" onclick="filterMessages('unread')">
+                    <i class="fas fa-circle" style="color:var(--gold);font-size:8px;"></i> Unread <span class="count" id="msgCountUnread">0</span>
+                </div>
+                <div class="msg-tab" data-filter="read" onclick="filterMessages('read')">
+                    Read <span class="count" id="msgCountRead">0</span>
+                </div>
+                <div class="msg-tab" data-filter="replied" onclick="filterMessages('replied')">
+                    <i class="fas fa-check-circle" style="color:var(--success);font-size:8px;"></i> Replied <span class="count" id="msgCountReplied">0</span>
+                </div>
+            </div>
+
+            <!-- Search -->
+            <div class="search-bar">
+                <input type="text" id="msgSearchInput" placeholder="Search messages by name, email, or subject..." onkeyup="searchMessages()">
+            </div>
+
+            <!-- Messages Table -->
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer</th>
+                            <th>Subject</th>
+                            <th>Category</th>
+                            <th>Status</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="messagesBody">
+                        <tr>
+                            <td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary);">
+                                <i class="fas fa-spinner fa-pulse" style="font-size:28px;display:block;margin-bottom:12px;"></i>
+                                Loading messages...
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- ===== USERS TABLE ===== -->
         <div class="section-card">
             <div class="section-header">
                 <h3><i class="fas fa-users"></i> User Management <span class="badge-count" id="userCount">0</span></h3>
@@ -929,7 +1068,7 @@
             </div>
         </div>
 
-        <!-- BBC Codes Table -->
+        <!-- ===== BBC CODES TABLE ===== -->
         <div class="section-card">
             <div class="section-header">
                 <h3><i class="fas fa-key"></i> BBC Code Management <span class="badge-count" id="bbcCount">0</span></h3>
@@ -965,7 +1104,32 @@
         </div>
     </div>
 
-    <!-- ===== SEND MONEY MODAL (IMPROVED UI) ===== -->
+    <!-- ===== REPLY MODAL ===== -->
+    <div id="replyModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-reply"></i> Reply to Customer</h3>
+                <button class="close-modal" onclick="closeModal('replyModal')">&times;</button>
+            </div>
+            <input type="hidden" id="replyMessageId">
+            
+            <div class="message-preview">
+                <div class="from"><i class="fas fa-user"></i> From: <span id="replyFrom"></span></div>
+                <div class="subject"><i class="fas fa-tag"></i> Subject: <span id="replySubject"></span></div>
+                <div class="content"><i class="fas fa-quote-left" style="color:var(--gold);font-size:10px;opacity:0.5;"></i> <span id="replyMessageText"></span></div>
+            </div>
+
+            <div class="form-group">
+                <label><i class="fas fa-pen"></i> Your Reply</label>
+                <textarea id="replyText" rows="4" placeholder="Type your response here..."></textarea>
+            </div>
+
+            <button class="btn" onclick="sendReply()"><i class="fas fa-paper-plane"></i> Send Reply</button>
+            <button class="btn btn-secondary" onclick="closeModal('replyModal')">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ===== SEND MONEY MODAL ===== -->
     <div id="sendModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
@@ -975,7 +1139,6 @@
             
             <input type="hidden" id="sendUserId">
             
-            <!-- Select User -->
             <div class="form-group">
                 <label><i class="fas fa-user"></i> Select Recipient</label>
                 <div class="user-select-wrapper">
@@ -986,7 +1149,6 @@
                 </div>
             </div>
 
-            <!-- User Preview -->
             <div id="userPreview" class="selected-user-preview">
                 <div class="avatar" id="previewAvatar">U</div>
                 <div class="info">
@@ -999,13 +1161,11 @@
                 <div class="balance-badge" id="previewBalance">$0.00</div>
             </div>
 
-            <!-- Sender Name -->
             <div class="form-group">
                 <label><i class="fas fa-user-tie"></i> Sender Name</label>
                 <input type="text" id="senderName" placeholder="e.g., Credit System" value="Credit System">
             </div>
 
-            <!-- Amount -->
             <div class="form-group">
                 <label><i class="fas fa-dollar-sign"></i> Amount</label>
                 <div class="amount-input-wrapper">
@@ -1022,7 +1182,6 @@
                 </div>
             </div>
 
-            <!-- Currency -->
             <div class="form-group">
                 <label><i class="fas fa-globe"></i> Currency</label>
                 <select id="sendCurrency">
@@ -1033,13 +1192,11 @@
                 </select>
             </div>
 
-            <!-- Note -->
             <div class="form-group">
                 <label><i class="fas fa-pen"></i> Note (Optional)</label>
                 <input type="text" id="sendNote" placeholder="Credit transfer for...">
             </div>
 
-            <!-- Buttons -->
             <button class="btn" onclick="sendMoney()"><i class="fas fa-paper-plane"></i> Send Money</button>
             <button class="btn btn-secondary" onclick="closeModal('sendModal')">Cancel</button>
         </div>
@@ -1075,6 +1232,9 @@
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
         let users = [];
         let bbcCodes = [];
+        let allMessages = [];
+        let currentMsgFilter = 'all';
+        let filteredMessages = [];
 
         // ============================================================
         // THEME
@@ -1104,19 +1264,34 @@
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-        function filterUsers() {
-            const search = document.getElementById('searchInput').value.toLowerCase();
-            const filtered = users.filter(u => 
-                u.full_name?.toLowerCase().includes(search) || 
-                u.email?.toLowerCase().includes(search) || 
-                u.account_number?.toLowerCase().includes(search)
-            );
-            renderUsers(filtered);
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>]/g, function(m) {
+                if (m === '&') return '&amp;';
+                if (m === '<') return '&lt;';
+                if (m === '>') return '&gt;';
+                return m;
+            });
+        }
+
+        function formatDate(dateString) {
+            try {
+                const date = new Date(dateString);
+                return date.toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+            } catch {
+                return dateString || 'N/A';
+            }
         }
 
         function copyToClipboard(text) {
             navigator.clipboard.writeText(text).then(() => {
-                Swal.fire({ icon: 'success', title: 'Copied!', text: `Code ${text} copied`, timer: 1200, showConfirmButton: false });
+                Swal.fire({ icon: 'success', title: 'Copied!', timer: 1200, showConfirmButton: false });
             }).catch(() => {
                 const textarea = document.createElement('textarea');
                 textarea.value = text;
@@ -1145,9 +1320,6 @@
             document.getElementById('sendAmount').focus();
         }
 
-        // ============================================================
-        // USER PREVIEW
-        // ============================================================
         function updateUserPreview(userId) {
             const preview = document.getElementById('userPreview');
             if (!userId) {
@@ -1172,8 +1344,321 @@
         }
 
         // ============================================================
-        // RENDER USERS
+        // MESSAGES - FILTER & SEARCH
         // ============================================================
+        function filterMessages(filter) {
+            currentMsgFilter = filter;
+            document.querySelectorAll('.msg-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.msg-tab[data-filter="${filter}"]`).classList.add('active');
+            applyMessageFilters();
+        }
+
+        function searchMessages() {
+            applyMessageFilters();
+        }
+
+        function applyMessageFilters() {
+            const search = document.getElementById('msgSearchInput').value.toLowerCase();
+            
+            let filtered = allMessages;
+            
+            // Apply status filter
+            if (currentMsgFilter !== 'all') {
+                filtered = filtered.filter(m => m.status === currentMsgFilter);
+            }
+            
+            // Apply search filter
+            if (search) {
+                filtered = filtered.filter(m => 
+                    m.user_name?.toLowerCase().includes(search) ||
+                    m.user_email?.toLowerCase().includes(search) ||
+                    m.subject?.toLowerCase().includes(search) ||
+                    m.message?.toLowerCase().includes(search)
+                );
+            }
+            
+            filteredMessages = filtered;
+            renderMessages(filtered);
+        }
+
+        // ============================================================
+        // RENDER MESSAGES
+        // ============================================================
+        function renderMessages(messages) {
+            const tbody = document.getElementById('messagesBody');
+            
+            if (!messages || messages.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center;padding:40px;color:var(--text-secondary);">
+                            <i class="fas fa-comment-dots" style="font-size:32px;display:block;margin-bottom:12px;opacity:0.3;"></i>
+                            ${currentMsgFilter === 'all' ? 'No customer messages yet' : 
+                              `No ${currentMsgFilter} messages found`}
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            const statusLabels = {
+                unread: 'Unread',
+                read: 'Read',
+                replied: 'Replied'
+            };
+
+            tbody.innerHTML = messages.map(msg => {
+                const statusClass = msg.status || 'unread';
+                
+                return `
+                    <tr>
+                        <td>
+                            <div style="font-weight:600;font-size:13px;">${escapeHtml(msg.user_name)}</div>
+                            <div style="color:var(--text-secondary);font-size:11px;">${escapeHtml(msg.user_email)}</div>
+                        </td>
+                        <td>
+                            <div style="font-weight:500;font-size:13px;">${escapeHtml(msg.subject)}</div>
+                            ${msg.admin_response ? '<div style="font-size:10px;color:var(--success);margin-top:2px;"><i class="fas fa-reply"></i> Has reply</div>' : ''}
+                        </td>
+                        <td>
+                            <span class="msg-category">${escapeHtml(msg.category || 'General')}</span>
+                        </td>
+                        <td>
+                            <span class="msg-status ${statusClass}">
+                                ${statusClass === 'unread' ? '🔴' : statusClass === 'replied' ? '✅' : '🔵'}
+                                ${statusLabels[statusClass] || statusClass}
+                            </span>
+                        </td>
+                        <td style="font-size:11px;color:var(--text-secondary);">
+                            ${formatDate(msg.created_at)}
+                        </td>
+                        <td>
+                            <button class="btn-sm" onclick="openReplyModal('${msg.id}')">
+                                <i class="fas fa-reply"></i> Reply
+                            </button>
+                            <button class="btn-sm btn-danger" onclick="deleteMessage('${msg.id}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            // Update counts
+            const allCount = allMessages.length;
+            const unreadCount = allMessages.filter(m => m.status === 'unread').length;
+            const readCount = allMessages.filter(m => m.status === 'read').length;
+            const repliedCount = allMessages.filter(m => m.status === 'replied').length;
+            
+            document.getElementById('msgCount').textContent = allCount;
+            document.getElementById('msgCountAll').textContent = allCount;
+            document.getElementById('msgCountUnread').textContent = unreadCount;
+            document.getElementById('msgCountRead').textContent = readCount;
+            document.getElementById('msgCountReplied').textContent = repliedCount;
+        }
+
+        // ============================================================
+        // LOAD MESSAGES
+        // ============================================================
+        async function loadMessages() {
+            try {
+                const res = await fetch(`${API_URL}/api/admin/messages`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    allMessages = data.messages || [];
+                    applyMessageFilters();
+                }
+            } catch(e) {
+                console.error('Load messages error:', e);
+                document.getElementById('messagesBody').innerHTML = `
+                    <tr>
+                        <td colspan="6" style="text-align:center;padding:30px;color:var(--error);">
+                            <i class="fas fa-exclamation-triangle"></i> Failed to load messages
+                        </td>
+                    </tr>
+                `;
+            }
+        }
+
+        function refreshMessages() {
+            loadMessages();
+            Swal.fire({
+                icon: 'info',
+                title: 'Refreshing...',
+                text: 'Messages updated',
+                timer: 1500,
+                showConfirmButton: false,
+                toast: true,
+                position: 'top-end'
+            });
+        }
+
+        // ============================================================
+        // OPEN REPLY MODAL
+        // ============================================================
+        async function openReplyModal(messageId) {
+            try {
+                const msg = allMessages.find(m => m.id === messageId);
+                
+                if (!msg) {
+                    Swal.fire('Error', 'Message not found', 'error');
+                    return;
+                }
+
+                document.getElementById('replyMessageId').value = messageId;
+                document.getElementById('replyFrom').textContent = `${msg.user_name} (${msg.user_email})`;
+                document.getElementById('replySubject').textContent = msg.subject;
+                document.getElementById('replyMessageText').textContent = msg.message;
+                document.getElementById('replyText').value = '';
+                
+                openModal('replyModal');
+            } catch(e) {
+                Swal.fire('Error', 'Failed to load message', 'error');
+            }
+        }
+
+        // ============================================================
+        // SEND REPLY
+        // ============================================================
+        async function sendReply() {
+            const messageId = document.getElementById('replyMessageId').value;
+            const reply = document.getElementById('replyText').value.trim();
+
+            if (!reply) {
+                Swal.fire('Error', 'Please enter a reply', 'error');
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const res = await fetch(`${API_URL}/api/admin/messages/${messageId}/reply`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ reply })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Reply Sent!',
+                        text: 'Your reply has been sent to the customer.',
+                        confirmButtonColor: '#C6A43F'
+                    });
+                    closeModal('replyModal');
+                    loadMessages();
+                } else {
+                    Swal.fire('Error', data.error || 'Failed to send reply', 'error');
+                }
+            } catch(e) {
+                Swal.fire('Error', 'Network error. Please try again.', 'error');
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        // ============================================================
+        // DELETE MESSAGE
+        // ============================================================
+        async function deleteMessage(messageId) {
+            Swal.fire({
+                title: 'Delete Message?',
+                text: 'This action cannot be undone.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: 'Delete',
+                cancelButtonText: 'Cancel'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        const res = await fetch(`${API_URL}/api/admin/messages/${messageId}`, {
+                            method: 'DELETE',
+                            headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire('Deleted!', 'Message has been deleted.', 'success');
+                            loadMessages();
+                        } else {
+                            Swal.fire('Error', data.error || 'Failed to delete', 'error');
+                        }
+                    } catch(e) {
+                        Swal.fire('Error', 'Failed to delete message', 'error');
+                    } finally {
+                        showLoading(false);
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // DELETE ALL MESSAGES
+        // ============================================================
+        async function deleteAllMessages() {
+            if (allMessages.length === 0) {
+                Swal.fire('Info', 'No messages to delete', 'info');
+                return;
+            }
+
+            Swal.fire({
+                title: 'Delete All Messages?',
+                html: `This will delete <strong>${allMessages.length}</strong> messages. This action cannot be undone!`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#EF4444',
+                confirmButtonText: `Delete All (${allMessages.length})`,
+                cancelButtonText: 'Cancel'
+            }).then(async (result) => {
+                if (result.isConfirmed) {
+                    showLoading(true);
+                    try {
+                        const res = await fetch(`${API_URL}/api/admin/messages/all`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({ keepUnread: false })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'Deleted!',
+                                text: `Deleted ${data.deletedCount} messages`,
+                                confirmButtonColor: '#C6A43F'
+                            });
+                            loadMessages();
+                        } else {
+                            Swal.fire('Error', data.error || 'Failed to delete messages', 'error');
+                        }
+                    } catch(e) {
+                        Swal.fire('Error', 'Failed to delete messages', 'error');
+                    } finally {
+                        showLoading(false);
+                    }
+                }
+            });
+        }
+
+        // ============================================================
+        // USER MANAGEMENT
+        // ============================================================
+        function filterUsers() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = users.filter(u => 
+                u.full_name?.toLowerCase().includes(search) || 
+                u.email?.toLowerCase().includes(search) || 
+                u.account_number?.toLowerCase().includes(search)
+            );
+            renderUsers(filtered);
+        }
+
         function renderUsers(userList = users) {
             const tbody = document.getElementById('usersBody');
             tbody.innerHTML = '';
@@ -1249,10 +1734,9 @@
         }
 
         // ============================================================
-        // USER MANAGEMENT
+        // SEND MONEY
         // ============================================================
         function openSendModal(userId) {
-            // Populate dropdown
             const select = document.getElementById('sendUserSelect');
             select.innerHTML = '<option value="">-- Select a user --</option>';
             
@@ -1264,10 +1748,7 @@
                 select.appendChild(opt);
             });
             
-            // Update preview
             updateUserPreview(userId);
-            
-            // Reset fields
             document.getElementById('senderName').value = 'Credit System';
             document.getElementById('sendAmount').value = '';
             document.getElementById('sendCurrency').value = 'USD';
@@ -1348,6 +1829,9 @@
             } finally { showLoading(false); }
         }
 
+        // ============================================================
+        // USER MANAGEMENT - DELETE / TOGGLE
+        // ============================================================
         async function deleteUser(userId) {
             const user = users.find(u => u.id === userId);
             if (!user) return;
@@ -1558,7 +2042,7 @@
         }
 
         // ============================================================
-        // DELETE BBC CODE
+        // BBC CODE MANAGEMENT
         // ============================================================
         async function deleteBBCode(bbcId) {
             Swal.fire({
@@ -1592,9 +2076,6 @@
             });
         }
 
-        // ============================================================
-        // DELETE ALL BBC CODES
-        // ============================================================
         async function deleteAllBBCodes() {
             if (!bbcCodes || bbcCodes.length === 0) {
                 Swal.fire('Info', 'No BBC codes to delete', 'info');
@@ -1639,9 +2120,6 @@
             });
         }
 
-        // ============================================================
-        // LOAD BBC CODES
-        // ============================================================
         async function loadBBCodes() {
             try {
                 const token = localStorage.getItem('token');
@@ -1756,6 +2234,7 @@
                 renderUsers();
                 updateStats(stats);
                 loadBBCodes();
+                loadMessages();
             } catch(e) {
                 console.error(e);
                 Swal.fire('Error', 'Failed to load data', 'error');
@@ -1774,7 +2253,9 @@
         // ============================================================
         // AUTO-REFRESH
         // ============================================================
-        setInterval(loadUsers, 30000);
+        setInterval(() => {
+            loadMessages();
+        }, 30000);
 
         // ============================================================
         // INIT
