@@ -119,14 +119,7 @@
             from { opacity: 0; }
             to { opacity: 1; }
         }
-        @keyframes pulseRing {
-            0% { transform: scale(1); opacity: 0.6; }
-            100% { transform: scale(1.4); opacity: 0; }
-        }
-        @keyframes shimmer {
-            0% { background-position: -200% 0; }
-            100% { background-position: 200% 0; }
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== TOP BAR ===== */
         .top-bar {
@@ -842,6 +835,7 @@
             border-radius: 50%;
             animation: spin 0.8s linear infinite;
             margin-bottom: 16px;
+            position: relative;
         }
         .loader-ring::after {
             content: '';
@@ -858,7 +852,6 @@
             letter-spacing: 3px;
             font-weight: 500;
         }
-        @keyframes spin { to { transform: rotate(360deg); } }
 
         /* ===== BOTTOM NAV ===== */
         .bottom-nav {
@@ -885,6 +878,9 @@
             text-decoration: none;
             position: relative;
             min-width: 48px;
+            background: transparent;
+            border: none;
+            font-family: inherit;
         }
         .nav-item i {
             font-size: 20px;
@@ -1001,7 +997,7 @@
 
     <!-- ===== TOP BAR ===== -->
     <div class="top-bar">
-        <a class="logo" onclick="location.reload()">
+        <a class="logo" href="/dashboard.html">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span class="logo-text">Prime <span>Bank</span></span>
         </a>
@@ -1010,7 +1006,7 @@
                 <button class="theme-option" id="darkOption"><i class="fas fa-moon"></i></button>
                 <button class="theme-option" id="lightOption"><i class="fas fa-sun"></i></button>
             </div>
-            <div class="avatar-top" onclick="window.location.href='/profile.html'">
+            <div class="avatar-top" onclick="navigateTo('/profile.html')">
                 <i class="fas fa-user"></i>
                 <div class="avatar-badge"></div>
             </div>
@@ -1040,13 +1036,13 @@
                 <span class="amount-value" id="balanceAmount">0.00</span>
             </div>
             <div class="balance-actions">
-                <button class="btn-action btn-send" onclick="window.location.href='/send.html'">
+                <button class="btn-action btn-send" onclick="navigateTo('/send.html')">
                     <i class="fas fa-paper-plane"></i> Send
                 </button>
-                <button class="btn-action btn-withdraw" onclick="window.location.href='/withdraw.html'">
+                <button class="btn-action btn-withdraw" onclick="navigateTo('/withdraw.html')">
                     <i class="fas fa-arrow-down"></i> Withdraw
                 </button>
-                <button class="btn-action btn-support" onclick="window.location.href='/support.html'">
+                <button class="btn-action btn-support" onclick="navigateTo('/support.html')">
                     <i class="fas fa-headset"></i> Support
                 </button>
             </div>
@@ -1096,11 +1092,21 @@
 
     <!-- ===== BOTTOM NAV ===== -->
     <div class="bottom-nav">
-        <a class="nav-item active" href="/dashboard.html"><i class="fas fa-home"></i><span>Home</span></a>
-        <a class="nav-item" href="/cards.html"><i class="fas fa-credit-card"></i><span>Cards</span></a>
-        <a class="nav-item" href="/send.html"><i class="fas fa-paper-plane"></i><span>Send</span></a>
-        <a class="nav-item" href="/support.html"><i class="fas fa-headset"></i><span>Support</span></a>
-        <a class="nav-item" href="/profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
+        <button class="nav-item active" onclick="navigateTo('/dashboard.html')">
+            <i class="fas fa-home"></i><span>Home</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('/cards.html')">
+            <i class="fas fa-credit-card"></i><span>Cards</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('/send.html')">
+            <i class="fas fa-paper-plane"></i><span>Send</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('/support.html')">
+            <i class="fas fa-headset"></i><span>Support</span>
+        </button>
+        <button class="nav-item" onclick="navigateTo('/profile.html')">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </button>
     </div>
 
     <!-- ===== TRANSACTIONS MODAL ===== -->
@@ -1132,6 +1138,22 @@
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
         let currentUser = null;
         let balanceVisible = true;
+        let refreshInterval = null;
+
+        // ============================================================
+        // NAVIGATION - FIXED
+        // ============================================================
+        function navigateTo(path) {
+            // Check if we're already on this page
+            const currentPath = window.location.pathname;
+            if (currentPath === path) return;
+            
+            // Add loading state
+            showLoading();
+            
+            // Navigate
+            window.location.href = path;
+        }
 
         // ============================================================
         // THEME
@@ -1150,6 +1172,17 @@
 
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
+
+        // ============================================================
+        // LOADING OVERLAY
+        // ============================================================
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
 
         // ============================================================
         // BALANCE VISIBILITY TOGGLE
@@ -1173,7 +1206,7 @@
         // ============================================================
         function viewReceipt(reference) {
             if (!reference) return;
-            window.open(`/receipt.html?ref=${reference}`, '_blank');
+            navigateTo(`/receipt.html?ref=${reference}`);
         }
 
         // ============================================================
@@ -1196,13 +1229,20 @@
         async function loadAllTransactions() {
             try {
                 const token = localStorage.getItem('token');
-                if (!token) return;
+                if (!token) {
+                    navigateTo('/');
+                    return;
+                }
 
                 const res = await fetch(`${API_URL}/api/transactions`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (res.status === 401) { window.location.href = '/'; return; }
+                if (res.status === 401) { 
+                    localStorage.removeItem('token');
+                    navigateTo('/');
+                    return; 
+                }
 
                 const data = await res.json();
                 const transactions = data.transactions || [];
@@ -1289,20 +1329,31 @@
         async function loadUserData() {
             try {
                 const token = localStorage.getItem('token');
-                if (!token) { window.location.href = '/'; return; }
+                if (!token) { 
+                    navigateTo('/');
+                    return; 
+                }
 
                 const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
-                if (res.status === 401) { logout(); return; }
+                if (res.status === 401) { 
+                    localStorage.removeItem('token');
+                    navigateTo('/');
+                    return; 
+                }
 
                 const data = await res.json();
                 currentUser = data.user || data;
 
                 renderDashboard();
+                hideLoading();
             } catch (e) {
                 console.error('Load error:', e);
+                hideLoading();
+                // Retry after 5 seconds
+                setTimeout(loadUserData, 5000);
             }
         }
 
@@ -1310,6 +1361,8 @@
         // RENDER DASHBOARD
         // ============================================================
         function renderDashboard() {
+            if (!currentUser) return;
+
             // Greeting
             const hour = new Date().getHours();
             const greeting = hour < 12 ? 'Good Morning' : hour < 17 ? 'Good Afternoon' : 'Good Evening';
@@ -1412,7 +1465,11 @@
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
-            window.location.href = '/';
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+            navigateTo('/');
         }
 
         // ============================================================
@@ -1427,10 +1484,16 @@
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
+                if (res.status === 401) return;
+
                 const data = await res.json();
                 if (data.success && data.transaction) {
                     const tx = data.transaction;
-                    const step = tx.step;
+                    const step = tx.step || 1;
+                    
+                    // Only show if we haven't shown it before in this session
+                    const shownKey = `pending_shown_${tx.id}`;
+                    if (sessionStorage.getItem(shownKey)) return;
                     
                     setTimeout(() => {
                         Swal.fire({
@@ -1450,11 +1513,12 @@
                             iconColor: '#C6A43F'
                         }).then((result) => {
                             if (result.isConfirmed) {
-                                if (tx.type === 'withdrawal') window.location.href = '/withdraw.html';
-                                else if (tx.type === 'airtime') window.location.href = '/airtime.html';
-                                else if (tx.type === 'bill_payment') window.location.href = '/bills.html';
-                                else if (tx.type === 'data_bundle') window.location.href = '/data.html';
-                                else if (tx.type === 'transfer') window.location.href = '/send.html';
+                                sessionStorage.setItem(shownKey, 'true');
+                                if (tx.type === 'withdrawal') navigateTo('/withdraw.html');
+                                else if (tx.type === 'airtime') navigateTo('/airtime.html');
+                                else if (tx.type === 'bill_payment') navigateTo('/bills.html');
+                                else if (tx.type === 'data_bundle') navigateTo('/data.html');
+                                else if (tx.type === 'transfer') navigateTo('/send.html');
                             }
                         });
                     }, 1500);
@@ -1465,18 +1529,63 @@
         }
 
         // ============================================================
-        // INIT
+        // UPDATE NAV ACTIVE STATE
         // ============================================================
-        const token = localStorage.getItem('token');
-        if (!token && window.location.pathname !== '/') {
-            window.location.href = '/';
-        } else {
-            loadUserData();
-            checkPendingTransaction();
+        function updateNavActive() {
+            const currentPath = window.location.pathname;
+            document.querySelectorAll('.nav-item').forEach(item => {
+                const href = item.getAttribute('onclick');
+                if (href) {
+                    const path = href.match(/['"]([^'"]+)['"]/);
+                    if (path && currentPath === path[1]) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                }
+            });
         }
 
-        // Auto-refresh every 30 seconds
-        setInterval(loadUserData, 30000);
+        // ============================================================
+        // INIT
+        // ============================================================
+        function init() {
+            const token = localStorage.getItem('token');
+            if (!token && window.location.pathname !== '/') {
+                window.location.href = '/';
+                return;
+            }
+            
+            if (token) {
+                showLoading();
+                loadUserData();
+                checkPendingTransaction();
+                
+                // Auto-refresh every 30 seconds
+                if (refreshInterval) clearInterval(refreshInterval);
+                refreshInterval = setInterval(loadUserData, 30000);
+            }
+            
+            updateNavActive();
+        }
+
+        // Run on page load
+        document.addEventListener('DOMContentLoaded', init);
+
+        // Handle page visibility change - refresh when user comes back
+        document.addEventListener('visibilitychange', function() {
+            if (!document.hidden && localStorage.getItem('token')) {
+                loadUserData();
+            }
+        });
+
+        // Handle beforeunload to cleanup
+        window.addEventListener('beforeunload', function() {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+                refreshInterval = null;
+            }
+        });
     </script>
 </body>
 </html>
