@@ -14,72 +14,111 @@
             --gold: #C6A43F;
             --gold-dark: #9E8032;
             --gold-light: #D4B85A;
+            --gold-gradient: linear-gradient(135deg, #C6A43F 0%, #9E8032 100%);
             --success: #10B981;
             --error: #EF4444;
             --warning: #F59E0B;
             --info: #3B82F6;
-            --gradient-gold: linear-gradient(135deg, #C6A43F, #9E8032);
+            --shadow-sm: 0 2px 8px rgba(0,0,0,0.06);
+            --shadow-md: 0 8px 32px rgba(0,0,0,0.08);
+            --shadow-lg: 0 20px 60px rgba(0,0,0,0.12);
+            --radius-sm: 10px;
+            --radius-md: 16px;
+            --radius-lg: 24px;
         }
 
         [data-theme="dark"] {
-            --bg-body: #0A0E1A;
-            --bg-card: rgba(17, 24, 39, 0.95);
-            --border: rgba(31, 41, 55, 0.5);
-            --text-primary: #FFFFFF;
-            --text-secondary: #94A3B8;
-            --text-muted: #64748B;
-            --input-bg: #0F1622;
-            --glass-bg: rgba(17, 24, 39, 0.8);
-            --icon-hover: rgba(198,164,63,0.2);
-            --card-gradient: linear-gradient(145deg, #0d1a2b, #16213e);
+            --bg-body: #070B14;
+            --bg-secondary: #0C1425;
+            --bg-card: rgba(16, 26, 45, 0.95);
+            --bg-card-hover: rgba(22, 34, 58, 0.98);
+            --bg-glass: rgba(16, 26, 45, 0.8);
+            --border: rgba(198,164,63,0.08);
+            --border-hover: rgba(198,164,63,0.25);
+            --border-light: rgba(255,255,255,0.04);
+            --text-primary: #F0F2F8;
+            --text-secondary: #8899B0;
+            --text-muted: #5A6B80;
+            --input-bg: rgba(255,255,255,0.04);
+            --shadow-card: 0 20px 60px rgba(0,0,0,0.6);
+            --danger-bg: rgba(239,68,68,0.08);
+            --danger-border: rgba(239,68,68,0.2);
         }
 
         [data-theme="light"] {
             --bg-body: #F0F2F8;
+            --bg-secondary: #E8EBF2;
             --bg-card: rgba(255, 255, 255, 0.95);
-            --border: rgba(229, 231, 235, 0.5);
-            --text-primary: #111827;
-            --text-secondary: #6B7280;
-            --text-muted: #9CA3AF;
-            --input-bg: #F9FAFB;
-            --glass-bg: rgba(255, 255, 255, 0.8);
-            --icon-hover: rgba(198,164,63,0.15);
-            --card-gradient: linear-gradient(145deg, #f8fafc, #e2e8f0);
+            --bg-card-hover: rgba(255, 255, 255, 1);
+            --bg-glass: rgba(255, 255, 255, 0.8);
+            --border: rgba(198,164,63,0.12);
+            --border-hover: rgba(198,164,63,0.35);
+            --border-light: rgba(0,0,0,0.06);
+            --text-primary: #0A1628;
+            --text-secondary: #5A6B7D;
+            --text-muted: #8A9BAE;
+            --input-bg: rgba(0,0,0,0.03);
+            --shadow-card: 0 20px 60px rgba(0,0,0,0.06);
+            --danger-bg: rgba(239,68,68,0.06);
+            --danger-border: rgba(239,68,68,0.15);
         }
 
         body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             background: var(--bg-body);
-            padding-bottom: 80px;
+            color: var(--text-primary);
+            padding-bottom: 90px;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            position: relative;
             min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
         }
 
-        body::before {
-            content: '';
+        /* ===== GLOW ORBS ===== */
+        .glow-orb {
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: radial-gradient(circle at 20% 50%, rgba(198,164,63,0.06) 0%, transparent 50%),
-                        radial-gradient(circle at 80% 80%, rgba(198,164,63,0.04) 0%, transparent 60%);
+            border-radius: 50%;
+            filter: blur(120px);
             pointer-events: none;
             z-index: 0;
         }
+        .glow-orb.orb-1 {
+            width: 400px;
+            height: 400px;
+            top: -200px;
+            right: -100px;
+            background: rgba(198,164,63,0.06);
+        }
+        .glow-orb.orb-2 {
+            width: 300px;
+            height: 300px;
+            bottom: -100px;
+            left: -100px;
+            background: rgba(198,164,63,0.04);
+        }
+
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-secondary); }
+        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
 
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
+            from { opacity: 0; transform: translateY(24px); }
             to { opacity: 1; transform: translateY(0); }
         }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
         @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.05); } }
-        @keyframes popIn { 0% { transform: scale(0.8); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
 
+        /* ===== TOP BAR ===== */
         .top-bar {
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
+            background: var(--bg-glass);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
             padding: 14px 24px;
             display: flex;
             justify-content: space-between;
@@ -88,37 +127,59 @@
             top: 0;
             z-index: 100;
             border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
         }
 
-        .logo { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            text-decoration: none;
+        }
         .logo-icon {
-            width: 40px; height: 40px;
-            background: var(--gradient-gold);
-            border-radius: 12px;
+            width: 42px;
+            height: 42px;
+            background: var(--gold-gradient);
+            border-radius: 14px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+            box-shadow: 0 4px 20px rgba(198,164,63,0.3);
+            position: relative;
+        }
+        .logo-icon::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 16px;
+            background: var(--gold-gradient);
+            opacity: 0.3;
+            filter: blur(8px);
+            z-index: -1;
         }
         .logo-icon i { font-size: 18px; color: #0A0E1A; }
         .logo-text {
-            font-size: 18px;
+            font-size: 20px;
             font-weight: 800;
-            background: var(--gradient-gold);
+            background: var(--gold-gradient);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
         }
         .logo-text span { font-weight: 300; opacity: 0.5; }
 
-        .user-section { display: flex; align-items: center; gap: 12px; }
+        .top-actions { display: flex; align-items: center; gap: 12px; }
 
         .theme-toggle {
-            background: rgba(198,164,63,0.08);
+            background: var(--bg-card);
             border: 1px solid var(--border);
             border-radius: 50px;
-            padding: 4px;
+            padding: 3px;
             display: flex;
             cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: var(--shadow-sm);
         }
         .theme-toggle:hover { border-color: var(--gold); }
         .theme-option {
@@ -126,50 +187,89 @@
             border-radius: 40px;
             font-size: 11px;
             font-weight: 600;
+            transition: all 0.3s;
             color: var(--text-secondary);
             background: transparent;
             border: none;
             cursor: pointer;
-            transition: all 0.3s;
         }
         .theme-option.active {
-            background: var(--gradient-gold);
+            background: var(--gold-gradient);
             color: #0A0E1A;
+            box-shadow: 0 2px 12px rgba(198,164,63,0.3);
         }
         .theme-option i { margin-right: 4px; }
 
         .avatar-top {
-            width: 40px; height: 40px;
-            background: var(--gradient-gold);
+            width: 42px;
+            height: 42px;
+            background: var(--gold-gradient);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
             cursor: pointer;
             transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
+            box-shadow: 0 4px 20px rgba(198,164,63,0.3);
+            flex-shrink: 0;
+            position: relative;
+            border: 2px solid rgba(198,164,63,0.2);
         }
-        .avatar-top:hover { transform: scale(1.08); }
+        .avatar-top:hover { transform: scale(1.05); border-color: var(--gold); }
         .avatar-top i { color: #0A0E1A; font-size: 16px; }
+        .avatar-badge {
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            width: 14px;
+            height: 14px;
+            background: var(--success);
+            border-radius: 50%;
+            border: 2px solid var(--bg-primary);
+        }
 
-        .container { max-width: 600px; margin: 0 auto; padding: 20px 16px; position: relative; z-index: 1; }
+        /* ===== CONTAINER ===== */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px 20px 100px;
+            position: relative;
+            z-index: 1;
+        }
 
         /* ===== PROFILE HEADER ===== */
         .profile-header-card {
             background: var(--bg-card);
             backdrop-filter: blur(20px);
-            border-radius: 24px;
-            padding: 28px 24px;
+            border-radius: var(--radius-lg);
+            padding: 32px 24px;
             border: 1px solid var(--border);
             margin-bottom: 20px;
             animation: slideUp 0.5s ease;
             text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s;
+        }
+        .profile-header-card:hover {
+            border-color: var(--border-hover);
+        }
+        .profile-header-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 300px;
+            height: 300px;
+            background: radial-gradient(circle, rgba(198,164,63,0.04) 0%, transparent 70%);
+            border-radius: 50%;
+            pointer-events: none;
         }
 
         .profile-avatar-wrapper {
             position: relative;
             display: inline-block;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -185,14 +285,14 @@
         }
 
         .profile-avatar {
-            width: 100px;
-            height: 100px;
+            width: 110px;
+            height: 110px;
             border-radius: 50%;
-            background: var(--gradient-gold);
+            background: var(--gold-gradient);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 40px;
+            font-size: 44px;
             color: #0A0E1A;
             transition: all 0.3s;
             box-shadow: 0 10px 30px rgba(198, 164, 63, 0.3);
@@ -202,11 +302,11 @@
 
         .avatar-edit-badge {
             position: absolute;
-            bottom: 0;
-            right: 0;
-            width: 34px;
-            height: 34px;
-            background: var(--gradient-gold);
+            bottom: 2px;
+            right: 2px;
+            width: 36px;
+            height: 36px;
+            background: var(--gold-gradient);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -217,10 +317,11 @@
             opacity: 0;
             transform: scale(0.8);
             transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(198,164,63,0.3);
         }
 
         .profile-name {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 800;
             color: var(--text-primary);
             letter-spacing: -0.5px;
@@ -234,29 +335,56 @@
         }
 
         .profile-badge {
-            display: inline-block;
-            padding: 4px 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 16px;
             background: rgba(198, 164, 63, 0.12);
-            border: 1px solid var(--gold);
+            border: 1px solid rgba(198, 164, 63, 0.2);
             border-radius: 50px;
-            font-size: 10px;
+            font-size: 11px;
             font-weight: 600;
             color: var(--gold);
-            margin-top: 8px;
+            margin-top: 10px;
+        }
+
+        .profile-stats {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid var(--border-light);
+        }
+        .profile-stats .stat-item {
+            text-align: center;
+        }
+        .profile-stats .stat-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        .profile-stats .stat-label {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         /* ===== PROFILE CARDS ===== */
         .profile-card {
             background: var(--bg-card);
             backdrop-filter: blur(16px);
-            border-radius: 20px;
+            border-radius: var(--radius-md);
             padding: 24px;
             border: 1px solid var(--border);
             margin-bottom: 20px;
             animation: slideUp 0.5s ease;
             transition: all 0.3s;
         }
-        .profile-card:hover { border-color: var(--gold); }
+        .profile-card:hover {
+            border-color: var(--border-hover);
+        }
 
         .section-title {
             font-size: 16px;
@@ -266,9 +394,10 @@
             display: flex;
             align-items: center;
             gap: 10px;
-            padding-bottom: 12px;
-            border-bottom: 2px solid var(--border);
+            padding-bottom: 14px;
+            border-bottom: 2px solid var(--border-light);
         }
+        .section-title .emoji { font-size: 18px; }
         .section-title i { color: var(--gold); font-size: 18px; }
 
         .form-group { margin-bottom: 16px; }
@@ -277,20 +406,17 @@
             font-size: 11px;
             font-weight: 600;
             color: var(--text-secondary);
-            margin-bottom: 4px;
+            margin-bottom: 5px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-        .form-group label i {
-            margin-right: 6px;
-            color: var(--gold);
-        }
+        .form-group label .emoji { margin-right: 6px; }
         .form-group input {
             width: 100%;
-            padding: 12px 14px;
+            padding: 12px 16px;
             background: var(--input-bg);
             border: 1.5px solid var(--border);
-            border-radius: 14px;
+            border-radius: var(--radius-sm);
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
             font-size: 14px;
@@ -300,32 +426,48 @@
             outline: none;
             border-color: var(--gold);
             box-shadow: 0 0 0 4px rgba(198,164,63,0.06);
-            transform: translateY(-2px);
+            transform: translateY(-1px);
+        }
+        .form-group input::placeholder {
+            color: var(--text-muted);
+            font-size: 13px;
         }
 
         .info-row {
             display: flex;
             justify-content: space-between;
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border);
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid var(--border-light);
         }
         .info-row:last-child { border-bottom: none; }
 
         .info-label {
             color: var(--text-secondary);
             font-size: 12px;
+            font-weight: 500;
         }
-        .info-label i {
-            color: var(--gold);
-            width: 20px;
-            margin-right: 6px;
+        .info-label .emoji {
+            margin-right: 8px;
+            font-size: 14px;
         }
 
         .info-value {
             color: var(--text-primary);
             font-weight: 600;
             font-size: 13px;
+            font-family: 'Inter', monospace;
         }
+        .info-value .copy-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            margin-left: 8px;
+            transition: all 0.3s;
+            font-size: 13px;
+        }
+        .info-value .copy-btn:hover { color: var(--gold); }
 
         .pin-inputs {
             display: flex;
@@ -334,16 +476,17 @@
             margin-top: 4px;
         }
         .pin-inputs input {
-            width: 50px;
-            height: 50px;
+            width: 52px;
+            height: 52px;
             text-align: center;
             font-size: 20px;
             font-weight: 700;
             background: var(--input-bg);
             border: 2px solid var(--border);
-            border-radius: 14px;
+            border-radius: var(--radius-sm);
             color: var(--gold);
             transition: all 0.2s;
+            font-family: 'Inter', monospace;
         }
         .pin-inputs input:focus {
             border-color: var(--gold);
@@ -353,39 +496,56 @@
 
         .btn {
             width: 100%;
-            padding: 12px;
-            background: var(--gradient-gold);
+            padding: 14px;
+            background: var(--gold-gradient);
             border: none;
-            border-radius: 14px;
+            border-radius: var(--radius-sm);
             color: #0A0E1A;
             font-weight: 700;
             font-size: 14px;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-top: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            box-shadow: 0 4px 15px rgba(198,164,63,0.2);
+            box-shadow: 0 4px 20px rgba(198,164,63,0.25);
+            font-family: 'Inter', sans-serif;
         }
         .btn:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(198,164,63,0.3);
+            box-shadow: 0 8px 30px rgba(198,164,63,0.35);
         }
+        .btn:active { transform: scale(0.98); }
 
         .btn-logout {
             background: linear-gradient(135deg, #EF4444, #DC2626);
             color: white;
+            box-shadow: 0 4px 20px rgba(239,68,68,0.25);
         }
-        .btn-logout:hover { box-shadow: 0 10px 25px rgba(239,68,68,0.3); }
+        .btn-logout:hover {
+            box-shadow: 0 8px 30px rgba(239,68,68,0.35);
+        }
 
         .btn-danger-zone {
             background: linear-gradient(135deg, #DC2626, #991B1B);
             color: white;
             margin-top: 10px;
+            box-shadow: 0 4px 20px rgba(220,38,38,0.2);
         }
-        .btn-danger-zone:hover { box-shadow: 0 10px 25px rgba(220,38,38,0.3); }
+        .btn-danger-zone:hover {
+            box-shadow: 0 8px 30px rgba(220,38,38,0.3);
+        }
+
+        /* ===== DANGER ZONE ===== */
+        .danger-zone {
+            border-color: var(--danger-border) !important;
+        }
+        .danger-zone .section-title {
+            color: var(--error);
+            border-color: var(--danger-border) !important;
+        }
+        .danger-zone .section-title i { color: var(--error); }
 
         /* ===== ICON SELECTOR MODAL ===== */
         .icon-grid {
@@ -396,9 +556,9 @@
         }
 
         .icon-option {
-            width: 54px;
-            height: 54px;
-            border-radius: 14px;
+            width: 56px;
+            height: 56px;
+            border-radius: var(--radius-sm);
             background: var(--input-bg);
             border: 2px solid var(--border);
             display: flex;
@@ -423,106 +583,23 @@
             box-shadow: 0 0 20px rgba(198,164,63,0.15);
         }
 
-        /* ===== BOTTOM NAV ===== */
-        .bottom-nav {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            background: var(--glass-bg);
-            backdrop-filter: blur(20px);
-            display: flex;
-            justify-content: space-around;
-            padding: 8px 16px 10px;
-            border-top: 1px solid var(--border);
-            z-index: 99;
-        }
-        .nav-item {
-            text-align: center;
-            cursor: pointer;
-            padding: 6px 12px;
-            border-radius: 12px;
-            transition: all 0.3s;
-            text-decoration: none;
-            position: relative;
-        }
-        .nav-item i {
-            font-size: 18px;
-            color: var(--text-secondary);
-            display: block;
-            margin-bottom: 2px;
-            transition: all 0.3s;
-        }
-        .nav-item span {
-            font-size: 9px;
-            color: var(--text-secondary);
-            font-weight: 500;
-        }
-        .nav-item.active i,
-        .nav-item.active span { color: var(--gold); }
-        .nav-item.active::after {
-            content: '';
-            position: absolute;
-            top: -8px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 20px;
-            height: 3px;
-            background: var(--gradient-gold);
-            border-radius: 0 0 3px 3px;
-        }
-        .nav-item:hover { transform: translateY(-2px); }
-
-        /* ===== LOADING ===== */
-        .loading-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95);
-            backdrop-filter: blur(10px);
-            z-index: 2000;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-        }
-        .loader {
-            width: 40px; height: 40px;
-            border: 3px solid rgba(198,164,63,0.15);
-            border-top: 3px solid var(--gold);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin-bottom: 12px;
-        }
-        .loader-text { color: var(--gold); font-size: 13px; letter-spacing: 2px; }
-
-        .badge-tag {
-            display: inline-block;
-            padding: 4px 12px;
-            background: rgba(198,164,63,0.12);
-            border: 1px solid var(--gold);
-            border-radius: 50px;
-            font-size: 10px;
-            font-weight: 600;
-            color: var(--gold);
-            margin-top: 8px;
-        }
-
+        /* ===== MODAL ===== */
         .modal {
             display: none;
             position: fixed;
             top: 0; left: 0;
             width: 100%; height: 100%;
             background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(12px);
-            z-index: 1000;
+            backdrop-filter: blur(20px);
+            z-index: 1500;
             align-items: center;
             justify-content: center;
+            animation: fadeIn 0.2s ease;
         }
         .modal-content {
             background: var(--bg-card);
-            border-radius: 24px;
-            padding: 24px;
+            border-radius: var(--radius-lg);
+            padding: 28px;
             max-width: 500px;
             width: 92%;
             border: 1px solid var(--border);
@@ -536,66 +613,201 @@
             align-items: center;
             margin-bottom: 20px;
             padding-bottom: 14px;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--border-light);
         }
         .modal-header h3 {
             color: var(--gold);
             font-size: 20px;
             font-weight: 700;
         }
+        .modal-header h3 .emoji { margin-right: 8px; }
         .close-modal {
-            background: none;
-            border: none;
-            font-size: 24px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            font-size: 20px;
             color: var(--text-secondary);
             cursor: pointer;
             transition: all 0.3s;
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .close-modal:hover { color: var(--error); transform: rotate(90deg); }
+        .close-modal:hover { 
+            color: var(--error); 
+            background: var(--danger-bg);
+            border-color: var(--error);
+            transform: rotate(90deg);
+        }
 
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--bg-glass);
+            backdrop-filter: blur(24px) saturate(1.4);
+            -webkit-backdrop-filter: blur(24px) saturate(1.4);
+            display: flex;
+            justify-content: space-around;
+            padding: 8px 12px 12px;
+            border-top: 1px solid var(--border);
+            z-index: 99;
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.08);
+        }
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            padding: 6px 12px;
+            border-radius: 14px;
+            transition: all 0.3s;
+            text-decoration: none;
+            position: relative;
+            min-width: 48px;
+            background: transparent;
+            border: none;
+            font-family: inherit;
+        }
+        .nav-item i {
+            font-size: 20px;
+            color: var(--text-secondary);
+            display: block;
+            margin-bottom: 2px;
+            transition: all 0.3s;
+        }
+        .nav-item span {
+            font-size: 9px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        .nav-item.active i,
+        .nav-item.active span { 
+            color: var(--gold); 
+        }
+        .nav-item.active::before {
+            content: '';
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 3px;
+            background: var(--gold-gradient);
+            border-radius: 0 0 4px 4px;
+            box-shadow: 0 2px 12px rgba(198,164,63,0.3);
+        }
+        .nav-item:hover { transform: translateY(-2px); }
+        .nav-item:hover i { color: var(--gold); }
+
+        /* ===== LOADING ===== */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95);
+            backdrop-filter: blur(20px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+        }
+        .loader-ring {
+            width: 48px;
+            height: 48px;
+            border: 3px solid rgba(198,164,63,0.1);
+            border-top: 3px solid var(--gold);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .loader-ring::after {
+            content: '';
+            position: absolute;
+            inset: -6px;
+            border-radius: 50%;
+            border: 3px solid rgba(198,164,63,0.05);
+            border-top: 3px solid var(--gold-light);
+            animation: spin 1.2s linear infinite reverse;
+        }
+        .loader-text {
+            color: var(--gold);
+            font-size: 13px;
+            letter-spacing: 3px;
+            font-weight: 500;
+        }
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 500px) {
-            .container { padding: 12px; }
-            .profile-card { padding: 18px 16px; }
-            .profile-header-card { padding: 20px 16px; }
-            .profile-avatar { width: 80px; height: 80px; font-size: 32px; }
-            .avatar-edit-badge { width: 28px; height: 28px; font-size: 12px; }
-            .profile-name { font-size: 18px; }
-            .pin-inputs input { width: 44px; height: 44px; font-size: 18px; }
+            .container { padding: 12px 14px 100px; }
             .top-bar { padding: 12px 16px; }
-            .logo-text { font-size: 15px; }
-            .theme-option span { display: none; }
-            .theme-option i { margin-right: 0; }
+            .logo-text { font-size: 17px; }
+            .logo-icon { width: 36px; height: 36px; }
+            .logo-icon i { font-size: 15px; }
+            
+            .profile-header-card { padding: 24px 16px; }
+            .profile-avatar { width: 90px; height: 90px; font-size: 36px; }
+            .avatar-edit-badge { width: 30px; height: 30px; font-size: 12px; }
+            .profile-name { font-size: 20px; }
+            .profile-stats { gap: 20px; }
+            .profile-stats .stat-number { font-size: 16px; }
+            
+            .profile-card { padding: 18px 16px; }
+            
+            .pin-inputs input { width: 44px; height: 44px; font-size: 18px; }
+            
+            .bottom-nav { padding: 6px 8px 10px; }
+            .nav-item { padding: 4px 8px; min-width: 40px; }
+            .nav-item i { font-size: 17px; }
+            .nav-item span { font-size: 8px; }
+            
             .icon-grid { grid-template-columns: repeat(4, 1fr); }
             .icon-option { width: 48px; height: 48px; font-size: 20px; }
-            .bottom-nav { padding: 6px 12px; }
-            .nav-item { padding: 4px 8px; }
-            .nav-item i { font-size: 16px; }
-            .nav-item span { font-size: 8px; }
+            
+            .theme-option span { display: none; }
+            .theme-option i { margin-right: 0; }
+            
+            .modal-content { padding: 20px; }
         }
 
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: var(--bg-body); }
-        ::-webkit-scrollbar-thumb { background: var(--gold); border-radius: 10px; }
+        @media (max-width: 380px) {
+            .profile-stats { gap: 12px; flex-wrap: wrap; }
+            .pin-inputs input { width: 38px; height: 38px; font-size: 16px; }
+        }
     </style>
 </head>
 <body data-theme="dark">
+
+    <!-- ===== GLOW ORBS ===== -->
+    <div class="glow-orb orb-1"></div>
+    <div class="glow-orb orb-2"></div>
+
+    <!-- ===== TOP BAR ===== -->
     <div class="top-bar">
-        <div class="logo" onclick="location.href='/dashboard.html'">
+        <a class="logo" href="/dashboard.html">
             <div class="logo-icon"><i class="fas fa-crown"></i></div>
             <span class="logo-text">Prime <span>Bank</span></span>
-        </div>
-        <div class="user-section">
+        </a>
+        <div class="top-actions">
             <div class="theme-toggle" onclick="toggleTheme()">
-                <div class="theme-option" id="darkOption"><i class="fas fa-moon"></i></div>
-                <div class="theme-option" id="lightOption"><i class="fas fa-sun"></i></div>
+                <button class="theme-option" id="darkOption"><i class="fas fa-moon"></i></button>
+                <button class="theme-option" id="lightOption"><i class="fas fa-sun"></i></button>
             </div>
             <div class="avatar-top" onclick="location.href='/profile.html'">
                 <i class="fas fa-user"></i>
+                <div class="avatar-badge"></div>
             </div>
         </div>
     </div>
 
+    <!-- ===== MAIN CONTENT ===== -->
     <div class="container">
+
         <!-- ===== PROFILE HEADER ===== -->
         <div class="profile-header-card">
             <div class="profile-avatar-wrapper" onclick="openIconSelector()">
@@ -608,84 +820,110 @@
             </div>
             <div class="profile-name" id="profileName">Loading...</div>
             <div class="profile-email" id="profileEmail">Loading...</div>
-            <div class="profile-badge"><i class="fas fa-crown"></i> Premium Member</div>
+            <div class="profile-badge">
+                <span>👑</span> Premium Member
+            </div>
+            <div class="profile-stats">
+                <div class="stat-item">
+                    <div class="stat-number" id="statTransactions">0</div>
+                    <div class="stat-label">Transactions</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statAccounts">1</div>
+                    <div class="stat-label">Accounts</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="statBalance">$0</div>
+                    <div class="stat-label">Balance</div>
+                </div>
+            </div>
         </div>
 
         <!-- ===== ACCOUNT INFO ===== -->
         <div class="profile-card">
-            <div class="section-title"><i class="fas fa-id-card"></i> Account Information</div>
+            <div class="section-title">
+                <span class="emoji">📋</span> Account Information
+            </div>
             <div class="info-row">
-                <span class="info-label"><i class="fas fa-credit-card"></i> Account Number</span>
+                <span class="info-label"><span class="emoji">💳</span> Account Number</span>
                 <span class="info-value" id="accountNumber">—</span>
             </div>
             <div class="info-row">
-                <span class="info-label"><i class="fas fa-globe"></i> IBAN</span>
+                <span class="info-label"><span class="emoji">🌍</span> IBAN</span>
                 <span class="info-value" id="iban">—</span>
             </div>
             <div class="info-row">
-                <span class="info-label"><i class="fas fa-code-branch"></i> SWIFT Code</span>
+                <span class="info-label"><span class="emoji">🔀</span> SWIFT Code</span>
                 <span class="info-value" id="swiftCode">—</span>
             </div>
             <div class="info-row">
-                <span class="info-label"><i class="fas fa-phone-alt"></i> Phone Number</span>
+                <span class="info-label"><span class="emoji">📱</span> Phone Number</span>
                 <span class="info-value" id="phoneNumber">—</span>
             </div>
             <div class="info-row">
-                <span class="info-label"><i class="fas fa-globe"></i> Currency</span>
+                <span class="info-label"><span class="emoji">💱</span> Currency</span>
                 <span class="info-value" id="currency">—</span>
             </div>
             <div class="info-row">
-                <span class="info-label"><i class="fas fa-calendar-alt"></i> Member Since</span>
+                <span class="info-label"><span class="emoji">📅</span> Member Since</span>
                 <span class="info-value" id="memberSince">—</span>
             </div>
         </div>
 
         <!-- ===== CHANGE PASSWORD ===== -->
         <div class="profile-card">
-            <div class="section-title"><i class="fas fa-lock"></i> Change Password</div>
+            <div class="section-title">
+                <span class="emoji">🔐</span> Change Password
+            </div>
             <div class="form-group">
-                <label><i class="fas fa-key"></i> Current Password</label>
+                <label><span class="emoji">🔑</span> Current Password</label>
                 <input type="password" id="currentPassword" placeholder="Enter your current password">
             </div>
             <div class="form-group">
-                <label><i class="fas fa-shield-alt"></i> New Password</label>
-                <input type="password" id="newPassword" placeholder="Enter new password">
+                <label><span class="emoji">🛡️</span> New Password</label>
+                <input type="password" id="newPassword" placeholder="Enter new password (min 6 characters)">
             </div>
             <div class="form-group">
-                <label><i class="fas fa-check-circle"></i> Confirm New Password</label>
+                <label><span class="emoji">✅</span> Confirm New Password</label>
                 <input type="password" id="confirmPassword" placeholder="Confirm new password">
             </div>
-            <button class="btn" onclick="updatePassword()"><i class="fas fa-save"></i> Update Password</button>
+            <button class="btn" onclick="updatePassword()">
+                <i class="fas fa-save"></i> Update Password
+            </button>
         </div>
 
         <!-- ===== CHANGE PIN ===== -->
         <div class="profile-card">
-            <div class="section-title"><i class="fas fa-key"></i> Change Transaction PIN</div>
+            <div class="section-title">
+                <span class="emoji">🔢</span> Change Transaction PIN
+            </div>
             <div class="form-group">
-                <label><i class="fas fa-old-key"></i> Current PIN</label>
+                <label><span class="emoji">🗝️</span> Current PIN</label>
                 <div class="pin-inputs">
-                    <input type="password" maxlength="1" id="curPin1" onkeyup="movePin(this,'curPin2')">
-                    <input type="password" maxlength="1" id="curPin2" onkeyup="movePin(this,'curPin3')">
-                    <input type="password" maxlength="1" id="curPin3" onkeyup="movePin(this,'curPin4')">
-                    <input type="password" maxlength="1" id="curPin4">
+                    <input type="password" maxlength="1" id="curPin1" onkeyup="movePin(this,'curPin2')" inputmode="numeric">
+                    <input type="password" maxlength="1" id="curPin2" onkeyup="movePin(this,'curPin3')" inputmode="numeric">
+                    <input type="password" maxlength="1" id="curPin3" onkeyup="movePin(this,'curPin4')" inputmode="numeric">
+                    <input type="password" maxlength="1" id="curPin4" inputmode="numeric">
                 </div>
             </div>
             <div class="form-group">
-                <label><i class="fas fa-fingerprint"></i> New PIN</label>
+                <label><span class="emoji">🆕</span> New PIN</label>
                 <div class="pin-inputs">
-                    <input type="password" maxlength="1" id="newPin1" onkeyup="movePin(this,'newPin2')">
-                    <input type="password" maxlength="1" id="newPin2" onkeyup="movePin(this,'newPin3')">
-                    <input type="password" maxlength="1" id="newPin3" onkeyup="movePin(this,'newPin4')">
-                    <input type="password" maxlength="1" id="newPin4">
+                    <input type="password" maxlength="1" id="newPin1" onkeyup="movePin(this,'newPin2')" inputmode="numeric">
+                    <input type="password" maxlength="1" id="newPin2" onkeyup="movePin(this,'newPin3')" inputmode="numeric">
+                    <input type="password" maxlength="1" id="newPin3" onkeyup="movePin(this,'newPin4')" inputmode="numeric">
+                    <input type="password" maxlength="1" id="newPin4" inputmode="numeric">
                 </div>
             </div>
-            <button class="btn" onclick="updatePin()"><i class="fas fa-sync-alt"></i> Change PIN</button>
+            <button class="btn" onclick="updatePin()">
+                <i class="fas fa-sync-alt"></i> Change PIN
+            </button>
         </div>
 
         <!-- ===== DANGER ZONE ===== -->
-        <div class="profile-card">
-            <div class="section-title" style="border-color: #EF4444;">
-                <i class="fas fa-exclamation-triangle" style="color: #EF4444;"></i> Danger Zone
+        <div class="profile-card danger-zone">
+            <div class="section-title">
+                <span class="emoji">⚠️</span> Danger Zone
             </div>
             <button class="btn btn-logout" onclick="confirmLogout()">
                 <i class="fas fa-sign-out-alt"></i> Logout
@@ -693,6 +931,9 @@
             <button class="btn btn-danger-zone" onclick="deleteAccount()">
                 <i class="fas fa-trash-alt"></i> Delete Account
             </button>
+            <p style="font-size:10px;color:var(--text-muted);margin-top:12px;text-align:center;">
+                ⚠️ Deleting your account is permanent and cannot be undone
+            </p>
         </div>
     </div>
 
@@ -700,54 +941,69 @@
     <div id="iconModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3><i class="fas fa-palette"></i> Choose Avatar</h3>
+                <h3><span class="emoji">🎨</span> Choose Avatar</h3>
                 <button class="close-modal" onclick="closeModal('iconModal')">&times;</button>
             </div>
             <p style="color:var(--text-secondary);font-size:12px;margin-bottom:12px;">Select an icon to represent your profile</p>
             <div class="icon-grid" id="iconGrid"></div>
             <button class="btn" onclick="selectIcon()"><i class="fas fa-check-circle"></i> Set Avatar</button>
-            <button class="btn" style="margin-top:8px;background:rgba(100,100,100,0.15);" onclick="closeModal('iconModal')">Cancel</button>
+            <button class="btn" style="margin-top:8px;background:rgba(100,100,100,0.15);box-shadow:none;" onclick="closeModal('iconModal')">Cancel</button>
         </div>
     </div>
 
     <!-- ===== BOTTOM NAV ===== -->
     <div class="bottom-nav">
-        <a class="nav-item" href="/dashboard.html"><i class="fas fa-home"></i><span>Home</span></a>
-        <a class="nav-item" href="/cards.html"><i class="fas fa-credit-card"></i><span>Cards</span></a>
-        <a class="nav-item" href="/send.html"><i class="fas fa-paper-plane"></i><span>Send</span></a>
-        <a class="nav-item" href="/support.html"><i class="fas fa-headset"></i><span>Support</span></a>
-        <a class="nav-item active" href="/profile.html"><i class="fas fa-user"></i><span>Profile</span></a>
+        <button class="nav-item" onclick="location.href='/dashboard.html'">
+            <i class="fas fa-home"></i><span>Home</span>
+        </button>
+        <button class="nav-item" onclick="location.href='/cards.html'">
+            <i class="fas fa-credit-card"></i><span>Cards</span>
+        </button>
+        <button class="nav-item" onclick="location.href='/send.html'">
+            <i class="fas fa-paper-plane"></i><span>Send</span>
+        </button>
+        <button class="nav-item" onclick="location.href='/support.html'">
+            <i class="fas fa-headset"></i><span>Support</span>
+        </button>
+        <button class="nav-item active" onclick="location.href='/profile.html'">
+            <i class="fas fa-user"></i><span>Profile</span>
+        </button>
     </div>
 
     <!-- ===== LOADING ===== -->
     <div id="loadingOverlay" class="loading-overlay">
-        <div class="loader"></div>
-        <div class="loader-text">Processing...</div>
+        <div class="loader-ring"></div>
+        <div class="loader-text">Processing</div>
     </div>
 
     <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
         const API_URL = 'https://primeheritage-bank-intl.onrender.com';
         let userData = null;
         let selectedIcon = 'fa-user-astronaut';
         let currentIcon = 'fa-user-astronaut';
 
-        // ===== AVAILABLE ICONS =====
+        // ============================================================
+        // AVAILABLE ICONS
+        // ============================================================
         const AVAILABLE_ICONS = [
             'fa-user-astronaut', 'fa-user-ninja', 'fa-user-secret', 'fa-user-tie',
             'fa-user-cog', 'fa-user-shield', 'fa-user-graduate', 'fa-user-md',
             'fa-user-nurse', 'fa-user-doctor', 'fa-user-gear', 'fa-user-check',
             'fa-user-plus', 'fa-user-minus', 'fa-user-slash', 'fa-user-xmark',
             'fa-users', 'fa-users-gear', 'fa-users-slash', 'fa-user-group',
-            'fa-user-tag', 'fa-user-pen', 'fa-user-large', 'fa-user-astronaut',
-            'fa-user-robot', 'fa-user-alien', 'fa-user-visor', 'fa-user-crown',
-            'fa-user-star', 'fa-user-helmet', 'fa-user-chart', 'fa-user-clock',
-            'fa-face-smile', 'fa-face-laugh', 'fa-face-grin', 'fa-face-smirk',
-            'fa-face-tired', 'fa-face-frown', 'fa-face-angry', 'fa-face-kiss',
+            'fa-user-tag', 'fa-user-pen', 'fa-user-large', 'fa-user-robot',
+            'fa-user-alien', 'fa-user-visor', 'fa-user-crown', 'fa-user-star',
             'fa-robot', 'fa-crown', 'fa-gem', 'fa-star', 'fa-heart',
-            'fa-bolt', 'fa-rocket', 'fa-plane', 'fa-globe', 'fa-moon'
+            'fa-bolt', 'fa-rocket', 'fa-plane', 'fa-globe', 'fa-moon',
+            'fa-sun', 'fa-cloud', 'fa-tree', 'fa-leaf', 'fa-flower'
         ];
 
-        // ===== THEME =====
+        // ============================================================
+        // THEME
+        // ============================================================
         function setTheme(theme) {
             document.body.setAttribute('data-theme', theme);
             localStorage.setItem('theme', theme);
@@ -763,13 +1019,22 @@
         const savedTheme = localStorage.getItem('theme') || 'dark';
         setTheme(savedTheme);
 
-        // ===== UTILITY =====
+        // ============================================================
+        // UTILITY
+        // ============================================================
         function showLoading(show) {
             document.getElementById('loadingOverlay').style.display = show ? 'flex' : 'none';
         }
 
-        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function openModal(id) { 
+            document.getElementById(id).style.display = 'flex'; 
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal(id) { 
+            document.getElementById(id).style.display = 'none';
+            document.body.style.overflow = '';
+        }
 
         function movePin(current, nextId) {
             if (current.value.length === 1 && nextId) {
@@ -777,17 +1042,33 @@
             }
         }
 
-        // ===== PROFILE LOAD =====
+        // ============================================================
+        // NAVIGATION
+        // ============================================================
+        function navigateTo(path) {
+            const currentPath = window.location.pathname;
+            if (currentPath === path) return;
+            showLoading(true);
+            window.location.href = path;
+        }
+
+        // ============================================================
+        // PROFILE LOAD
+        // ============================================================
         async function loadProfile() {
             try {
                 const token = localStorage.getItem('token');
-                if (!token) { window.location.href = '/'; return; }
+                if (!token) { navigateTo('/'); return; }
+                
                 const res = await fetch(`${API_URL}/api/auth/me`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
+                
                 if (res.status === 401) { logout(); return; }
-                userData = await res.json();
-                const user = userData.user;
+                
+                const data = await res.json();
+                userData = data.user || data;
+                const user = userData;
                 
                 const savedIcon = localStorage.getItem('profileIcon') || 'fa-user-astronaut';
                 currentIcon = savedIcon;
@@ -804,10 +1085,23 @@
                 document.getElementById('phoneNumber').innerHTML = user.phone || '—';
                 document.getElementById('currency').innerHTML = user.currency || 'USD';
                 document.getElementById('memberSince').innerHTML = user.created_at ? new Date(user.created_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—';
-            } catch(e) { console.error(e); }
+                
+                // Stats
+                const transactions = user.transactions || [];
+                document.getElementById('statTransactions').textContent = transactions.length;
+                document.getElementById('statAccounts').textContent = user.accounts?.length || 1;
+                document.getElementById('statBalance').textContent = user.totalBalance ? `$${user.totalBalance.toFixed(2)}` : '$0.00';
+                
+                showLoading(false);
+            } catch(e) { 
+                console.error(e);
+                showLoading(false);
+            }
         }
 
-        // ===== ICON SELECTOR =====
+        // ============================================================
+        // ICON SELECTOR
+        // ============================================================
         function openIconSelector() {
             const grid = document.getElementById('iconGrid');
             grid.innerHTML = '';
@@ -835,31 +1129,56 @@
                 closeModal('iconModal');
                 Swal.fire({
                     icon: 'success',
-                    title: 'Avatar Updated!',
-                    timer: 1500,
+                    title: '🎨 Avatar Updated!',
+                    text: 'Your profile picture has been changed.',
+                    timer: 2000,
                     showConfirmButton: false,
-                    background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                    iconColor: '#C6A43F'
                 });
             }
         }
 
-        // ===== UPDATE PASSWORD =====
+        // ============================================================
+        // UPDATE PASSWORD
+        // ============================================================
         async function updatePassword() {
             const current = document.getElementById('currentPassword').value;
             const newPass = document.getElementById('newPassword').value;
             const confirm = document.getElementById('confirmPassword').value;
 
             if (!current || !newPass) {
-                Swal.fire('Error', 'Please fill all fields', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '⚠️ Missing Fields',
+                    text: 'Please fill in all password fields.',
+                    confirmButtonColor: '#C6A43F',
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                });
                 return;
             }
             if (newPass !== confirm) {
-                Swal.fire('Error', 'Passwords do not match', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '❌ Password Mismatch',
+                    text: 'New passwords do not match.',
+                    confirmButtonColor: '#C6A43F',
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                });
                 return;
             }
             if (newPass.length < 6) {
-                Swal.fire('Error', 'Password must be at least 6 characters', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '⚠️ Weak Password',
+                    text: 'Password must be at least 6 characters long.',
+                    confirmButtonColor: '#C6A43F',
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                });
                 return;
             }
 
@@ -875,21 +1194,45 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire('Success!', 'Your password has been updated.', 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✅ Password Updated!',
+                        text: 'Your password has been changed successfully.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
                     document.getElementById('currentPassword').value = '';
                     document.getElementById('newPassword').value = '';
                     document.getElementById('confirmPassword').value = '';
                 } else {
-                    Swal.fire('Error', data.error || 'Invalid current password', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: '❌ Update Failed',
+                        text: data.error || 'Invalid current password',
+                        confirmButtonColor: '#C6A43F',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
                 }
             } catch(err) {
-                Swal.fire('Error', 'Could not connect to server', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '🔌 Connection Error',
+                    text: 'Could not connect to the server. Please try again.',
+                    confirmButtonColor: '#C6A43F',
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                });
             } finally {
                 showLoading(false);
             }
         }
 
-        // ===== UPDATE PIN =====
+        // ============================================================
+        // UPDATE PIN
+        // ============================================================
         async function updatePin() {
             const curPin = document.getElementById('curPin1').value + document.getElementById('curPin2').value +
                           document.getElementById('curPin3').value + document.getElementById('curPin4').value;
@@ -897,7 +1240,26 @@
                           document.getElementById('newPin3').value + document.getElementById('newPin4').value;
 
             if (curPin.length !== 4 || newPin.length !== 4) {
-                Swal.fire('Error', 'Please enter valid 4-digit PINs', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '⚠️ Invalid PIN',
+                    text: 'Please enter valid 4-digit PINs.',
+                    confirmButtonColor: '#C6A43F',
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                });
+                return;
+            }
+
+            if (curPin === newPin) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: '⚠️ Same PIN',
+                    text: 'New PIN must be different from current PIN.',
+                    confirmButtonColor: '#C6A43F',
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                });
                 return;
             }
 
@@ -913,51 +1275,71 @@
                 });
                 const data = await res.json();
                 if (data.success) {
-                    Swal.fire('Success!', 'Your transaction PIN has been updated.', 'success');
+                    Swal.fire({
+                        icon: 'success',
+                        title: '✅ PIN Updated!',
+                        text: 'Your transaction PIN has been changed successfully.',
+                        timer: 2000,
+                        showConfirmButton: false,
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
                     document.querySelectorAll('.pin-inputs input').forEach(i => i.value = '');
                 } else {
-                    Swal.fire('Error', data.error || 'Invalid current PIN', 'error');
+                    Swal.fire({
+                        icon: 'error',
+                        title: '❌ Update Failed',
+                        text: data.error || 'Invalid current PIN',
+                        confirmButtonColor: '#C6A43F',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                    });
                 }
             } catch(err) {
-                Swal.fire('Error', 'Could not connect to server', 'error');
+                Swal.fire({
+                    icon: 'error',
+                    title: '🔌 Connection Error',
+                    text: 'Could not connect to the server. Please try again.',
+                    confirmButtonColor: '#C6A43F',
+                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                });
             } finally {
                 showLoading(false);
             }
         }
 
-        // ===== LOGOUT =====
+        // ============================================================
+        // LOGOUT - PROFESSIONAL BANKING STYLE
+        // ============================================================
         function confirmLogout() {
             Swal.fire({
-                title: 'Logout?',
-                text: 'You will be redirected to the login screen.',
+                title: '👋 Logout',
+                html: `
+                    <div style="text-align:center;">
+                        <p style="color:var(--text-secondary);font-size:14px;">You are about to log out of your account.</p>
+                        <p style="color:var(--text-muted);font-size:12px;margin-top:6px;">Please ensure all transactions are complete.</p>
+                        <div style="margin-top:14px;padding:12px;background:var(--danger-bg);border-radius:12px;border:1px solid var(--danger-border);">
+                            <span style="font-size:13px;color:var(--error);">⚠️ For security, always log out when finished</span>
+                        </div>
+                    </div>
+                `,
                 icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#EF4444',
-                cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Logout',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
-            }).then((result) => {
-                if (result.isConfirmed) { logout(); }
-            });
-        }
-
-        // ===== DELETE ACCOUNT =====
-        function deleteAccount() {
-            Swal.fire({
-                title: 'Delete Account?',
-                html: 'This action is <strong>permanent</strong> and cannot be undone.<br>All your data will be lost.',
-                icon: 'error',
                 showCancelButton: true,
                 confirmButtonColor: '#DC2626',
                 cancelButtonColor: '#6B7280',
-                confirmButtonText: 'Yes, Delete My Account',
-                background: document.body.getAttribute('data-theme') === 'dark' ? '#16213E' : '#fff',
-                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                confirmButtonText: '🔒 Logout',
+                cancelButtonText: 'Cancel',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                borderRadius: '16px',
+                iconColor: '#F59E0B'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    Swal.fire('Account Deleted', 'Your account has been removed.', 'info');
-                    logout();
+                    showLoading(true);
+                    setTimeout(() => {
+                        logout();
+                    }, 800);
                 }
             });
         }
@@ -965,16 +1347,102 @@
         function logout() {
             localStorage.removeItem('token');
             localStorage.removeItem('user');
+            localStorage.removeItem('profileIcon');
             window.location.href = '/';
         }
 
-        // ===== INIT =====
+        // ============================================================
+        // DELETE ACCOUNT
+        // ============================================================
+        function deleteAccount() {
+            Swal.fire({
+                title: '⚠️ Delete Account',
+                html: `
+                    <div style="text-align:center;">
+                        <p style="color:var(--error);font-weight:600;">This action is <strong>permanent</strong>!</p>
+                        <p style="color:var(--text-secondary);font-size:14px;margin-top:8px;">All your data, transactions, and account details will be <strong>permanently deleted</strong>.</p>
+                        <p style="color:var(--text-muted);font-size:12px;margin-top:8px;">This cannot be undone.</p>
+                        <div style="margin-top:14px;padding:12px;background:var(--danger-bg);border-radius:12px;border:2px solid var(--error);">
+                            <span style="font-size:13px;color:var(--error);">🚨 Are you sure you want to delete your account?</span>
+                        </div>
+                    </div>
+                `,
+                icon: 'error',
+                showCancelButton: true,
+                confirmButtonColor: '#DC2626',
+                cancelButtonColor: '#6B7280',
+                confirmButtonText: '🗑️ Yes, Delete',
+                cancelButtonText: 'Cancel',
+                background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                borderRadius: '16px',
+                iconColor: '#EF4444'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Show final warning
+                    Swal.fire({
+                        title: '🔴 Final Warning',
+                        text: 'This will permanently delete your account. Type "DELETE" to confirm.',
+                        icon: 'error',
+                        input: 'text',
+                        inputPlaceholder: 'Type DELETE here',
+                        showCancelButton: true,
+                        confirmButtonColor: '#DC2626',
+                        cancelButtonColor: '#6B7280',
+                        confirmButtonText: 'Delete Forever',
+                        cancelButtonText: 'Cancel',
+                        background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                        color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827',
+                        borderRadius: '16px',
+                        iconColor: '#EF4444',
+                        preConfirm: (value) => {
+                            if (value !== 'DELETE') {
+                                Swal.showValidationMessage('❌ Please type DELETE exactly to confirm');
+                            }
+                            return value;
+                        }
+                    }).then((result) => {
+                        if (result.isConfirmed && result.value === 'DELETE') {
+                            showLoading(true);
+                            setTimeout(() => {
+                                // Here you would call API to delete account
+                                Swal.fire({
+                                    icon: 'info',
+                                    title: '🗑️ Account Deleted',
+                                    text: 'Your account has been permanently removed.',
+                                    timer: 2000,
+                                    showConfirmButton: false,
+                                    background: document.body.getAttribute('data-theme') === 'dark' ? '#0C1425' : '#fff',
+                                    color: document.body.getAttribute('data-theme') === 'dark' ? '#fff' : '#111827'
+                                }).then(() => {
+                                    logout();
+                                });
+                            }, 1000);
+                        }
+                    });
+                }
+            });
+        }
+
+        // ============================================================
+        // INIT
+        // ============================================================
         const token = localStorage.getItem('token');
         if (!token && window.location.pathname !== '/') {
             window.location.href = '/';
+        } else {
+            showLoading(true);
+            loadProfile();
         }
 
-        loadProfile();
+        // Close modal on backdrop click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if (e.target === this) {
+                    closeModal(this.id);
+                }
+            });
+        });
     </script>
 </body>
 </html>
