@@ -543,10 +543,13 @@
             document.getElementById('txIcon').textContent = typeIcons[tx.type] || '💳';
             document.getElementById('txType').textContent = typeNames[tx.type] || 'Transaction';
 
+            // FORCED DUBAI TIMEZONE
             const txDate = new Date(tx.created_at || tx.completed_at || Date.now());
-            const dateStr = txDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-            const timeStr = txDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            
+            // Use 'en-AE' to format date based on United Arab Emirates standards
+            const dateStr = txDate.toLocaleDateString('en-AE', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Dubai' });
+            const timeStr = txDate.toLocaleTimeString('en-AE', { hour: '2-digit', minute: '2-digit', second: '2-digit', timeZone: 'Asia/Dubai' });
+            const timezone = 'Asia/Dubai';
             
             document.getElementById('receiptDate').textContent = `${dateStr} • ${timezone}`;
             document.getElementById('txTime').textContent = `${dateStr} at ${timeStr}`;
